@@ -1,4 +1,4 @@
-package com.stredm.flume.util;
+package com.stredm.android.util;
 
 import java.io.IOException;
 import java.io.InputStream;

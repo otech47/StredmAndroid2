@@ -1,4 +1,4 @@
-package com.stredm.flume;
+package com.stredm.android;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -7,11 +7,11 @@ import java.util.List;
 import android.app.Application;
 import android.content.res.Configuration;
 
-import com.stredm.flume.object.Artist;
-import com.stredm.flume.object.Event;
-import com.stredm.flume.object.Genre;
-import com.stredm.flume.object.Radiomix;
-import com.stredm.flume.object.Set;
+import com.stredm.android.object.Artist;
+import com.stredm.android.object.Event;
+import com.stredm.android.object.Genre;
+import com.stredm.android.object.Radiomix;
+import com.stredm.android.object.Set;
 
 public class StredmApplication extends Application {
 	private List<Set> playlist;

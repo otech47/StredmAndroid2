@@ -1,4 +1,4 @@
-package com.stredm.flume.task;
+package com.stredm.android.task;
 
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -7,8 +7,8 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
 
-import com.stredm.flume.BitmapCache;
-import com.stredm.flume.ViewHolder;
+import com.stredm.android.BitmapCache;
+import com.stredm.android.ViewHolder;
 
 public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
 	private final ViewHolder viewHolder;

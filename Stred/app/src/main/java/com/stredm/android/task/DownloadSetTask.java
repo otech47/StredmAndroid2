@@ -1,4 +1,4 @@
-package com.stredm.flume.task;
+package com.stredm.android.task;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -14,9 +14,9 @@ import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat.Builder;
 
-import com.stredm.flume.DatabaseHandler;
-import com.stredm.flume.R;
-import com.stredm.flume.object.Set;
+import com.stredm.android.DatabaseHandler;
+import com.stredm.android.R;
+import com.stredm.android.object.Set;
 
 // usually, subclasses of AsyncTask are declared inside the activity class.
 // that way, you can easily modify the UI thread from here

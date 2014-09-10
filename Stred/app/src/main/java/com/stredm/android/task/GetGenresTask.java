@@ -1,4 +1,4 @@
-package com.stredm.flume.task;
+package com.stredm.android.task;
 
 import java.io.IOException;
 
@@ -6,8 +6,8 @@ import android.content.Context;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
-import com.stredm.flume.OnTaskCompleted;
-import com.stredm.flume.object.Genre;
+import com.stredm.android.OnTaskCompleted;
+import com.stredm.android.object.Genre;
 
 public class GetGenresTask extends GetTask<Genre> {
 	

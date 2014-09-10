@@ -1,4 +1,4 @@
-package com.stredm.flume.task;
+package com.stredm.android.task;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,9 +9,9 @@ import android.content.Context;
 import android.util.JsonReader;
 import android.util.JsonToken;
 
-import com.stredm.flume.OnTaskCompleted;
-import com.stredm.flume.object.Set;
-import com.stredm.flume.object.Track;
+import com.stredm.android.OnTaskCompleted;
+import com.stredm.android.object.Set;
+import com.stredm.android.object.Track;
 
 public class GetSetsTask extends GetTask<Set> {
 

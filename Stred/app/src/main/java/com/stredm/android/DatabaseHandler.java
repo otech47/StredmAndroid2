@@ -1,4 +1,4 @@
-package com.stredm.flume;
+package com.stredm.android;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,7 +16,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.stredm.flume.object.Set;
+import com.stredm.android.object.Set;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -127,7 +127,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 
 		Resources res = context.getResources();
 		Bitmap pic = BitmapFactory
-				.decodeResource(res, R.drawable.logo_bg_white);
+				.decodeResource(res, R.drawable.logo);
 		int height = (int) res
 				.getDimension(android.R.dimen.notification_large_icon_height);
 		int width = (int) res

@@ -1,4 +1,4 @@
-package com.stredm.flume.object;
+package com.stredm.android.object;
 
 
 public class Radiomix {

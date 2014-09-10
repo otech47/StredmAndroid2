@@ -1,9 +1,9 @@
-package com.stredm.flume.object;
+package com.stredm.android.object;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import com.stredm.flume.util.TimeUtils;
+import com.stredm.android.util.TimeUtils;
 
 public class Set {
 	private String mId;

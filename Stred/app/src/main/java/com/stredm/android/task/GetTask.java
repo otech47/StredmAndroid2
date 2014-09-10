@@ -1,4 +1,4 @@
-package com.stredm.flume.task;
+package com.stredm.android.task;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,8 +9,8 @@ import android.os.AsyncTask;
 import android.util.JsonReader;
 import android.widget.Toast;
 
-import com.stredm.flume.OnTaskCompleted;
-import com.stredm.flume.util.HttpUtils;
+import com.stredm.android.OnTaskCompleted;
+import com.stredm.android.util.HttpUtils;
 
 public class GetTask<T> extends AsyncTask<String, Void, List<T>> {
 	private final OnTaskCompleted<T> listener;

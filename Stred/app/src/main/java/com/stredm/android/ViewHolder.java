@@ -1,4 +1,4 @@
-package com.stredm.flume;
+package com.stredm.android;
 
 import android.widget.ImageButton;
 import android.widget.ImageView;
