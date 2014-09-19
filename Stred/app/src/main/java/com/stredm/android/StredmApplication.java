@@ -10,7 +10,7 @@ import android.content.res.Configuration;
 import com.stredm.android.object.Artist;
 import com.stredm.android.object.Event;
 import com.stredm.android.object.Genre;
-import com.stredm.android.object.Radiomix;
+import com.stredm.android.object.Mix;
 import com.stredm.android.object.Set;
 
 public class StredmApplication extends Application {
@@ -18,7 +18,7 @@ public class StredmApplication extends Application {
 	private List<Set> playlistShuffled;
 	private List<Artist> artists;
 	private List<Event> events;
-	private List<Radiomix> radiomixes;
+	private List<Mix> mixes;
 	private List<Genre> genres;
 	private int playlistLength = 0;
 
@@ -85,12 +85,12 @@ public class StredmApplication extends Application {
 		this.events = events;
 	}
 
-	public List<Radiomix> getRadiomixes() {
-		return radiomixes;
+	public List<Mix> getMixes() {
+		return mixes;
 	}
 
-	public void setRadiomixes(List<Radiomix> radiomixes) {
-		this.radiomixes = radiomixes;
+	public void setMixes(List<Mix> mixes) {
+		this.mixes = mixes;
 	}
 
 	public List<Genre> getGenres() {

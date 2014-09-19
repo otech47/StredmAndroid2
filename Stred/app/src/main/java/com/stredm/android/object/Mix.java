@@ -1,17 +1,17 @@
 package com.stredm.android.object;
 
 
-public class Radiomix {
+public class Mix {
 	private String mId;
 	private String mRadiomix;
 
-	public Radiomix() {
+	public Mix() {
 		// default testing values
 		this("-1",
 			"radiomix");
 	}
 	
-	public Radiomix(String id, String radiomix) {
+	public Mix(String id, String radiomix) {
 		setId(id);
 		setRadiomix(radiomix);
 	}

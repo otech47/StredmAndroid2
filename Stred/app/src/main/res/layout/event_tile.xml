@@ -1,71 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content" android:layout_height="wrap_content">
+    android:layout_width="wrap_content" android:layout_height="250dp"
+    android:background="#ff000000">
 
     <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/imageView"
-        android:src="@drawable/defqon"
-        android:layout_centerVertical="true"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        android:id="@+id/image"
+        android:src="@drawable/logo"
         android:layout_centerHorizontal="true" />
 
     <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Location Text"
-        android:id="@+id/textView"
-        android:layout_alignBottom="@+id/imageView"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textColor="#ffffff"
-        android:paddingTop="5dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:paddingBottom="10dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="Date Text"
-        android:id="@+id/textView2"
-        android:layout_alignBottom="@+id/imageView"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:textColor="#ffffff"
-        android:padding="10dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Event Text"
-        android:id="@+id/textView3"
-        android:layout_above="@+id/textView"
+        android:id="@+id/event"
+        android:layout_above="@+id/cityDateContainer"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:textColor="#ffffff"
         android:paddingTop="5dp"
         android:paddingBottom="5dp"
         android:paddingLeft="10dp"
-        android:paddingRight="10dp" />
+        android:paddingRight="10dp"
+        android:background="#55aba5bc"
+        android:textSize="25dp" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
         android:text="Category Text"
-        android:id="@+id/textView4"
-        android:layout_above="@+id/textView3"
+        android:id="@+id/type"
+        android:layout_above="@+id/event"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:textColor="#ffffff"
-        android:paddingBottom="5dp"
-        android:paddingTop="10dp"
-        android:paddingRight="10dp"
-        android:paddingLeft="10dp" />
+        android:padding="8dp"
+        android:background="#88bf55ec" />
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:id="@+id/cityDateContainer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/image"
+        android:baselineAligned="false">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="City, State"
+            android:id="@+id/city"
+            android:textColor="#ffffff"
+            android:layout_gravity="center"
+            android:padding="10dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:text="Date Text"
+            android:id="@+id/date"
+            android:textColor="#ffffff"
+            android:layout_gravity="center"
+            android:padding="10dp"
+            android:layout_weight="1" />
+
+    </LinearLayout>
 
 </RelativeLayout>
