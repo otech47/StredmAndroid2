@@ -14,6 +14,9 @@ public class ApiResponseCache {
 
     public void addToCache(ApiResponse res) {
         cache.add(res);
+        if(cache.size() > 5) {
+            cache.remove(0);
+        }
     }
 
 

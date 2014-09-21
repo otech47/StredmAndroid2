@@ -1,14 +1,17 @@
 package com.stredm.android;
 
-public class Payload {
+public class Payload<T> {
 
-    public Model[] featured;
+    public String modelName;
+    public T model;
 
-    public Payload(Model[] featured) {
-        this.featured = featured;
+    public Payload(T data, String type) {
+        this.modelName = type;
+        this.model = data;
     }
 
-    public Model[] getFeatured() {
-        return featured;
+    public T getModel() {
+        return model;
     }
+
 }

@@ -3,6 +3,66 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#ff16ff00">
+    android:background="#88000000"
+    android:paddingTop="?android:attr/actionBarSize">
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#00000000">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:id="@+id/locationImage"
+            android:src="@drawable/ic_action_place"/>
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Current Location"
+            android:inputType="textPostalAddress"
+            android:ems="10"
+            android:id="@+id/locationText" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:background="#00000000">
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@drawable/ic_action_event"
+            android:id="@+id/dateImage" />
+
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:text="Current Date"
+            android:inputType="date"
+            android:ems="10"
+            android:id="@+id/dateText" />
+    </LinearLayout>
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView"
+        android:clickable="false"
+        android:background="#ffe3ff00">
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/searchResults">
+        </LinearLayout>
+
+    </ScrollView>
 
 </LinearLayout>

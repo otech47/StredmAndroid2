@@ -1,76 +1,104 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="wrap_content" android:layout_height="250dp"
+    android:layout_width="match_parent"
+    android:layout_height="300dp"
     android:background="#ff000000">
 
     <ImageView
-        android:layout_width="fill_parent"
-        android:layout_height="fill_parent"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
         android:id="@+id/image"
         android:src="@drawable/logo"
-        android:layout_centerHorizontal="true" />
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Event Text"
-        android:id="@+id/event"
-        android:layout_above="@+id/cityDateContainer"
-        android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textColor="#ffffff"
-        android:paddingTop="5dp"
-        android:paddingBottom="5dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:background="#55aba5bc"
-        android:textSize="25dp" />
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerCrop"/>
 
-    <TextView
+    <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Category Text"
-        android:id="@+id/type"
-        android:layout_above="@+id/event"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:textColor="#ffffff"
-        android:padding="8dp"
-        android:background="#88bf55ec" />
+        android:layout_height="120dp"
+        android:id="@+id/infoContainer"
+        android:layout_alignParentBottom="true"
+        android:background="@drawable/transparent_gradient">
 
-    <LinearLayout
-        android:orientation="horizontal"
-        android:id="@+id/cityDateContainer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignBottom="@+id/image"
-        android:baselineAligned="false">
+        <LinearLayout
+            android:orientation="horizontal"
+            android:id="@+id/cityDateContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:baselineAligned="false"
+            android:padding="10dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="City, State"
+                android:id="@+id/city"
+                android:textColor="#ffffff"
+                android:layout_gravity="center"
+                android:layout_weight=".6"
+                android:inputType="text"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit ="marquee_forever"
+                android:scrollHorizontally="true"
+                android:focusable="true" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:textAppearance="?android:attr/textAppearanceMedium"
+                android:text="Date Text"
+                android:id="@+id/date"
+                android:textColor="#ffffff"
+                android:layout_weight=".4"
+                android:singleLine="true"
+                android:ellipsize="marquee"
+                android:marqueeRepeatLimit ="marquee_forever"
+                android:scrollHorizontally="true"
+                android:focusable="true" />
+
+        </LinearLayout>
 
         <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="City, State"
-            android:id="@+id/city"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="Event Text"
+            android:id="@+id/event"
+            android:layout_above="@id/cityDateContainer"
+            android:layout_alignParentStart="true"
             android:textColor="#ffffff"
-            android:layout_gravity="center"
-            android:padding="10dp"
-            android:layout_weight="1" />
+            android:textSize="25sp"
+            android:textStyle="bold"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:paddingBottom="0dp"
+            android:paddingLeft="8dp"
+            android:paddingTop="8dp"
+            android:paddingRight="8dp" />
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:textAppearance="?android:attr/textAppearanceMedium"
-            android:text="Date Text"
-            android:id="@+id/date"
-            android:textColor="#ffffff"
-            android:layout_gravity="center"
-            android:padding="10dp"
-            android:layout_weight="1" />
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:paddingStart="8dp"
+            android:layout_above="@id/event">
 
-    </LinearLayout>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?android:attr/textAppearanceSmall"
+                android:text="Category Text"
+                android:id="@+id/type"
+                android:textColor="#ffffff"
+                android:padding="8dp"
+                android:background="#ffbf55ec" />
+        </LinearLayout>
+
+    </RelativeLayout>
 
 </RelativeLayout>

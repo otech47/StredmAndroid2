@@ -1,39 +1,111 @@
 package com.stredm.android;
 
+import android.content.Context;
 import android.os.Bundle;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
 
 import com.stredm.android.task.ApiCallTask;
+import com.stredm.android.task.TileGenerator;
+
+import java.util.List;
 
 public class EventPageFragment extends Fragment {
 
     public static final String ARG_OBJECT = "page";
-    public ApiResponse res;
+    public ApiResponse res = null;
+    public Context context;
+    public View rootView;
+    public Integer page;
+    public ModelsContentProvider modelsCP;
+    public TileGenerator tileGen;
+    public ViewPager eventViewPager;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
+    public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        String featured = "featured";
-        ApiCallTask artistCall = new ApiCallTask(getActivity().getApplicationContext(), this);
-        artistCall.execute(featured);
+        this.tileGen = ((EventPagerActivity)getActivity()).tileGen;
+        context = getActivity().getApplicationContext();
+        this.modelsCP = ((EventPagerActivity)getActivity()).modelsCP;
+        this.eventViewPager = ((EventPagerActivity)getActivity()).eventViewPager;
+        Bundle args = getArguments();
+        page = args.getInt(ARG_OBJECT);
+        Log.v("LINE 33 ONCREATE", page.toString());
+        if(savedInstanceState == null) {
+            String apiRoute = "upcoming";
+            if(page == 2)
+                apiRoute = "featured";
+            ApiCallTask apiCall = new ApiCallTask(context, this);
+            apiCall.execute(apiRoute);
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        Bundle args = getArguments();
-        int page = args.getInt(ARG_OBJECT);
-        View rootView = null;
-        if(page == 3) {
-            rootView = inflater.inflate(R.layout.events_finder, container, false);
-        }
-        else {
+        if(page == 1) {
             rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
         }
+        else if(page == 2) {
+            rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
+        }
+        else if(page == 3) {
+            rootView = inflater.inflate(R.layout.events_finder, container, false);
+        }
         return rootView;
+    }
+
+    @Override
+    public void onViewStateRestored(@Nullable Bundle savedInstanceState) {
+        super.onViewStateRestored(savedInstanceState);
+        Log.v("restoring view state", page.toString());
+        if(res != null) {
+            if(page == 1) {
+                Log.v("page 1 regenerate", modelsCP.upcomingEvents.toString());
+                tileGen.modelsToEventTiles(modelsCP.upcomingEvents, rootView);
+            }
+            else if(page == 2) {
+                Log.v("page 2 regenerate", modelsCP.recentEvents.toString());
+                tileGen.modelsToEventTiles(modelsCP.recentEvents, rootView);
+            }
+            else if(page == 3) {
+                Log.v("page 3 regenerate", modelsCP.recentEvents.toString());
+                tileGen.modelsToEventSearchTiles(modelsCP.upcomingEvents, rootView);
+            }
+        }
+    }
+
+    public void onApiResponse(ApiResponse apiResponse) {
+        Log.v("api response received", page.toString());
+        if(page == 1) {
+            res = apiResponse;
+            Log.v("page 1 generate", ((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents.toString());
+            modelsCP.setModel(((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents, "upcomingEvents");
+            tileGen.modelsToEventTiles(modelsCP.upcomingEvents, rootView);
+        }
+        else if(page == 2) {
+            res = apiResponse;
+            Log.v("page 2 generate", (((Payload<List<Model>>)apiResponse.payload).model.toString()));
+            modelsCP.setModel(((Payload<List<Model>>)apiResponse.payload).model, "recentEvents");
+            View returnedView = tileGen.modelsToEventTiles(modelsCP.recentEvents, rootView);
+            for(int i = 0 ; i < ((ViewGroup)returnedView).getChildCount(); i++) {
+                TextView type = (TextView)((ViewGroup)returnedView).getChildAt(i).findViewById(R.id.type);
+                type.setText("recent");
+                type.setBackgroundResource(R.color.setmine_blue);
+            }
+        }
+        else if(page == 3) {
+            res = apiResponse;
+            Log.v("page 3 generate", ((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents.toString());
+            modelsCP.setModel(((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents, "upcomingEvents");
+            tileGen.modelsToEventSearchTiles(modelsCP.upcomingEvents, rootView);
+        }
     }
 
 }

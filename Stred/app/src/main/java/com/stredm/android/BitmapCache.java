@@ -3,9 +3,9 @@ package com.stredm.android;
 import android.graphics.Bitmap;
 import android.support.v4.util.LruCache;
 
-public interface BitmapCache{
+public interface BitmapCache {
 
-	final int maxMemory = (int) (Runtime.getRuntime().maxMemory() / 1024);
+	final int maxMemory = (int) (Runtime.getRuntime().maxMemory());
 
     final int cacheSize = maxMemory / 8;
 
