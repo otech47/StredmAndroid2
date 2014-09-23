@@ -1,0 +1,10 @@
+<ImageView xmlns:android="http://schemas.android.com/apk/res/android" 
+    android:id="@+id/overflow_list_item_button"
+    style="?android:attr/dropDownItemStyle"
+    android:textAppearance="?android:attr/textAppearanceLargePopupMenu"
+    android:singleLine="true"
+    android:layout_width="match_parent"
+	android:paddingBottom="10dp"
+	android:paddingTop="10dp"
+    android:layout_height="?android:attr/listPreferredItemHeight"
+    android:ellipsize="marquee" />

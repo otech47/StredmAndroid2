@@ -9,4 +9,6 @@
     <color name="setmine_blue_50_alpha">#7759ABE3</color>
     <color name="setmine_purple_25__alpha">#33BF55EC</color>
     <color name="setmine_blue_25_alpha">#3359ABE3</color>
+    <color name="player_background">#F7F7F7</color>
+    <color name="tab_background">#F7F7F7</color>
 </resources>
