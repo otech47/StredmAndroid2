@@ -39,7 +39,7 @@ public class ModelsContentProvider {
 //    @Override
 //    public boolean onCreate() {
         // Initialize only upcomingEvents and recentEvents through API call
-//        ApiCallTask recentEventsCall = new ApiCallTask(getContext());
+//        LoadEventsTask recentEventsCall = new LoadEventsTask(getContext());
 //        try {
 //            ApiResponse response = recentEventsCall.execute("featured").get();
 //        } catch (InterruptedException e) {
@@ -47,7 +47,7 @@ public class ModelsContentProvider {
 //        } catch (ExecutionException e) {
 //            e.printStackTrace();
 //        }
-//        ApiCallTask upcomingEventsCall = new ApiCallTask(getContext());
+//        LoadEventsTask upcomingEventsCall = new LoadEventsTask(getContext());
 //        try {
 //            ApiResponse response = recentEventsCall.execute("upcoming").get();
 //        } catch (InterruptedException e) {

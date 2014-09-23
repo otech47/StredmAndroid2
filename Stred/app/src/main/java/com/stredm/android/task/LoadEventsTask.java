@@ -17,18 +17,20 @@ import com.stredm.android.util.HttpUtils;
 import java.io.InputStreamReader;
 
 
-public class ApiCallTask extends AsyncTask<String, Integer, ApiResponse> {
+public class LoadEventsTask extends AsyncTask<String, Integer, ApiResponse> {
 
     private ApiResponse response;
     private Context context;
     private HttpUtils apiCallsManager;
     private EventPageFragment epFragment;
     public GsonBuilder gsonBuilder = new GsonBuilder();
+    private static final int API_VERSION = 1;
+    private String apiUrl = "http://stredm.com/api/v/" + API_VERSION + "/";
 
-    public ApiCallTask(Context context, EventPageFragment fragment) {
+    public LoadEventsTask(Context context, EventPageFragment fragment) {
         this.context = context;
         this.epFragment = fragment;
-        apiCallsManager = new HttpUtils(context);
+        apiCallsManager = new HttpUtils(context, apiUrl);
     }
 
     @Override
@@ -39,6 +41,7 @@ public class ApiCallTask extends AsyncTask<String, Integer, ApiResponse> {
         gsonBuilder.registerTypeAdapter(UpcomingModel.class, new UpcomingModelDeserializer());
         Gson gson = gsonBuilder.create();
         response = gson.fromJson(reader, ApiResponse.class);
+        apiCallsManager.closeReader();
         return response;
     }
 

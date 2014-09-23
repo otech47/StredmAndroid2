@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/eventDetailContainer"
+    android:background="#FFFFFFFF">
+
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView" >
+
+        <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="150dp"
+                android:id="@+id/eventImage"
+                android:src="@drawable/logo"
+                android:scaleType="centerCrop"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:text="Event Text"
+                android:gravity="center"
+                android:textSize="25dp"
+                android:textColor="#FFFFFFFF"
+                android:background="@color/setmine_purple"
+                android:id="@+id/eventText"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:text="Location"
+                android:gravity="bottom|left"
+                android:padding="5dp"
+                android:background="#BB000000"
+                android:textColor="#FFFFFFFF"
+                android:id="@+id/locationText" />
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:id="@+id/mapView" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:text="Date"
+                android:gravity="bottom|left"
+                android:id="@+id/dateText"
+                android:padding="5dp"
+                android:background="#BB000000"
+                android:textColor="#FFFFFFFF"
+                />
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/dateTilesContainer" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/lineup"
+                android:id="@+id/lineupText"
+                android:gravity="bottom|left"
+                android:padding="5dp"
+                android:background="#BB000000"
+                android:textColor="#FFFFFFFF"/>
+
+            <LinearLayout
+                android:orientation="vertical"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/lineupContainer" />
+
+        </LinearLayout>
+
+    </ScrollView>
+
+</RelativeLayout>

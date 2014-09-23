@@ -9,9 +9,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
 
-import com.stredm.android.task.ApiCallTask;
+import com.stredm.android.task.LoadEventsTask;
 import com.stredm.android.task.TileGenerator;
 
 import java.util.List;
@@ -41,7 +40,7 @@ public class EventPageFragment extends Fragment {
             String apiRoute = "upcoming";
             if(page == 2)
                 apiRoute = "featured";
-            ApiCallTask apiCall = new ApiCallTask(context, this);
+            LoadEventsTask apiCall = new LoadEventsTask(context, this);
             apiCall.execute(apiRoute);
         }
     }
@@ -68,14 +67,17 @@ public class EventPageFragment extends Fragment {
         if(res != null) {
             if(page == 1) {
                 Log.v("page 1 regenerate", modelsCP.upcomingEvents.toString());
-                tileGen.modelsToEventTiles(modelsCP.upcomingEvents, rootView);
+                tileGen.eventPageFragment = this;
+                tileGen.modelsToUpcomingEventTiles(modelsCP.upcomingEvents, rootView);
             }
             else if(page == 2) {
                 Log.v("page 2 regenerate", modelsCP.recentEvents.toString());
-                tileGen.modelsToEventTiles(modelsCP.recentEvents, rootView);
+                tileGen.eventPageFragment = this;
+                tileGen.modelsToRecentEventTiles(modelsCP.recentEvents, rootView);
             }
             else if(page == 3) {
                 Log.v("page 3 regenerate", modelsCP.recentEvents.toString());
+                tileGen.eventPageFragment = this;
                 tileGen.modelsToEventSearchTiles(modelsCP.upcomingEvents, rootView);
             }
         }
@@ -87,23 +89,20 @@ public class EventPageFragment extends Fragment {
             res = apiResponse;
             Log.v("page 1 generate", ((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents.toString());
             modelsCP.setModel(((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents, "upcomingEvents");
-            tileGen.modelsToEventTiles(modelsCP.upcomingEvents, rootView);
+            tileGen.eventPageFragment = this;
+            tileGen.modelsToUpcomingEventTiles(modelsCP.upcomingEvents, rootView);
         }
         else if(page == 2) {
             res = apiResponse;
             Log.v("page 2 generate", (((Payload<List<Model>>)apiResponse.payload).model.toString()));
             modelsCP.setModel(((Payload<List<Model>>)apiResponse.payload).model, "recentEvents");
-            View returnedView = tileGen.modelsToEventTiles(modelsCP.recentEvents, rootView);
-            for(int i = 0 ; i < ((ViewGroup)returnedView).getChildCount(); i++) {
-                TextView type = (TextView)((ViewGroup)returnedView).getChildAt(i).findViewById(R.id.type);
-                type.setText("recent");
-                type.setBackgroundResource(R.color.setmine_blue);
-            }
+            tileGen.modelsToRecentEventTiles(modelsCP.recentEvents, rootView);
         }
         else if(page == 3) {
             res = apiResponse;
             Log.v("page 3 generate", ((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents.toString());
             modelsCP.setModel(((Payload<UpcomingModel>) apiResponse.payload).model.closestEvents, "upcomingEvents");
+            tileGen.eventPageFragment = this;
             tileGen.modelsToEventSearchTiles(modelsCP.upcomingEvents, rootView);
         }
     }

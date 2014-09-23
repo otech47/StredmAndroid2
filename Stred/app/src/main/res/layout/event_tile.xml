@@ -2,12 +2,12 @@
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="300dp"
+    android:layout_height="350dp"
     android:background="#ff000000">
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="300dp"
+        android:layout_height="350dp"
         android:id="@+id/image"
         android:src="@drawable/logo"
         android:layout_alignParentStart="true"
@@ -16,7 +16,7 @@
 
     <RelativeLayout
         android:layout_width="wrap_content"
-        android:layout_height="120dp"
+        android:layout_height="200dp"
         android:id="@+id/infoContainer"
         android:layout_alignParentBottom="true"
         android:background="@drawable/transparent_gradient">
@@ -31,36 +31,49 @@
             android:padding="10dp">
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="City, State"
                 android:id="@+id/city"
-                android:textColor="#ffffff"
-                android:layout_gravity="center"
+                android:textColor="#ddeeeeee"
+                android:layout_gravity="bottom"
                 android:layout_weight=".6"
-                android:inputType="text"
+                android:textSize="20sp"
                 android:singleLine="true"
                 android:ellipsize="marquee"
                 android:marqueeRepeatLimit ="marquee_forever"
                 android:scrollHorizontally="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:paddingRight="5dp"/>
 
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="match_parent"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceMedium"
                 android:text="Date Text"
                 android:id="@+id/date"
-                android:textColor="#ffffff"
+                android:textColor="#bbcccccc"
+                android:layout_gravity="bottom|right"
                 android:layout_weight=".4"
+                android:textSize="15sp"
                 android:singleLine="true"
                 android:ellipsize="marquee"
                 android:marqueeRepeatLimit ="marquee_forever"
                 android:scrollHorizontally="true"
-                android:focusable="true" />
+                android:focusable="true"
+                android:paddingLeft="5dp"/>
 
         </LinearLayout>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="50dp"
+            android:text="View Lineup"
+            android:id="@+id/button"
+            android:layout_above="@id/cityDateContainer"
+            android:background="@drawable/transparent_gradient_setmine_purple"
+            android:alpha="50"/>
 
         <TextView
             android:layout_width="match_parent"
@@ -68,7 +81,7 @@
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="Event Text"
             android:id="@+id/event"
-            android:layout_above="@id/cityDateContainer"
+            android:layout_above="@id/button"
             android:layout_alignParentStart="true"
             android:textColor="#ffffff"
             android:textSize="25sp"
@@ -95,8 +108,9 @@
                 android:text="Category Text"
                 android:id="@+id/type"
                 android:textColor="#ffffff"
-                android:padding="8dp"
-                android:background="#ffbf55ec" />
+                android:padding="6dp"
+                android:background="#ffbf55ec"
+                android:textSize="11sp"/>
         </LinearLayout>
 
     </RelativeLayout>

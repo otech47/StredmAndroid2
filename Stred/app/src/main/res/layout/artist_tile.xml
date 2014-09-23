@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="80dp"
+    android:paddingTop="15dp"
+    android:paddingLeft="10dp"
+    android:paddingRight="10dp"
+    android:paddingBottom="15dp"
+    android:background="@drawable/top_bottom_border"
+    android:id="@+id/artist_tile">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/logo"
+        android:scaleType="centerCrop"
+        android:id="@+id/artistImage"
+        android:layout_gravity="center"/>
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="10dp"
+        android:id="@+id/playButton"
+        android:layout_alignParentRight="true"
+        android:src="@drawable/ic_action_play"/>
+
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Artist"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit ="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/artistText"
+        android:textColor="#FF000000"
+        android:layout_toRightOf="@id/artistImage"
+        android:textSize="17sp"
+        android:paddingLeft="10dp"
+        android:paddingBottom="5dp"
+        android:paddingTop="5dp"
+        android:paddingRight="5dp"/>
+
+    <ImageView
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:paddingLeft="8dp"
+        android:id="@+id/playCountIcon"
+        android:src="@drawable/logo_small"
+        android:layout_toRightOf="@id/artistImage"
+        android:layout_below="@id/artistText"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Play Count"
+        android:id="@+id/playCount"
+        android:textColor="#ff00a6ff"
+        android:gravity="bottom"
+        android:layout_toRightOf="@id/playCountIcon"
+        android:layout_alignBottom="@id/playCountIcon"
+        android:layout_below="@id/artistText"
+        android:paddingTop="3sp"
+        android:paddingBottom="3sp"
+        android:paddingLeft="8dp"
+        android:textSize="12sp"/>
+
+
+</RelativeLayout>

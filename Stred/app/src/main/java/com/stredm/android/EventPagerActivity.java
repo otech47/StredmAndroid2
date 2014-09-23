@@ -1,15 +1,20 @@
 package com.stredm.android;
 
+import android.content.Context;
 import android.graphics.Point;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
+import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuInflater;
+import android.view.View;
+import android.widget.TextView;
 
 import com.stredm.android.task.ApiResponseCache;
 import com.stredm.android.task.TileGenerator;
+
+import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class EventPagerActivity extends FragmentActivity {
 
@@ -20,6 +25,8 @@ public class EventPagerActivity extends FragmentActivity {
     public TileGenerator tileGen;
     public Integer screenHeight;
     public Integer screenWidth;
+    public FragmentManager fragmentManager;
+    public Menu menu;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -27,7 +34,8 @@ public class EventPagerActivity extends FragmentActivity {
         modelsCP = new ModelsContentProvider();
         calculateScreenSize();
         setContentView(R.layout.fragment_main);
-        mEventPagerAdapter = new EventPagerAdapter(getSupportFragmentManager());
+        fragmentManager = getSupportFragmentManager();
+        mEventPagerAdapter = new EventPagerAdapter(fragmentManager);
         eventViewPager = (ViewPager) findViewById(R.id.eventpager);
         tileGen = new TileGenerator(getApplicationContext(), eventViewPager);
         eventViewPager.setAdapter(mEventPagerAdapter);
@@ -36,8 +44,7 @@ public class EventPagerActivity extends FragmentActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.main, menu);
+        this.menu = menu;
         getActionBar().setDisplayHomeAsUpEnabled(false);
         return true;
     }
@@ -49,6 +56,21 @@ public class EventPagerActivity extends FragmentActivity {
         screenWidth = size.x;
         Log.v("Height", screenHeight.toString());
         Log.v("Width", screenWidth.toString());
+    }
+
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(new CalligraphyContextWrapper(newBase));
+    }
+
+    public void backButtonPress(View v) {
+        getSupportFragmentManager().popBackStack();
+        v.findViewById(R.id.backButton).setVisibility(View.GONE);
+    }
+
+    public void eventSearch(View v) {
+        String location = ((TextView)v.findViewById(R.id.locationText)).getText().toString();
+        String date = ((TextView)v.findViewById(R.id.dateText)).getText().toString();
     }
 
 }

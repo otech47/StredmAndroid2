@@ -1,7 +1,7 @@
 package com.stredm.android.util;
 
 import android.content.Context;
-import android.net.Uri;
+import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -12,6 +12,7 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -19,35 +20,15 @@ import java.io.InputStreamReader;
 public class HttpUtils {
 	private static final int TIMEOUT_CONNECTION = 10000;
 	private static final int TIMEOUT_SOCKET = 10000;
-    private static final int API_VERSION = 1;
 	private final Context context;
 	private InputStreamReader reader;
-    private String apiUrl = "http://stredm.com/api/v/" + API_VERSION + "/";
+    private String apiUrl;
+    private StringBuilder builder;
 
-	public HttpUtils(Context context) {
-		this.context = context;
-	}
-
-	public InputStreamReader getReaderFromScriptAndParams(String... params) {
-		int len = params.length;
-		String url = "http://stredm.com/api/v/" + API_VERSION + "/";
-		if (len > 0) {
-			if (params[0] instanceof String) {
-				url += params[0];
-			}
-		} else {
-			return null;
-		}
-		Uri uri = Uri.parse(url);
-		if (len == 3) {
-			url = uri.buildUpon().appendQueryParameter("search", params[2])
-					.appendQueryParameter("type", params[1]).toString();
-		} else if (len == 2) {
-			url = uri.buildUpon().appendQueryParameter("search", params[1])
-					.toString();
-		}
-
-		return getReaderFromURL(url);
+	public HttpUtils(Context context, String apiUrl) {
+        this.context = context;
+        this.apiUrl = apiUrl;
+        builder = new StringBuilder();
 	}
 
 	public InputStreamReader getReaderFromURL(String route) {
@@ -78,9 +59,10 @@ public class HttpUtils {
 		return reader;
 	}
 
-    public InputStreamReader getReaderFromFullURL(String fullUrl) {
-        String url = fullUrl;
-        reader = null;
+    public String getJSONStringFromURL(String route) {
+        String url = apiUrl + route;
+        String jsonString = "";
+        Log.v("full url", url);
         try {
             HttpResponse response = null;
             HttpParams httpParameters = new BasicHttpParams();
@@ -98,12 +80,18 @@ public class HttpUtils {
             if (cd.isConnectingToInternet()) {
                 response = httpclient.execute(request);
                 InputStream in = response.getEntity().getContent();
-                reader = new InputStreamReader(in, "UTF-8");
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                String inputString;
+                while((inputString = reader.readLine()) != null) {
+                    builder.append(inputString);
+                }
+                reader.close();
+                jsonString = builder.toString();
             }
         } catch (IOException e) {
             e.printStackTrace();
         }
-        return reader;
+        return jsonString;
     }
 
 	public void closeReader() {

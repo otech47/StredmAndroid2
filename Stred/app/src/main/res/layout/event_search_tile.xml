@@ -13,7 +13,6 @@
         android:src="@drawable/logo"
         android:scaleType="centerCrop"
         android:id="@+id/resultImage"
-        android:layout_weight=".8"
         android:layout_gravity="center"
         android:cropToPadding="true"/>
 
