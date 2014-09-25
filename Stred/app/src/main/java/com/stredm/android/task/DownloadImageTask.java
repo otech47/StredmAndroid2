@@ -54,7 +54,6 @@ public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
                 options.inJustDecodeBounds = false;
                 in = new java.net.URL(imageUrl).openStream();
                 image = BitmapFactory.decodeStream(in, null, options);
-                Log.v("downloaded image ", image.toString());
                 imageCache.addBitmapToMemoryCache(imageUrl, image);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -62,7 +61,6 @@ public class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
         }
         else {
             image = imageCache.getBitmapFromMemCache(imageUrl);
-            Log.v("getting image from cache", image.toString());
         }
 		return image;
 	}

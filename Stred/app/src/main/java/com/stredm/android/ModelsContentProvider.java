@@ -21,6 +21,7 @@ public class ModelsContentProvider {
     private Track[] tracks = null;
     public List<Model> upcomingEvents = null;
     public List<Model> recentEvents = null;
+    public List<Model> searchEvents = null;
 //    private HttpUtils apiCallsManager = new HttpUtils(getContext());
     private Gson gson = new Gson();
 
@@ -33,13 +34,16 @@ public class ModelsContentProvider {
         if(modelName.equals("recentEvents")) {
             recentEvents = model;
         }
+        if(modelName.equals("searchEvents")) {
+            searchEvents = model;
+        }
     }
 
 
 //    @Override
 //    public boolean onCreate() {
         // Initialize only upcomingEvents and recentEvents through API call
-//        LoadEventsTask recentEventsCall = new LoadEventsTask(getContext());
+//        EventApiCallTask recentEventsCall = new EventApiCallTask(getContext());
 //        try {
 //            ApiResponse response = recentEventsCall.execute("featured").get();
 //        } catch (InterruptedException e) {
@@ -47,7 +51,7 @@ public class ModelsContentProvider {
 //        } catch (ExecutionException e) {
 //            e.printStackTrace();
 //        }
-//        LoadEventsTask upcomingEventsCall = new LoadEventsTask(getContext());
+//        EventApiCallTask upcomingEventsCall = new EventApiCallTask(getContext());
 //        try {
 //            ApiResponse response = recentEventsCall.execute("upcoming").get();
 //        } catch (InterruptedException e) {

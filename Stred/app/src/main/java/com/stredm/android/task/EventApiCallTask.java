@@ -17,7 +17,7 @@ import com.stredm.android.util.HttpUtils;
 import java.io.InputStreamReader;
 
 
-public class LoadEventsTask extends AsyncTask<String, Integer, ApiResponse> {
+public class EventApiCallTask extends AsyncTask<String, Integer, ApiResponse> {
 
     private ApiResponse response;
     private Context context;
@@ -27,7 +27,7 @@ public class LoadEventsTask extends AsyncTask<String, Integer, ApiResponse> {
     private static final int API_VERSION = 1;
     private String apiUrl = "http://stredm.com/api/v/" + API_VERSION + "/";
 
-    public LoadEventsTask(Context context, EventPageFragment fragment) {
+    public EventApiCallTask(Context context, EventPageFragment fragment) {
         this.context = context;
         this.epFragment = fragment;
         apiCallsManager = new HttpUtils(context, apiUrl);

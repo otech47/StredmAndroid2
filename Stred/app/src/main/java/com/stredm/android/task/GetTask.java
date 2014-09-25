@@ -1,16 +1,15 @@
 package com.stredm.android.task;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.JsonReader;
 import android.widget.Toast;
 
 import com.stredm.android.OnTaskCompleted;
-import com.stredm.android.util.HttpUtils;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class GetTask<T> extends AsyncTask<String, Void, List<T>> {
 	private final OnTaskCompleted<T> listener;
@@ -43,19 +42,19 @@ public class GetTask<T> extends AsyncTask<String, Void, List<T>> {
 	public List<T> doInBackground(String... params) {
 		List<T> result = new ArrayList<T>();
 
-		HttpUtils http = new HttpUtils(context);
-		JsonReader reader =  new JsonReader(http.getReaderFromScriptAndParams(params));
-		if (reader != null) {
-			try {
-				result = getResourceList(reader);
-			} catch (IOException e) {
-				e.printStackTrace();
-			} finally {
-				http.closeReader();
-			}
-		} else {
-			result = null;
-		}
+//		HttpUtils http = new HttpUtils(context);
+//		JsonReader reader =  new JsonReader(http.getReaderFromScriptAndParams(params));
+//		if (reader != null) {
+//			try {
+//				result = getResourceList(reader);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//			} finally {
+//				http.closeReader();
+//			}
+//		} else {
+//			result = null;
+//		}
 
 		return result;
 	}

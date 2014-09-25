@@ -6,5 +6,6 @@
     <string name="action_search">Search</string>
     <string name="action_settings">Settings</string>
     <string name="slash">/</string>
+    <string name="lineup">Lineup</string>
 </resources>
 

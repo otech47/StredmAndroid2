@@ -1,9 +1,4 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android" >
-    <item android:id="@+id/backButton"
-        android:icon="@drawable/ic_action_previous_item"
-        android:onClick="backButtonPress"
-        android:showAsAction="always"
-        android:visible="false"/>
     <item android:id="@+id/action_search"
         android:icon="@drawable/ic_action_search"
         android:title="@string/action_search"

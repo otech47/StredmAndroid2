@@ -1,17 +1,14 @@
 package com.stredm.android;
 
-import java.util.List;
-
 import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.stredm.android.R;
-import com.stredm.android.ViewHolder;
 import com.stredm.android.object.Set;
-import com.stredm.android.task.DownloadImageTask;
+
+import java.util.List;
 
 public class ListSetAdapter extends ListAdapter<Set> {
 
@@ -49,7 +46,7 @@ public class ListSetAdapter extends ListAdapter<Set> {
 		}
 
 		Set s = mResources.get(position);
-		new DownloadImageTask(holder, this).execute(s.getImage());
+//		new DownloadImageTask(holder, this).execute(s.getArtistImage());
 		String title = s.getArtist() + "\r\n" + s.getEvent();
 		holder.textView.setText(title);
 		return convertView;

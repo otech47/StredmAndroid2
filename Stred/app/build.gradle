@@ -23,7 +23,6 @@ android {
 dependencies {
     compile 'com.android.support:support-v4:20.0.0'
     compile 'com.google.code.gson:gson:2.2.4'
-    compile 'com.google.android.gms:play-services:5.+'
     compile 'uk.co.chrisjenx:calligraphy:0.7.+'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

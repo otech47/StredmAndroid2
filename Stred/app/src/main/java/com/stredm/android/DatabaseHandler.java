@@ -1,12 +1,5 @@
 package com.stredm.android;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.res.Resources;
@@ -17,6 +10,13 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
 import com.stredm.android.object.Set;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class DatabaseHandler extends SQLiteOpenHelper {
 
@@ -84,9 +84,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				set.setArtist(cursor.getString(2));
 				set.setEvent(cursor.getString(3));
 				set.setGenre(cursor.getString(4));
-				set.setImage(cursor.getString(5));
+				set.setArtistImage(cursor.getString(5));
 				set.setSongURL(cursor.getString(6));
-				set.setIsRadiomix((cursor.getInt(7) == 1) ? true : false);
+				set.setIsRadiomix(cursor.getInt(7));
 				set.setIsDownloaded(true);
 
 				setList.add(set);
@@ -113,9 +113,9 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				set.setArtist(cursor.getString(2));
 				set.setEvent(cursor.getString(3));
 				set.setGenre(cursor.getString(4));
-				set.setImage(cursor.getString(5));
+				set.setArtistImage(cursor.getString(5));
 				set.setSongURL(cursor.getString(6));
-				set.setIsRadiomix((cursor.getInt(7) == 1) ? true : false);
+                set.setIsRadiomix(cursor.getInt(6));
 				set.setIsDownloaded(true);
 			} while (cursor.moveToNext());
 		}
@@ -199,7 +199,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 		values.put(KEY_ARTIST, set.getArtist());
 		values.put(KEY_EVENT, set.getEvent());
 		values.put(KEY_GENRE, set.getGenre());
-		values.put(KEY_IMAGE, set.getImage());
+		values.put(KEY_IMAGE, set.getArtistImage());
 		values.put(KEY_SONG, set.getSongURL());
 		values.put(KEY_IS_RADIOMIX, set.isRadiomix());
 
@@ -217,7 +217,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 			for (Set s : sets) {
 				String filePath = f.getPath();
 				if (filePath.equals(s.getSongURL())
-						|| filePath.equals(s.getImage())) {
+						|| filePath.equals(s.getArtistImage())) {
 					deleteThisFile = false;
 				}
 				if (!deleteThisFile) {

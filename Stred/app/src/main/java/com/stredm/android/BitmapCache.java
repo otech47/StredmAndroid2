@@ -5,9 +5,9 @@ import android.support.v4.util.LruCache;
 
 public interface BitmapCache {
 
-	final int maxMemory = (int) (Runtime.getRuntime().maxMemory());
+	final int maxMemory = (int) (Runtime.getRuntime().maxMemory()) / 1024;
 
-    final int cacheSize = maxMemory / 8;
+    final int cacheSize = maxMemory / 4;
 
     LruCache<String, Bitmap> mMemoryCache = new LruCache<String, Bitmap>(cacheSize) {
         @Override

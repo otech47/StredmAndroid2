@@ -1,5 +1,6 @@
 package com.stredm.android;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -30,7 +31,7 @@ import java.util.List;
 /**
  * Created by oscarlafarga on 9/22/14.
  */
-public class EventDetailFragment extends Fragment {
+public class EventDetailFragment extends Fragment implements ImageDownloader{
 
     public View rootView;
     private static final String amazonS3Url = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
@@ -44,51 +45,76 @@ public class EventDetailFragment extends Fragment {
     public ImageCache imageCache;
     public List<HashMap<String, String>> setMapsList;
     public View lineupContainer;
+    public JSONObject savedApiResponse = null;
+    public SetsManager setsManager;
+    public Context context;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Bundle args = getArguments();
+        Log.v("Detail Fragment Created", "");
         setMapsList = new ArrayList<HashMap<String, String>>();
         imageCache = ((EventPagerActivity)getActivity()).tileGen.imageCache;
+        setsManager = ((EventPagerActivity)getActivity()).setsManager;
+        context = getActivity().getApplicationContext();
         GetLineupTask getLineupTask = new GetLineupTask(getActivity().getApplicationContext(), this);
         if(EVENT_TYPE.equals("recent")) {
+            Log.v("Detail Fragment Requesting Sets", "");
             getLineupTask.execute("festival?search="+ Uri.encode(EVENT_NAME));
         }
-        else {
+        else if(EVENT_TYPE.equals("upcoming")) {
+            Log.v("Detail Fragment Requesting Lineup", "");
             getLineupTask.execute("lineup/"+ Uri.encode(EVENT_ID.toString()));
+        }
+        else {
+            Log.v("Detail Fragment has no type", "");
         }
     }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.event_detail, container, false);
-        ((ImageView)rootView.findViewById(R.id.eventImage)).setImageBitmap(imageCache.getBitmapFromMemCache(EVENT_IMAGE));
-        ((TextView)rootView.findViewById(R.id.eventText)).setText(EVENT_NAME);
-        if(EVENT_TYPE == "recent") {
-            ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_blue);
+        Log.v("Detail Fragment View Created", "");
+        if(savedApiResponse == null) {
+            Log.v("Reinflating rootview", "74");
+            rootView = inflater.inflate(R.layout.event_detail, container, false);
+            setImageBackground(EVENT_IMAGE, (ImageView)rootView.findViewById(R.id.eventImage));
+            ((TextView)rootView.findViewById(R.id.eventText)).setText(EVENT_NAME);
+            if(EVENT_TYPE == "recent") {
+                ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_blue);
+                ((TextView)rootView.findViewById(R.id.lineupText)).setText("Sets");
+            }
+            else {
+                ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
+            }
+            ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE);
+            ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_CITY);
+            lineupContainer = rootView.findViewById(R.id.lineupContainer);
+            return rootView;
         }
         else {
-            ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
+            return rootView;
         }
-        ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE);
-        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_CITY);
-        lineupContainer = rootView.findViewById(R.id.lineupContainer);
-        return rootView;
+    }
+
+    @Override
+    public void onDestroyView() {
+        rootView = getView();
+        super.onDestroyView();
     }
 
     public void onApiResponse(JSONObject jsonResponse) {
+        savedApiResponse = jsonResponse;
         try {
             if(EVENT_TYPE.equals("recent")) {
                 if(jsonResponse.getString("status").equals("success")) {
                     JSONArray setsJSON = getSetsFromJson(jsonResponse);
-                    Log.v("rootView", rootView.toString());
                     LayoutInflater inflater = ((EventPagerActivity)lineupContainer.getContext()).getLayoutInflater();
+                    setsManager.clearPlaylist();
                     for (int i = 0; i < setsJSON.length(); i++) {
-                        Log.v("setsJSON", setsJSON.toString());
                         JSONObject set = setsJSON.getJSONObject(i);
-                        View artistTile = inflater.inflate(R.layout.artist_tile, null);
+                        setsManager.addToPlaylist(set);
+                        View artistTile = inflater.inflate(R.layout.artist_tile_recent, null);
                         HashMap<String, String> setMap = new HashMap<String, String>();
                         setMap.put("artist", set.getString("artist"));
                         Log.v("image", set.getString("artistimageURL"));
@@ -103,38 +129,33 @@ public class EventDetailFragment extends Fragment {
                         if(!(setMapsList.get(i).get("artistimageURL").equals("null"))) {
                             setImageBackground(amazonS3Url + setMapsList.get(i).get("artistimageURL"), (ImageView) artistTile.findViewById(R.id.artistImage));
                         }
+                        artistTile.setTag((String)set.getString("id"));
                         ((ViewGroup) lineupContainer).addView(artistTile);
-                        Log.v("lineupcontainer", ((Integer)((ViewGroup) lineupContainer).getChildCount()).toString());
                     }
                 }
             }
             else {
                 if(jsonResponse.getString("status").equals("success")) {
                     JSONArray lineupJSON = getLineupFromJson(jsonResponse);
-                    Log.v("rootView", rootView.toString());
                     LayoutInflater inflater = ((EventPagerActivity)lineupContainer.getContext()).getLayoutInflater();
                     for (int i = 0; i < lineupJSON.length(); i++) {
-                        Log.v("setsJSON", lineupJSON.toString());
                         JSONObject set = lineupJSON.getJSONObject(i);
-                        View artistTile = inflater.inflate(R.layout.artist_tile, null);
+                        View artistTile = inflater.inflate(R.layout.artist_tile_upcoming, null);
                         HashMap<String, String> setMap = new HashMap<String, String>();
                         setMap.put("artist", set.getString("artist"));
                         setMap.put("artistimageURL", set.getString("imageURL"));
                         setMap.put("day", getDayFromDate(EVENT_DATE_UNFORMATTED, set.getInt("day")));
 //                setMap.put("tracklist", set.getString("tracklist"));
 //                setMap.put("starttimes", set.getString("starttimes"));
-                        setMap.put("popularity", set.getString("time"));
+                        setMap.put("time", set.getString("time").substring(0, set.getString("time").length()-3));
 //                setMap.put("songURL", set.getString("songURL"));
                         setMapsList.add(setMap);
-                        ((TextView) artistTile.findViewById(R.id.playCount)).setText(setMapsList.get(i).get("day") + " " + setMapsList.get(i).get("popularity"));
-                        ((ImageView) artistTile.findViewById(R.id.playCountIcon)).setImageResource(R.drawable.ic_action_alarms);
-                        ((ImageView) artistTile.findViewById(R.id.playButton)).setImageResource(R.drawable.logo);
+                        ((TextView) artistTile.findViewById(R.id.setTime)).setText(setMapsList.get(i).get("day") + " " + setMapsList.get(i).get("time"));
                         ((TextView) artistTile.findViewById(R.id.artistText)).setText(setMapsList.get(i).get("artist"));
                         if(!(setMapsList.get(i).get("artistimageURL").equals("null"))) {
                             setImageBackground(amazonS3Url + setMapsList.get(i).get("artistimageURL"), (ImageView) artistTile.findViewById(R.id.artistImage));
                         }
                         ((ViewGroup) lineupContainer).addView(artistTile);
-                        Log.v("lineupcontainer", ((Integer)((ViewGroup) lineupContainer).getChildCount()).toString());
                     }
                 }
             }
@@ -146,18 +167,17 @@ public class EventDetailFragment extends Fragment {
 
     public void setImageBackground(String imageUrl, ImageView imageView) {
         if(imageCache.getBitmapFromMemCache(imageUrl) == null) {
-            DownloadIconTask imageTask = new DownloadIconTask(getActivity().getApplicationContext(), imageCache, imageView, this);
+            DownloadIconTask imageTask = new DownloadIconTask(context, imageCache, imageView, this);
             imageTask.execute(imageUrl);
         }
         else {
             Bitmap image = imageCache.getBitmapFromMemCache(imageUrl);
-            onDownloadImage(imageView, image);
+            onImageDownloaded(imageView, image);
         }
     }
 
-    public void onDownloadImage(ImageView imageView, Bitmap image) {
+    public void onImageDownloaded(ImageView imageView, Bitmap image) {
         imageView.setImageBitmap(image);
-        Log.v("setting image bitmap", image.toString());
     }
 
     public JSONArray getSetsFromJson(JSONObject json) {

@@ -2,10 +2,8 @@ package com.stredm.android.task;
 
 import android.content.Context;
 import android.graphics.Bitmap;
-import android.os.Bundle;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,9 +39,9 @@ public class TileGenerator {
     public EventPageFragment eventPageFragment;
     public List<String> formattedLocation = new ArrayList<String>();
 
-    public TileGenerator(Context context, ViewPager eventViewPager) {
+    public TileGenerator(Context context, ViewPager eventViewPager, ImageCache imageCache) {
         this.context = context;
-        imageCache = new ImageCache();
+        this.imageCache = imageCache;
         this.eventViewPager = eventViewPager;
     }
 
@@ -60,11 +58,10 @@ public class TileGenerator {
 
     public void onDownloadImage(ImageView imageView, Bitmap image) {
         imagesLoaded++;
-        imageView.setImageBitmap(image);
+        if(image != null && imageView != null)
+            imageView.setImageBitmap(image);
 //        Log.v("setting image bitmap", image.toString());
-        if(imagesLoaded >= 3) {
-            eventViewPager.setVisibility(View.VISIBLE);
-        }
+        eventViewPager.setVisibility(View.VISIBLE);
     }
 
 
@@ -91,21 +88,20 @@ public class TileGenerator {
             (eventTile.findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
-                    Bundle args = new Bundle();
                     eventDetailFragment.EVENT_ID = eId;
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
                     eventDetailFragment.EVENT_CITY = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
-                    eventDetailFragment.EVENT_TYPE = "recent";
-                    eventDetailFragment.setArguments(args);
-                    FragmentTransaction transaction = eventPageFragment.getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.fragment_main, eventDetailFragment);
+                    eventDetailFragment.EVENT_TYPE = "upcoming";
+                    FragmentTransaction transaction = eventPageFragment.getActivity().getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
+//                    (((EventPagerActivity) eventPageFragment.getActivity()).mEventPagerAdapter).detailFragmentPosition = 1;
+//                    (((EventPagerActivity) eventPageFragment.getActivity()).mEventPagerAdapter).notifyDataSetChanged();
                     transaction.addToBackStack(null);
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     transaction.commit();
-                    eventPageFragment.getActivity().getActionBar().getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
                 }
             });
             ((ViewGroup) parentView).addView(eventTile);
@@ -140,7 +136,6 @@ public class TileGenerator {
             button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
-                    Bundle args = new Bundle();
                     eventDetailFragment.EVENT_ID = eId;
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
@@ -148,13 +143,12 @@ public class TileGenerator {
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "recent";
-                    eventDetailFragment.setArguments(args);
-                    FragmentTransaction transaction = eventPageFragment.getFragmentManager().beginTransaction();
-                    transaction.replace(R.id.fragment_main, eventDetailFragment);
+                    FragmentTransaction transaction = eventPageFragment.getActivity().getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
                     transaction.addToBackStack(null);
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     transaction.commit();
-                    eventPageFragment.getActivity().getActionBar().getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
+                    ((EventPagerActivity)eventPageFragment.getActivity()).setsManager.clearPlaylist();
                 }
             });
             ((ViewGroup) parentView).addView(eventTile);
@@ -169,12 +163,34 @@ public class TileGenerator {
         for(Model element : models) {
             View eventTile = inflater.inflate(R.layout.event_search_tile, null);
             String imageUrl = serverRoot + "images/" + element.landing_image;
+            final String eName = element.event;
+            final String eDate = formatDateText(element.start_date, element.end_date);
+            final String eDateUnformatted = element.start_date;
+            final String eCity = formatLocationFromAddress(element.address);
+            final String eImage = imageUrl;
+            final Integer eId = element.id;
             ImageView imageView = ((ImageView) eventTile.findViewById(R.id.resultImage));
-            Log.v("Getting Image For ", element.event);
             setImageBackground(imageUrl, imageView);
             ((TextView) eventTile.findViewById(R.id.eventText)).setText(element.event);
             ((TextView) eventTile.findViewById(R.id.dateText)).setText(formatDateText(element.start_date, element.end_date));
             ((TextView) eventTile.findViewById(R.id.locationText)).setText(formatLocationFromAddress(element.address));
+            eventTile.setOnClickListener(new View.OnClickListener() {
+                public void onClick(View v) {
+                    EventDetailFragment eventDetailFragment = new EventDetailFragment();
+                    eventDetailFragment.EVENT_ID = eId;
+                    eventDetailFragment.EVENT_NAME = eName;
+                    eventDetailFragment.EVENT_DATE = eDate;
+                    eventDetailFragment.EVENT_CITY = eCity;
+                    eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
+                    eventDetailFragment.EVENT_IMAGE = eImage;
+                    eventDetailFragment.EVENT_TYPE = "upcoming";
+                    FragmentTransaction transaction = eventPageFragment.getActivity().getSupportFragmentManager().beginTransaction();
+                    transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                    transaction.commit();
+                }
+            });
             ((ViewGroup) parentView).addView(eventTile);
         }
         return parentView;
@@ -193,8 +209,6 @@ public class TileGenerator {
     public String formatDateText(String startDateString, String endDateString) {
         Date startDate = stringToDate(startDateString);
         Date endDate = stringToDate(endDateString);
-        Log.v("start", startDate.toString());
-        Log.v("end", endDate.toString());
         String formattedDateString;
         SimpleDateFormat monthDayFormat = new SimpleDateFormat("MMM' 'd");
         SimpleDateFormat monthFormat = new SimpleDateFormat("M");
@@ -205,7 +219,10 @@ public class TileGenerator {
         String yearString = yearFormat.format(startDate);
         String firstDayString = monthDayFormat.format(startDate);
         String lastDayString = dayFormat.format(endDate);
-        if(firstDayMonth.equals(lastDayMonth)) {
+        if(dayFormat.format(startDate).equals(lastDayString)) {
+            formattedDateString = firstDayString + ", " + yearString;
+        }
+        else if(firstDayMonth.equals(lastDayMonth)) {
             formattedDateString = firstDayString + "-" + lastDayString + ", " + yearString;
         }
         else {

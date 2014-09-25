@@ -4,7 +4,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/eventDetailContainer"
-    android:background="#FFFFFFFF">
+    android:background="#FF000000">
 
     <ScrollView
         android:layout_width="match_parent"
@@ -28,7 +28,7 @@
                 android:layout_height="70dp"
                 android:text="Event Text"
                 android:gravity="center"
-                android:textSize="25dp"
+                android:textSize="25sp"
                 android:textColor="#FFFFFFFF"
                 android:background="@color/setmine_purple"
                 android:id="@+id/eventText"/>
@@ -43,11 +43,10 @@
                 android:textColor="#FFFFFFFF"
                 android:id="@+id/locationText" />
 
-            <LinearLayout
-                android:orientation="vertical"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:id="@+id/mapView" />
+            <!--<com.google.android.gms.maps.MapView-->
+                <!--android:layout_width="match_parent"-->
+                <!--android:layout_height="40dp"-->
+                <!--android:id="@+id/mapView"/>-->
 
             <TextView
                 android:layout_width="match_parent"
@@ -74,7 +73,8 @@
                 android:gravity="bottom|left"
                 android:padding="5dp"
                 android:background="#BB000000"
-                android:textColor="#FFFFFFFF"/>
+                android:textColor="#FFFFFFFF"
+                android:textSize="20sp"/>
 
             <LinearLayout
                 android:orientation="vertical"
@@ -85,5 +85,14 @@
         </LinearLayout>
 
     </ScrollView>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="70dp"
+        android:id="@+id/backButton"
+        android:src="@drawable/ic_action_previous_item"
+        android:onClick="backButtonPress"
+        android:layout_marginTop="?android:attr/actionBarSize"
+        />
 
 </RelativeLayout>

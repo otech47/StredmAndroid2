@@ -1,10 +1,5 @@
 package com.stredm.android.task;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
 import android.content.Context;
 import android.util.JsonReader;
 import android.util.JsonToken;
@@ -12,6 +7,11 @@ import android.util.JsonToken;
 import com.stredm.android.OnTaskCompleted;
 import com.stredm.android.object.Set;
 import com.stredm.android.object.Track;
+
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 public class GetSetsTask extends GetTask<Set> {
 
@@ -41,7 +41,7 @@ public class GetSetsTask extends GetTask<Set> {
 			} else if (name.equals("genre")) {
 				r.setGenre(reader.nextString());
 			} else if (name.equals("imageURL")) {
-				r.setImage("http://stredm.com/uploads/" + reader.nextString());
+				r.setArtistImage("http://stredm.com/uploads/" + reader.nextString());
 			} else if (name.equals("songURL")) {
 				r.setSongURL("http://stredm.com/uploads/" + reader.nextString());
 			} else if (name.equals("tracklist")) {
@@ -51,12 +51,7 @@ public class GetSetsTask extends GetTask<Set> {
 				String x = reader.nextString();
 				times = Arrays.asList(x.split("\\s*,\\s*"));
 			} else if (name.equals("is_radiomix")) {
-				String is_radiomix = reader.nextString();
-				if (is_radiomix == "1") {
-					r.setIsRadiomix(true);
-				} else {
-					r.setIsRadiomix(false);
-				}
+				r.setIsRadiomix(reader.nextInt());
 			} else {
 				reader.skipValue();
 			}

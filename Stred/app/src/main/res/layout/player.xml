@@ -3,17 +3,12 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/player_background"
-    android:minWidth="100dp" >
-
-	<View 
-	    android:id="@+id/divider" 
-	    android:background="@xml/shadow_top"
-	    android:layout_width="match_parent" 
-	    android:layout_height="10dp"/>
+    android:minWidth="100dp"
+    android:paddingTop="?android:attr/actionBarSize">
 
 	<LinearLayout
 	    android:id="@+id/player_footer"
-	    android:layout_width="fill_parent"
+	    android:layout_width="match_parent"
 	    android:layout_height="70dp"
 	    android:layout_alignParentBottom="true"
 	    android:gravity="center" >
@@ -78,18 +73,15 @@
 	<RelativeLayout
 	    android:id="@+id/player_tracklist"
 	    android:layout_width="fill_parent"
-	    android:layout_height="40dp"
+	    android:layout_height="wrap_content"
 	    android:layout_above="@id/player_footer"
 	    android:gravity="center" >
 
 		 <ImageButton
 	        android:id="@+id/player_button_tracklist"
 	        android:layout_width="50dp"
-	        android:layout_height="40dp"
-		    android:paddingTop="10dp"
-		    android:paddingRight="10dp"
-		    android:paddingLeft="10dp"
-		    android:layout_marginRight="10dp"
+	        android:layout_height="50dp"
+            android:padding="10dp"
 	        android:adjustViewBounds="false"
 	        android:background="@null"
 	        android:scaleType="centerInside"
@@ -108,14 +100,15 @@
 			android:focusable="true"
 			android:focusableInTouchMode="true"
 		    android:gravity="left"
+            android:text="Track Name"
+            android:textColor="#FF000000"
 		    android:layout_alignParentTop="true"
 		    android:layout_alignParentLeft="true"
 		    android:layout_marginTop="10dp"
 		    android:layout_marginLeft="20dp"
 		    android:lines="1"
 		    android:singleLine="true"
-		    android:textSize="16sp"
-		    android:textAppearance="?android:attr/textAppearanceMedium" />
+		    android:textSize="16sp" />
 
 	</RelativeLayout>
 
@@ -136,42 +129,32 @@
 	
 	<!-- Timer Display -->
 
-	<LinearLayout
+	<RelativeLayout
 	    android:id="@+id/player_timer"
 	    android:layout_width="wrap_content"
 	    android:layout_height="wrap_content"
-	    android:layout_above="@id/player_progress_bar"
-	    android:layout_marginBottom="0dp"
-	    android:layout_marginLeft="20dp" >
+	    android:layout_above="@id/player_progress_bar" >
 
 		<TextView
 		    android:id="@+id/player_song_time"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
-		    android:layout_marginLeft="0dp"
-		    android:gravity="left"
-		    android:textColor="#000000"
-		    android:textStyle="bold" />
-		
-		<TextView
-		    android:id="@+id/slash"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:layout_marginLeft="2dp"
-		    android:layout_marginRight="2dp"
-		    android:text="@string/slash"
-		    android:textColor="#000000"
+            android:paddingLeft="15dp"
+            android:text="0:00"
+            android:textColor="#ff000000"
 		    android:textStyle="bold" />
 
 		<TextView
 		    android:id="@+id/player_song_duration"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
-		    android:gravity="right"
-		    android:textColor="#000000"
+            android:paddingRight="15dp"
+            android:layout_alignParentRight="true"
+            android:text="0:00"
+            android:textColor="#ff000000"
 		    android:textStyle="bold" />
 
-	</LinearLayout>
+	</RelativeLayout>
 
 	<RelativeLayout
 	    android:id="@+id/player_header"
@@ -187,6 +170,7 @@
 		    android:layout_marginRight="10dp"
 		    android:layout_marginTop="20dp"
 		    android:scaleType="centerCrop"
+            android:src="@drawable/logo_small"
 		    />
 
 		<TextView
@@ -198,7 +182,8 @@
 		    android:layout_alignParentTop="true"
 		    android:layout_marginTop="20dp"
 		    android:textSize="16sp"
-		    android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:text="Event Title"
+            android:textColor="#ff000000" />
 
 		<TextView
 		    android:id="@+id/player_song_artist"
@@ -208,7 +193,8 @@
 		    android:gravity="left"
 		    android:layout_below="@+id/player_song_title"
 		    android:textSize="12sp"
-		    android:textAppearance="?android:attr/textAppearanceMedium" />
+            android:text="Artist Title"
+            android:textColor="#ff000000" />
 
 	    <ImageButton
 	        android:id="@+id/player_button_play_top"
@@ -227,14 +213,15 @@
 
 	</RelativeLayout>
 
-	<ImageView 
-	    android:id="@+id/player_image"
-	    android:paddingTop="40dp"
-	    android:layout_width="320dp"
-	    android:layout_height="320dp"
-	    android:layout_centerHorizontal="true"
-	    android:scaleType="centerCrop"
-	    android:layout_below="@+id/player_header"
-	    />
-	    
-	    </RelativeLayout>
+    <ImageView
+        android:id="@+id/player_image"
+        android:padding="40dp"
+        android:layout_width="match_parent"
+        android:layout_height="230dp"
+        android:layout_centerHorizontal="true"
+        android:scaleType="centerCrop"
+        android:layout_below="@+id/player_header"
+        android:src="@drawable/logo"
+        />
+
+</RelativeLayout>
