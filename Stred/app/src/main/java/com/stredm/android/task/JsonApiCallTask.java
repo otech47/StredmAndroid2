@@ -5,7 +5,7 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.gson.GsonBuilder;
-import com.stredm.android.AsyncCaller;
+import com.stredm.android.InitialApiCaller;
 import com.stredm.android.util.HttpUtils;
 
 import org.json.JSONObject;
@@ -20,10 +20,10 @@ public class JsonApiCallTask extends AsyncTask<String, Integer, JSONObject> {
     private Context context;
     private HttpUtils apiCallsManager;
     public GsonBuilder gsonBuilder;
-    private AsyncCaller caller;
+    private InitialApiCaller caller;
     public String detail;
 
-    public JsonApiCallTask(Context context, String rootApiUrl, AsyncCaller caller) {
+    public JsonApiCallTask(Context context, String rootApiUrl, InitialApiCaller caller) {
         this.context = context;
         this.apiCallsManager = new HttpUtils(context, rootApiUrl);
         this.gsonBuilder = new GsonBuilder();

@@ -1,4 +1,4 @@
-package com.stredm.android.task;
+package com.stredm.android;
 
 import android.graphics.Bitmap;
 

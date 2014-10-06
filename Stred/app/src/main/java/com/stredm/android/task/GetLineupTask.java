@@ -41,6 +41,5 @@ public class GetLineupTask extends AsyncTask<String, Integer, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-        eventDetailFragment.onApiResponse(jsonObject);
     }
 }

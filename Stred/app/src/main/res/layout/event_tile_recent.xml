@@ -71,10 +71,10 @@
         <Button
             android:layout_width="match_parent"
             android:layout_height="50dp"
-            android:text="View Lineup"
+            android:text="@string/hear_sets"
             android:id="@+id/button"
             android:layout_above="@id/cityDateContainer"
-            android:background="@drawable/transparent_gradient_setmine_purple"
+            android:background="@drawable/transparent_gradient_setmine_blue"
             android:alpha="50"/>
 
         <TextView
@@ -107,12 +107,12 @@
                 android:layout_width="65dp"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/upcoming"
+                android:text="@string/recent"
                 android:id="@+id/type"
                 android:textColor="#ffffff"
-                android:padding="6dp"
                 android:gravity="center"
-                android:background="@drawable/upcoming_tag"
+                android:padding="6dp"
+                android:background="@drawable/recent_tag"
                 android:textSize="11sp"/>
         </LinearLayout>
 
@@ -121,10 +121,10 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:src="@drawable/purple_node"
+        android:src="@drawable/blue_node"
         android:layout_alignParentTop="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="-20dp"
+        android:layout_alignParentStart="true"
+        android:layout_marginLeft="-20dp"
         android:id="@+id/node"/>
 
 </RelativeLayout>

@@ -1,13 +1,8 @@
 package com.stredm.android.object;
 
 public class Track {
-	private String mTrackName;
-	private String mStartTime;
-
-	public Track() {
-		// default testing values
-		this("Unknown", "00:00");
-	}
+	private String trackName;
+	private String startTime;
 
 	public Track(String trackname, String starttime) {
 		setTrackName(trackname);
@@ -15,19 +10,19 @@ public class Track {
 	}
 
 	public String getTrackName() {
-		return mTrackName;
+		return trackName;
 	}
 
 	public void setTrackName(String mTrackName) {
-		this.mTrackName = mTrackName;
+		this.trackName = mTrackName;
 	}
 
 	public String getStartTime() {
-		return mStartTime;
+		return startTime;
 	}
 
 	public void setStartTime(String mStartTime) {
-		this.mStartTime = mStartTime;
+		this.startTime = mStartTime;
 	}
 
 }

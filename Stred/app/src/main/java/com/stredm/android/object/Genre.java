@@ -1,20 +1,26 @@
 package com.stredm.android.object;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Genre {
 	private String mId;
 	private String mGenre;
-
-	public Genre() {
-		// default testing values
-		this("-1",
-			"genre");
-	}
 	
 	public Genre(String id, String genre) {
 		setId(id);
 		setGenre(genre);
 	}
+
+    public Genre(JSONObject json) {
+        try {
+            setId(json.getString("id"));
+            setId(json.getString("genre"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 	
 	public String getId() {
 		return mId;

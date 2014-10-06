@@ -1,25 +1,30 @@
 package com.stredm.android.object;
 
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
 public class Event {
-	private String id;
-	private String event;
-    private String bio;
-    private String facebookLink;
-    private String twitterLink;
-    private String iconImageUrl;
-    private String mainImageUrl;
-    private String startDate;
-    private String endDate;
-    private int days;
-    private String venue;
-    private double latitude;
-    private double longitude;
-    private String address;
+	public String id;
+	public String event;
+    public String bio;
+    public String facebookLink;
+    public String twitterLink;
+    public String webLink;
+    public String ticketLink;
+    public String iconImageUrl;
+    public String mainImageUrl;
+    public String startDate;
+    public String endDate;
+    public int days;
+    public String venue;
+    public double latitude;
+    public double longitude;
+    public String address;
 
     public Event() {}
     public Event(String id, String event, String bio,
-                 String facebookLink, String twitterLink, String iconImageUrl,
+                 String facebookLink, String twitterLink, String webLink, String iconImageUrl,
                  String mainImageUrl, String startDate, String endDate,
                  int days, String venue, double latitude, double longitude,
                  String address) {
@@ -28,6 +33,8 @@ public class Event {
         this.bio = bio;
         this.facebookLink = facebookLink;
         this.twitterLink = twitterLink;
+        this.webLink = webLink;
+
         this.iconImageUrl = iconImageUrl;
         this.mainImageUrl = mainImageUrl;
         this.startDate = startDate;
@@ -37,6 +44,36 @@ public class Event {
         this.latitude = latitude;
         this.longitude = longitude;
         this.address = address;
+    }
+
+    public Event(JSONObject json) {
+        try {
+            setId(json.getString("id"));
+            setEvent(json.getString("event"));
+            setBio(json.getString("bio"));
+            setFacebookLink(json.getString("fb_link"));
+            setTwitterLink(json.getString("twitter_link"));
+            setIconImageUrl(json.getString("imageURL"));
+            setWebLink(json.getString("web_link"));
+            setMainImageUrl(json.getString("landing_image"));
+            setStartDate(json.getString("start_date"));
+            setEndDate(json.getString("end_date"));
+            setDays(json.getInt("days"));
+            setVenue(json.getString("venue"));
+            setLatitude(json.getDouble("latitude"));
+            setLongitude(json.getDouble("longitude"));
+            setAddress(json.getString("address"));
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public String getTicketLink() {
+        return ticketLink;
+    }
+
+    public void setTicketLink(String ticketLink) {
+        this.ticketLink = ticketLink;
     }
 
     public String getId() {
@@ -77,6 +114,14 @@ public class Event {
 
     public void setTwitterLink(String twitterLink) {
         this.twitterLink = twitterLink;
+    }
+
+    public String getWebLink() {
+        return webLink;
+    }
+
+    public void setWebLink(String webLink) {
+        this.webLink = webLink;
     }
 
     public String getIconImageUrl() {

@@ -1,5 +1,6 @@
 package com.stredm.android;
 
+import android.annotation.TargetApi;
 import android.app.DownloadManager;
 import android.app.Notification;
 import android.app.NotificationManager;
@@ -11,6 +12,7 @@ import android.content.IntentFilter;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
@@ -33,12 +35,14 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import com.stredm.android.object.ImageViewChangeRequest;
 import com.stredm.android.object.Set;
-import com.stredm.android.task.ImageCache;
+import com.stredm.android.task.GetImageAsyncTask;
 import com.stredm.android.util.TimeUtils;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
 		SeekBar.OnSeekBarChangeListener, ImageDownloader {
@@ -60,6 +64,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private RelativeLayout mHeader;
 	private ImageButton mPlaylistButton;
 	private ImageButton mTracklistButton;
+    private ImageView mBackgroundOverlay;
 
 	// Media Player
 	private MediaPlayer mp;
@@ -71,6 +76,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private boolean isShuffle = false;
 	private View rootView;
 	private boolean isClosed;
+
+    private SetMineMainActivity activity;
 
     private SetsManager setsManager;
     private List<Set> songsList;
@@ -114,26 +121,29 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		mHeader = (RelativeLayout) rootView.findViewById(R.id.player_header);
 		mTracklistButton = (ImageButton) rootView
 				.findViewById(R.id.player_button_tracklist);
+        mBackgroundOverlay = (ImageView) rootView.findViewById(R.id.background_overlay);
 //		setClosed(true);
 
 		// Mediaplayer
 		mp = new MediaPlayer();
 		utils = new TimeUtils();
 
-        imageCache = ((EventPagerActivity)getActivity()).imageCache;
+        activity = ((SetMineMainActivity)getActivity());
+
+        imageCache = activity.imageCache;
 
 		// Listeners
 		mProgressBar.setOnSeekBarChangeListener(this); // Important
 		mp.setOnCompletionListener(this); // Important
 
 		context = getActivity().getApplicationContext();
-        setsManager = ((EventPagerActivity)getActivity()).setsManager;
+        setsManager = activity.setsManager;
 
 		// Getting all songs list
 		songsList = setsManager.getPlaylist();
 
 		// By default play first song
-//		this.currentSongIndex = ((EventPagerActivity) getActivity()).getCurrentSongIndex();
+//		this.currentSongIndex = ((SetMineMainActivity) getActivity()).getCurrentSongIndex();
 
 //		mTrackLabel.setSelected(true);
 
@@ -174,8 +184,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 					if (mp != null) {
 						mp.pause();
 						// Changing button image to play button
-						mButtonPlay.setImageResource(R.drawable.btn_play);
-						mButtonPlayTop.setImageResource(R.drawable.btn_play);
+						mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
+						mButtonPlayTop.setImageResource(R.drawable.ic_action_play_white);
                         externalPlayControl.setImageResource(R.drawable.ic_action_play);
 					}
 				} else {
@@ -183,8 +193,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 					if (mp != null) {
 						mp.start();
 						// Changing button image to pause button
-						mButtonPlay.setImageResource(R.drawable.btn_pause);
-						mButtonPlayTop.setImageResource(R.drawable.btn_pause);
+						mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
+						mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
                         externalPlayControl.setImageResource(R.drawable.btn_pause);
 					}
 				}
@@ -236,12 +246,12 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 							if ((e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
 								// Toast.makeText(getActivity(),
 								// "onfling off path UP", 500).show();
-								((EventPagerActivity) getActivity()).openPlayer();
+								((SetMineMainActivity) getActivity()).openPlayer();
 								return false;
 							} else if ((e2.getY() - e1.getY()) > SWIPE_MAX_OFF_PATH) {
 								// Toast.makeText(getActivity(),
 								// "onfling off path DOWN", 500).show();
-								((EventPagerActivity) getActivity()).closePlayer();
+								((SetMineMainActivity) getActivity()).closePlayer();
 								return false;
 							}
 
@@ -271,7 +281,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 					@Override
 					public boolean onSingleTapUp(MotionEvent e) {
-//						((EventPagerActivity) getActivity()).togglePlayerClosed();
+//						((SetMineMainActivity) getActivity()).togglePlayerClosed();
 						return false;
 					}
 
@@ -309,7 +319,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 			@Override
 			public void onClick(View v) {
-//				((MainActivity) getActivity()).sendEvent("Track List Clicked", "set", song.getArtist() + " - " + song.getEvent());
+//				((SetMineMainAct) getActivity()).sendEvent("Track List Clicked", "set", song.getArtist() + " - " + song.getEvent());
 				Intent intent = new Intent(context, TracklistActivity.class);
 				intent.putExtra("isShuffle", isShuffle);
 				intent.putExtra("position", currentSongIndex);
@@ -322,7 +332,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	}
 
 	private void setPlayingNotification() {
-		Intent intent = new Intent(getActivity(), MainActivity.class);
+		Intent intent = new Intent(getActivity(), SetMineMainActivity.class);
 		PendingIntent pIntent = PendingIntent.getActivity(getActivity(), 0,
 				intent, 0);
 
@@ -412,7 +422,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 						Context.DOWNLOAD_SERVICE);
 				enqueue = manager.enqueue(request);
 
-//				((MainActivity) getActivity()).sendEvent(
+//				((SetMineMainAct) getActivity()).sendEvent(
 //						"Set Added to My Sets", "set", downloadedSetTitle);
 
 //				final DownloadImageTask downloadImageTask = new DownloadImageTask(
@@ -467,7 +477,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 					int mNotificationId = 001;
 					mNotifyManager.notify(mNotificationId, mBuilder.build());
 
-//					DatabaseHandler db = ((MainActivity) getActivity()).db;
+//					DatabaseHandler db = ((SetMineMainAct) getActivity()).db;
 //					db.updateSet(db.getSet("1"), "2");
 //					db.updateSet(downloadedSet, "1");
 //					db.cleanupFiles();
@@ -485,7 +495,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 //	 * @param songIndex
 	 *            - index of song
 	 * */
-	public void playSong(int position) {
+	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+    public void playSong(int position) {
 		// Play song
 
 		try {
@@ -496,7 +507,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 				song = setsManager.getPlaylist()
 						.get(position);
 			}
-//			((MainActivity) getActivity()).sendEvent("Set Played", "set",
+//			((SetMineMainAct) getActivity()).sendEvent("Set Played", "set",
 //					song.getArtist() + " - " + song.getEvent());
 
 			mp.reset();
@@ -511,12 +522,21 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 //			mTrackLabel.setSelected(true);
 
 			// Display song image
-			setIconBackground(song.getArtistImage(), mImageThumb);
-            setIconBackground(song.getEventImage(), mImageView);
+            new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL).execute(new ImageViewChangeRequest(song.getArtistImage(), mImageThumb));
+            new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL).execute(new ImageViewChangeRequest(song.getEventImage(), mImageView));
+            Bitmap blurredBitmap = null;
+            try {
+                blurredBitmap = activity.fastblur(new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL).execute(new ImageViewChangeRequest(song.getEventImage(), null)).get(), 4);
+                mBackgroundOverlay.setBackground(new BitmapDrawable(activity.getResources(), blurredBitmap));
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            } catch (ExecutionException e) {
+                e.printStackTrace();
+            }
 
 			// Changing Button Image to pause image
-			mButtonPlay.setImageResource(R.drawable.ic_action_pause);
-			mButtonPlayTop.setImageResource(R.drawable.ic_action_pause);
+			mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
+			mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
 
 			// set Progress bar values
 			mProgressBar.setProgress(0);
@@ -525,7 +545,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			if (song.isDownloaded()) {
 				mButtonDownload.setVisibility(View.GONE);
 			} else {
-				mButtonDownload.setVisibility(View.VISIBLE);
+//				mButtonDownload.setVisibility(View.VISIBLE);
 			}
 			// Updating progress bar
 			updateProgressBar();
@@ -641,7 +661,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	 * */
 	@Override
 	public void onCompletion(MediaPlayer arg0) {
-//		((MainActivity) getActivity()).sendEvent("Set Completed", "set",
+//		((SetMineMainAct) getActivity()).sendEvent("Set Completed", "set",
 //				song.getArtist() + " - " + song.getEvent());
 		playNext();
 	}
@@ -649,7 +669,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     @Override
     public void onPause() {
         super.onPause();
-        ((EventPagerActivity)getActivity()).playerFragment = this;
+        ((SetMineMainActivity)getActivity()).playerFragment = this;
     }
 
     @Override
@@ -684,17 +704,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			mButtonShuffle.setImageResource(R.drawable.btn_shuffle);
 		}
 	}
-
-    public void setIconBackground(String imageUrl, ImageView imageView) {
-        if(imageCache.getBitmapFromMemCache(imageUrl) == null) {
-            DownloadIconTask imageTask = new DownloadIconTask(context, imageCache, imageView, this);
-            imageTask.execute(imageUrl);
-        }
-        else {
-            Bitmap image = imageCache.getBitmapFromMemCache(imageUrl);
-            onImageDownloaded(imageView, image);
-        }
-    }
 
     public void onImageDownloaded(ImageView imageView, Bitmap image) {
         imageView.setImageBitmap(image);

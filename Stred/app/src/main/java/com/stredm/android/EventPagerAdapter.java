@@ -4,6 +4,8 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.util.Log;
+import android.view.ViewGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,7 +17,6 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
     public EventPageFragment currentFragment;
     public int currentFragmentPosition;
     public FragmentManager fm;
-    public int detailFragmentPosition = -1;
 
     public EventPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -27,6 +28,7 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
         EventPageFragment eventPageFragment = new EventPageFragment();
         Bundle args = new Bundle();
         args.putInt(EventPageFragment.ARG_OBJECT, i + 1);
+        Log.v("args", args.toString());
         eventPageFragment.setArguments(args);
         return eventPageFragment;
     }
@@ -36,19 +38,12 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
         return 3;
     }
 
-//    @Override
-//    public void setPrimaryItem(ViewGroup container, int position, Object object) {
-//        if(fm.findFragmentByTag("eventDetailFragment") == null && position != detailFragmentPosition) {
-//            object = eventPageFragments.get(position);
-//        }
-//        else {
-//            object = fm.findFragmentByTag("eventDetailFragment");
-//        }
-//        Log.v("object", object.toString());
-//        super.setPrimaryItem(container, position, object);
-//        currentFragment = eventPageFragments.get(position);
-//        currentFragmentPosition = position;
-//    }
+    @Override
+    public void setPrimaryItem(ViewGroup container, int position, Object object) {
+        super.setPrimaryItem(container, position, object);
+        currentFragmentPosition = position;
+        currentFragment = (EventPageFragment)object;
+    }
 //
 //    @Override
 //    public Object instantiateItem(ViewGroup container, int position) {

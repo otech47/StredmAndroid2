@@ -1,7 +1,5 @@
 package com.stredm.android;
 
-import java.util.List;
-
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.view.LayoutInflater;
@@ -12,12 +10,10 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListPopupWindow;
 
-import com.stredm.android.BitmapCache;
-import com.stredm.android.MainActivity;
-import com.stredm.android.OnTaskCompleted;
-import com.stredm.android.OverflowInterface;
 import com.stredm.android.object.Set;
 import com.stredm.android.task.GetSetsTask;
+
+import java.util.List;
 
 public class ListAdapter<T> extends BaseAdapter implements BitmapCache,
 		OnTaskCompleted<Set>, OverflowInterface {
@@ -116,7 +112,7 @@ public class ListAdapter<T> extends BaseAdapter implements BitmapCache,
 
 	@Override
 	public void onTaskCompleted(List<Set> list) {
-		//((MainActivity) context).shufflePlayer(list);
+		//((SetMineMainActivity) context).shufflePlayer(list);
 	}
 
 	@Override

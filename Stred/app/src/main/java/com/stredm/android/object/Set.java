@@ -37,8 +37,9 @@ public class Set {
             setEvent(json.getString("event"));
             setGenre(json.getString("genre"));
             setSongURL(json.getString("songURL"));
+            setPopularity(json.getInt("popularity"));
             setIsRadiomix(json.getInt("is_radiomix"));
-            setTracklist(new ArrayList<Track>());
+            setTracklist(generateTracklist(json.getString("tracklist"), json.getString("starttimes")));
             setIsDownloaded(false);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -117,7 +118,7 @@ public class Set {
     }
 
     public void setArtistImage(String image) {
-        this.mArtistImage = amazonS3Url + image;
+        this.mArtistImage = image;
     }
 
     public String getEventImage() {
@@ -125,7 +126,7 @@ public class Set {
     }
 
     public void setEventImage(String mEventImage) {
-        this.mEventImage = amazonS3Url + mEventImage;
+        this.mEventImage = mEventImage;
     }
 
     public String getSongURL() {
@@ -172,5 +173,15 @@ public class Set {
             }
         }
         return currentTrack;
+    }
+
+    public List<Track> generateTracklist(String tracklistString, String starttimesString) {
+        String[] tracklistArray = tracklistString.split(", ");
+        String[] starttimesArray = starttimesString.split(", ");
+        List<Track> trackList = new ArrayList<Track>();
+        for(int i = 0 ; i < tracklistArray.length; i++) {
+            trackList.add(new Track(tracklistString, starttimesString));
+        }
+        return trackList;
     }
 }

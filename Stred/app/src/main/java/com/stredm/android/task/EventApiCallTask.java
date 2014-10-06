@@ -47,7 +47,5 @@ public class EventApiCallTask extends AsyncTask<String, Integer, ApiResponse> {
 
     @Override
     protected void onPostExecute(ApiResponse apiResponse) {
-//        ((EventPagerActivity) epFragment.getActivity()).cache.addToCache(apiResponse);
-        epFragment.onApiResponse(apiResponse);
     }
 }

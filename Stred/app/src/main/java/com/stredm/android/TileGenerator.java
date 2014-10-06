@@ -1,25 +1,23 @@
-package com.stredm.android.task;
+package com.stredm.android;
 
 import android.content.Context;
-import android.graphics.Bitmap;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.stredm.android.EventDetailFragment;
-import com.stredm.android.EventPageFragment;
-import com.stredm.android.EventPagerActivity;
-import com.stredm.android.Model;
-import com.stredm.android.R;
+import com.stredm.android.object.Event;
+import com.stredm.android.object.ImageViewChangeRequest;
+import com.stredm.android.object.LineupSet;
+import com.stredm.android.object.Set;
+import com.stredm.android.task.GetImageAsyncTask;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -35,56 +33,81 @@ public class TileGenerator {
     private Context context;
     public ImageCache imageCache;
     public int imagesLoaded = 0;
-    public ViewPager eventViewPager;
     public EventPageFragment eventPageFragment;
     public List<String> formattedLocation = new ArrayList<String>();
+    public SetMineMainActivity activity;
+    public String lastEventDate;
 
-    public TileGenerator(Context context, ViewPager eventViewPager, ImageCache imageCache) {
+    public TileGenerator(SetMineMainActivity activity, Context context, ImageCache imageCache) {
+        this.activity = activity;
         this.context = context;
         this.imageCache = imageCache;
-        this.eventViewPager = eventViewPager;
     }
 
-    public void setImageBackground(String imageUrl, ImageView imageView) {
-        if(imageCache.getBitmapFromMemCache(imageUrl) == null) {
-            DownloadImageTask imageTask = new DownloadImageTask(context, imageCache, imageView, this);
-            imageTask.execute(imageUrl);
+    public List<View> modelsToSetTiles(List<Set> models) {
+        List<View> tiles = new ArrayList<View>();
+        LayoutInflater inflater = activity.getLayoutInflater();
+        for(Set s : models) {
+            activity.setsManager.addToPlaylist(s);
+            View artistTile = inflater.inflate(R.layout.artist_tile_recent, null);
+            ((TextView) artistTile.findViewById(R.id.playCount)).setText(s.getPopularity() + " plays");
+            ((TextView) artistTile.findViewById(R.id.artistText)).setText(s.getArtist());
+            if(!(s.getArtistImage().equals("null"))) {
+                if(models.size() < 90) {
+                    new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL)
+                            .executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(s.getArtistImage(), (ImageView) artistTile.findViewById(R.id.artistImage)));
+                }
+                else {
+                    new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL)
+                            .executeOnExecutor(GetImageAsyncTask.SERIAL_EXECUTOR, new ImageViewChangeRequest(s.getArtistImage(), (ImageView) artistTile.findViewById(R.id.artistImage)));
+                }
+            }
+            artistTile.setTag(s.getId());
+            tiles.add(artistTile);
         }
-        else {
-            Bitmap image = imageCache.getBitmapFromMemCache(imageUrl);
-            onDownloadImage(imageView, image);
+        return tiles;
+    }
+
+    public List<View> modelsToLineupTiles(List<LineupSet> models) {
+        List<View> tiles = new ArrayList<View>();
+        LayoutInflater inflater = activity.getLayoutInflater();
+        for(LineupSet l : models) {
+            View artistTile = inflater.inflate(R.layout.artist_tile_upcoming, null);
+            ((TextView) artistTile.findViewById(R.id.setTime)).setText(getDayFromDate(lastEventDate, l.getDay()) + " " + l.getTime());
+            ((TextView) artistTile.findViewById(R.id.artistText)).setText(l.getArtist());
+            if(!(l.getArtistImage().equals("null"))) {
+                if(models.size() < 60) {
+                    new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL)
+                            .executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(l.getArtistImage(), (ImageView) artistTile.findViewById(R.id.artistImage)));
+                }
+                else {
+                    new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL)
+                            .executeOnExecutor(GetImageAsyncTask.SERIAL_EXECUTOR, new ImageViewChangeRequest(l.getArtistImage(), (ImageView) artistTile.findViewById(R.id.artistImage)));
+                }
+            }
+            artistTile.setTag(l.getArtist());
+            tiles.add(artistTile);
         }
+        return tiles;
     }
 
-    public void onDownloadImage(ImageView imageView, Bitmap image) {
-        imagesLoaded++;
-        if(image != null && imageView != null)
-            imageView.setImageBitmap(image);
-//        Log.v("setting image bitmap", image.toString());
-        eventViewPager.setVisibility(View.VISIBLE);
-    }
-
-
-    public View modelsToUpcomingEventTiles(List<Model> models, View rootView) {
-        List<View> views = new ArrayList<View>();
-        View parentView = rootView.findViewById(R.id.eventsList);
-        LayoutInflater inflater = ((EventPagerActivity) parentView.getContext()).getLayoutInflater();
-        for(Model element : models) {
+    public List<View> modelsToUpcomingEventTiles(List<Event> models) {
+        List<View> tiles = new ArrayList<View>();
+        LayoutInflater inflater = activity.getLayoutInflater();
+        for(Event element : models) {
             View eventTile = inflater.inflate(R.layout.event_tile, null);
-            String imageUrl = serverRoot + "images/" + element.landing_image;
+            String imageUrl = element.mainImageUrl;
+            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
+            new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
-            final String eDate = formatDateText(element.start_date, element.end_date);
+            final String eDate = formatDateText(element.startDate, element.endDate);
             final String eCity = formatLocationFromAddress(element.address);
             final String eImage = imageUrl;
-            final Integer eId = element.id;
-            final String eDateUnformatted = element.start_date;
-            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
-//            Log.v("Getting Image For ", element.event);
-            setImageBackground(imageUrl, imageView);
+            final String eId = element.id;
+            final String eDateUnformatted = element.startDate;
             ((TextView) eventTile.findViewById(R.id.event)).setText(eName.toUpperCase());
             ((TextView) eventTile.findViewById(R.id.date)).setText(eDate);
             ((TextView) eventTile.findViewById(R.id.city)).setText(eCity);
-            ((TextView) eventTile.findViewById(R.id.type)).setText("upcoming");
             (eventTile.findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
@@ -95,84 +118,77 @@ public class TileGenerator {
                     eventDetailFragment.EVENT_CITY = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "upcoming";
-                    FragmentTransaction transaction = eventPageFragment.getActivity().getSupportFragmentManager().beginTransaction();
+                    lastEventDate = eDateUnformatted;
+                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
                     transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
-//                    (((EventPagerActivity) eventPageFragment.getActivity()).mEventPagerAdapter).detailFragmentPosition = 1;
-//                    (((EventPagerActivity) eventPageFragment.getActivity()).mEventPagerAdapter).notifyDataSetChanged();
                     transaction.addToBackStack(null);
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     transaction.commit();
                 }
             });
-            ((ViewGroup) parentView).addView(eventTile);
+            tiles.add(eventTile);
         }
-        return parentView;
+        return tiles;
     }
 
-    public View modelsToRecentEventTiles(List<Model> models, View rootView) {
-        List<View> views = new ArrayList<View>();
-        View parentView = rootView.findViewById(R.id.eventsList);
-        LayoutInflater inflater = ((EventPagerActivity) parentView.getContext()).getLayoutInflater();
-        for(Model element : models) {
-            View eventTile = inflater.inflate(R.layout.event_tile, null);
-            String imageUrl = serverRoot + "images/" + element.landing_image;
+    public List<View> modelsToRecentEventTiles(List<Event> models) {
+        List<View> tiles = new ArrayList<View>();
+        LayoutInflater inflater = activity.getLayoutInflater();
+        for(Event element : models) {
+            View eventTile = inflater.inflate(R.layout.event_tile_recent, null);
+            String imageUrl = element.mainImageUrl;
+            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
+            new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
-            final String eDate = formatDateText(element.start_date, element.end_date);
-            final String eDateUnformatted = element.start_date;
+            final String eDate = formatDateText(element.startDate, element.endDate);
             final String eCity = formatLocationFromAddress(element.address);
             final String eImage = imageUrl;
-            final Integer eId = element.id;
-            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
-//            Log.v("Getting Image For ", element.event);
-            setImageBackground(imageUrl, imageView);
+            final String eId = element.id;
+            final String eDateUnformatted = element.startDate;
             ((TextView) eventTile.findViewById(R.id.event)).setText(eName.toUpperCase());
             ((TextView) eventTile.findViewById(R.id.date)).setText(eDate);
             ((TextView) eventTile.findViewById(R.id.city)).setText(eCity);
-            ((TextView) eventTile.findViewById(R.id.type)).setText("recent");
-            ((TextView) eventTile.findViewById(R.id.type)).setBackgroundResource(R.color.setmine_blue);
             Button button = (Button)eventTile.findViewById(R.id.button);
-            button.setText("Hear Sets");
-            button.setBackgroundResource(R.drawable.transparent_gradient_setmine_blue);
             button.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
                     eventDetailFragment.EVENT_ID = eId;
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
-                    eventDetailFragment.EVENT_CITY = eCity;
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
+                    eventDetailFragment.EVENT_CITY = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "recent";
-                    FragmentTransaction transaction = eventPageFragment.getActivity().getSupportFragmentManager().beginTransaction();
+                    lastEventDate = eDateUnformatted;
+                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
                     transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
                     transaction.addToBackStack(null);
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     transaction.commit();
-                    ((EventPagerActivity)eventPageFragment.getActivity()).setsManager.clearPlaylist();
+                    activity.setsManager.clearPlaylist();
                 }
             });
-            ((ViewGroup) parentView).addView(eventTile);
+            tiles.add(eventTile);
         }
-        return parentView;
+        return tiles;
     }
 
-    public View modelsToEventSearchTiles(List<Model> models, View rootView) {
-        List<View> views = new ArrayList<View>();
-        View parentView = rootView.findViewById(R.id.searchResults);
-        LayoutInflater inflater = ((EventPagerActivity) parentView.getContext()).getLayoutInflater();
-        for(Model element : models) {
+    public List<View> modelsToEventSearchTiles(List<Event> models) {
+        List<View> tiles = new ArrayList<View>();
+        LayoutInflater inflater = activity.getLayoutInflater();
+        for(Event element : models) {
             View eventTile = inflater.inflate(R.layout.event_search_tile, null);
-            String imageUrl = serverRoot + "images/" + element.landing_image;
+            String imageUrl = element.mainImageUrl;
+            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.resultImage));
+            new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
-            final String eDate = formatDateText(element.start_date, element.end_date);
-            final String eDateUnformatted = element.start_date;
+            final String eDate = formatDateText(element.startDate, element.endDate);
             final String eCity = formatLocationFromAddress(element.address);
             final String eImage = imageUrl;
-            final Integer eId = element.id;
-            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.resultImage));
-            setImageBackground(imageUrl, imageView);
+            final String eId = element.id;
+            final String eDateUnformatted = element.startDate;
             ((TextView) eventTile.findViewById(R.id.eventText)).setText(element.event);
-            ((TextView) eventTile.findViewById(R.id.dateText)).setText(formatDateText(element.start_date, element.end_date));
+            ((TextView) eventTile.findViewById(R.id.dateText)).setText(formatDateText(element.startDate, element.endDate));
             ((TextView) eventTile.findViewById(R.id.locationText)).setText(formatLocationFromAddress(element.address));
             eventTile.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
@@ -180,20 +196,21 @@ public class TileGenerator {
                     eventDetailFragment.EVENT_ID = eId;
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
-                    eventDetailFragment.EVENT_CITY = eCity;
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
+                    eventDetailFragment.EVENT_CITY = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "upcoming";
-                    FragmentTransaction transaction = eventPageFragment.getActivity().getSupportFragmentManager().beginTransaction();
+                    lastEventDate = eDateUnformatted;
+                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
                     transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
                     transaction.addToBackStack(null);
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     transaction.commit();
                 }
             });
-            ((ViewGroup) parentView).addView(eventTile);
+            tiles.add(eventTile);
         }
-        return parentView;
+        return tiles;
     }
 
     public Date stringToDate(String dateString) {
@@ -244,6 +261,17 @@ public class TileGenerator {
             cityState = address.substring(comma+2, cityState.length()+4);
         }
         return cityState;
+    }
+
+    public String getDayFromDate(String date, Integer day) {
+        SimpleDateFormat dayOfWeekFormat = new SimpleDateFormat("E");
+        Date startDate = stringToDate(date);
+        String dayOfWeek = dayOfWeekFormat.format(startDate);
+        Calendar c = Calendar.getInstance();
+        c.setTime(startDate);
+        c.add(Calendar.DAY_OF_MONTH, day - 1);
+        return dayOfWeekFormat.format(c.getTime());
+
     }
 
 //    public String formatLocationFromLatLong(String address) {

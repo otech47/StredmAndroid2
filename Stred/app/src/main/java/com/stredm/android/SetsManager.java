@@ -3,7 +3,6 @@ package com.stredm.android;
 import com.stredm.android.object.Set;
 
 import org.json.JSONArray;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,8 +35,8 @@ public class SetsManager {
 
     public void generateSetlist(JSONArray json) {}
 
-    public void addToPlaylist(JSONObject json) {
-        playlist.add(new Set(json));
+    public void addToPlaylist(Set set) {
+        playlist.add(set);
         setPlaylistLength(getPlaylistLength()+1);
     }
 

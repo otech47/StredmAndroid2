@@ -15,9 +15,9 @@
           <gradient
             android:angle="270"
 	        android:centerY="0.5"
-            android:startColor="#ff2f54e3"
+            android:startColor="@color/setmine_blue"
     	    android:centerColor="#ff617bca"
-            android:endColor="#ff2f54e3" />
+            android:endColor="@color/setmine_blue" />
       </shape>
     </clip>
   </item>
