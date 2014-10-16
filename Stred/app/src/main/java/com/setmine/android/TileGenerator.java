@@ -8,12 +8,12 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
-import com.stredm.android.object.Event;
-import com.stredm.android.object.ImageViewChangeRequest;
-import com.stredm.android.object.LineupSet;
-import com.stredm.android.object.Set;
-import com.stredm.android.task.GetImageAsyncTask;
-import com.stredm.android.util.DateUtils;
+import com.setmine.android.object.Event;
+import com.setmine.android.object.ImageViewChangeRequest;
+import com.setmine.android.object.LineupSet;
+import com.setmine.android.object.Set;
+import com.setmine.android.task.GetImageAsyncTask;
+import com.setmine.android.util.DateUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

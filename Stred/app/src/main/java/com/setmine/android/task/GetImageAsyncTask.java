@@ -6,9 +6,9 @@ import android.os.AsyncTask;
 import android.util.Log;
 import android.widget.ImageView;
 
-import com.stredm.android.ImageCache;
-import com.stredm.android.SetMineMainActivity;
-import com.stredm.android.object.ImageViewChangeRequest;
+import com.setmine.android.ImageCache;
+import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.object.ImageViewChangeRequest;
 
 import java.io.InputStream;
 import java.lang.ref.WeakReference;

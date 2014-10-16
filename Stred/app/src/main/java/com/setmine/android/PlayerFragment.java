@@ -38,8 +38,11 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.stredm.android.object.Set;
-import com.stredm.android.util.TimeUtils;
+import com.setmine.android.object.Set;
+import com.setmine.android.util.TimeUtils;
+
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;

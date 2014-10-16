@@ -25,9 +25,8 @@ import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.stredm.android.object.Event;
-import com.stredm.android.task.EventApiCallTask;
-import com.stredm.android.util.DateUtils;
+import com.setmine.android.object.Event;
+import com.setmine.android.util.DateUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

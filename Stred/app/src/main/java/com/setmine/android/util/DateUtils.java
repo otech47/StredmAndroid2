@@ -1,4 +1,4 @@
-package com.stredm.android.util;
+package com.setmine.android.util;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;

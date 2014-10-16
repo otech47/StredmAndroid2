@@ -1,6 +1,7 @@
 package com.setmine.android;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
@@ -20,11 +22,11 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.stredm.android.object.Lineup;
-import com.stredm.android.object.LineupSet;
-import com.stredm.android.object.Set;
-import com.stredm.android.task.LineupsSetsApiCallAsyncTask;
-import com.stredm.android.util.DateUtils;
+import com.setmine.android.object.Lineup;
+import com.setmine.android.object.LineupSet;
+import com.setmine.android.object.Set;
+import com.setmine.android.task.LineupsSetsApiCallAsyncTask;
+import com.setmine.android.util.DateUtils;
 
 import org.json.JSONArray;
 import org.json.JSONException;

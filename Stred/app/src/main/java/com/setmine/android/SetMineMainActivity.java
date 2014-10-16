@@ -15,8 +15,8 @@ import android.view.ViewParent;
 import android.widget.ImageView;
 
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.stredm.android.object.Event;
-import com.stredm.android.task.InitialApiCallAsyncTask;
+import com.setmine.android.object.Event;
+import com.setmine.android.task.InitialApiCallAsyncTask;
 
 import org.json.JSONException;
 import org.json.JSONObject;
