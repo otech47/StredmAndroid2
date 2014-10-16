@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.stredm.android" >
+    package="com.setmine.android">
 
     <uses-sdk
         android:minSdkVersion="15"
@@ -25,12 +25,12 @@
         android:icon="@drawable/logo"
         android:label="@string/app_name"
         android:theme="@style/SetMine"
-        android:name=".util.TypeFaceUtil">
+        android:name="com.setmine.android.util.TypeFaceUtil">
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyDNioSTZynd_bvoF7fsBVo_2KwUfZ9B1SA"/>
         <activity
-            android:name=".SetMineMainActivity"
+            android:name="com.setmine.android.SetMineMainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
