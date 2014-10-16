@@ -180,7 +180,7 @@ public class Set {
         String[] starttimesArray = starttimesString.split(", ");
         List<Track> trackList = new ArrayList<Track>();
         for(int i = 0 ; i < tracklistArray.length; i++) {
-            trackList.add(new Track(tracklistString, starttimesString));
+            trackList.add(new Track(tracklistArray[i], starttimesArray[i]));
         }
         return trackList;
     }

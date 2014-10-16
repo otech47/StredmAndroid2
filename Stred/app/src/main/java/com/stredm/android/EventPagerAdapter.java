@@ -44,22 +44,5 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
         currentFragmentPosition = position;
         currentFragment = (EventPageFragment)object;
     }
-//
-//    @Override
-//    public Object instantiateItem(ViewGroup container, int position) {
-//        if(fm.findFragmentByTag("eventDetailFragment") == null && position != detailFragmentPosition) {
-//            EventPageFragment object = eventPageFragments.get(position);
-//            Log.v("NULL?", object.getActivity().toString());
-//            container.addView(object.onCreateView(object.getActivity().getLayoutInflater(), container, null));
-//            finishUpdate((ViewGroup)container);
-//            return object;
-//        }
-//        else {
-//            EventDetailFragment object = (EventDetailFragment)fm.findFragmentByTag("eventDetailFragment");
-//            Log.v("eventdetail", object.toString());
-//            container.addView(object.onCreateView(object.getActivity().getLayoutInflater(), container, null));
-//            finishUpdate((ViewGroup)container);
-//            return object;
-//        }
-//    }
+
 }

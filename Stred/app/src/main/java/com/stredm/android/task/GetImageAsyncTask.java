@@ -8,7 +8,6 @@ import android.widget.ImageView;
 
 import com.stredm.android.ImageCache;
 import com.stredm.android.SetMineMainActivity;
-import com.stredm.android.TileGenerator;
 import com.stredm.android.object.ImageViewChangeRequest;
 
 import java.io.InputStream;
@@ -17,7 +16,6 @@ import java.lang.ref.WeakReference;
 public class GetImageAsyncTask extends AsyncTask<ImageViewChangeRequest, Void, Bitmap> {
     public ImageCache imageCache;
     public WeakReference<ImageView> imageViewReference;
-    public TileGenerator tilegen;
     public String imageStorageRoot;
     public SetMineMainActivity activity;
 

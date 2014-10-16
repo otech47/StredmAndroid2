@@ -6,11 +6,6 @@
     android:id="@+id/eventDetailContainer"
     android:background="#FF000000">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/scrollView" >
-
         <LinearLayout
             android:orientation="vertical"
             android:layout_width="match_parent"
@@ -77,24 +72,22 @@
                 android:textColor="#FFFFFFFF"
                 android:textSize="20sp"/>
 
-            <LinearLayout
+            <ListView
                 android:orientation="vertical"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:animateLayoutChanges="true"
                 android:id="@+id/lineupContainer">
-                <ProgressBar
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/loading"
-                    android:gravity="center|center_vertical"
-                    android:indeterminate="true" />
-            </LinearLayout>
+            </ListView>
 
+            <ProgressBar
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/loading"
+                android:gravity="center|center_vertical"
+                android:indeterminate="true" />
 
         </LinearLayout>
-
-    </ScrollView>
 
     <ImageView
         android:layout_width="wrap_content"

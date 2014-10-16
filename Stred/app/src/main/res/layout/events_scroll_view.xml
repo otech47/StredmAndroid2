@@ -5,31 +5,20 @@
     android:layout_height="match_parent"
     android:background="#ff000000">
 
+    <ListView
+        android:orientation="vertical"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
+        android:background="@drawable/white_border"
+        android:id="@+id/eventsList">
 
-    <ScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/scrollView"
-        android:layout_gravity="center_horizontal"
-        android:background="#ff9c9c9c" >
-
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="fill_parent"
-            android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:background="@drawable/white_border"
-            android:id="@+id/eventsList">
-
-        </LinearLayout>
-
-    </ScrollView>
+    </ListView>
 
     <ImageView
         android:layout_width="2dp"
         android:layout_height="match_parent"
         android:src="@drawable/white_border"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentRight="true"/>
 
 </RelativeLayout>

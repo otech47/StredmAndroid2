@@ -11,9 +11,11 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewParent;
 import android.widget.ImageView;
 
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.stredm.android.object.Event;
 import com.stredm.android.task.InitialApiCallAsyncTask;
 
 import org.json.JSONObject;
@@ -23,6 +25,9 @@ import java.util.List;
 import java.util.concurrent.RejectedExecutionException;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
+
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.nostra13.universalimageloader.core.ImageLoader;
 
 public class SetMineMainActivity extends FragmentActivity implements InitialApiCaller, LineupsSetsApiCaller {
 
@@ -41,12 +46,10 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
     public FragmentManager fragmentManager;
     public Menu menu;
     public SetsManager setsManager;
-    public ImageCache imageCache;
     public PlayerFragment playerFragment;
     public View playerFrame;
     public ViewPagerContainerFragment viewPagerContainerFragment;
     public View lastClickedPlayButton;
-    public TileGenerator tileGen;
     public HashMap<String, List<View>> preloadedTiles = new HashMap<String, List<View>>();
     public InitialApiCallAsyncTask getLineupAsyncTask;
     public InitialApiCallAsyncTask asyncApiCaller;
@@ -75,9 +78,13 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
         }
         setsManager = new SetsManager();
         fragmentManager = getSupportFragmentManager();
-        imageCache = new ImageCache();
-        tileGen = new TileGenerator(this, this.getApplicationContext(), imageCache);
         modelsCP = new ModelsContentProvider();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
+                .diskCacheExtraOptions(480, 800, null)
+                .diskCacheSize(50 * 1024 * 1024)
+                .diskCacheFileCount(100)
+                .build();
+        ImageLoader.getInstance().init(config);
         setContentView(R.layout.fragment_main);
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL).executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "upcoming", "upcomingEvents");
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL).executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
@@ -87,9 +94,6 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
     public void finishOnCreate() {
         Log.v("Finishing onCreate", " Line 98 ");
         try {
-            preloadedTiles.put("upcoming", tileGen.modelsToUpcomingEventTiles(modelsCP.upcomingEvents));
-            preloadedTiles.put("featured", tileGen.modelsToRecentEventTiles(modelsCP.recentEvents));
-            preloadedTiles.put("search", tileGen.modelsToEventSearchTiles(modelsCP.searchEvents));
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
             calculateScreenSize();
             viewPagerContainerFragment = new ViewPagerContainerFragment();
@@ -154,7 +158,9 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack(null);
         transaction.commit();
-        setsManager.selectSetById((String) ((View) v.getParent()).getTag());
+        View parent = (View) v.getParent();
+        int id = parent.getId();
+        setsManager.selectSetById(Integer.toString(((View) v.getParent()).getId()));
         playerFragment.playSong(setsManager.selectedSetIndex);
         lastClickedPlayButton = v;
     }

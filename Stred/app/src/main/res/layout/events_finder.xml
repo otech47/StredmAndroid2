@@ -50,20 +50,11 @@
             android:id="@+id/dateText" />
     </LinearLayout>
 
-    <ScrollView
+    <ListView
+        android:orientation="vertical"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:id="@+id/scrollView"
-        android:clickable="false"
-        android:background="#ffe3ff00">
-
-        <LinearLayout
-            android:orientation="vertical"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/searchResults">
-        </LinearLayout>
-
-    </ScrollView>
+        android:layout_height="match_parent"
+        android:id="@+id/searchResults">
+    </ListView>
 
 </LinearLayout>

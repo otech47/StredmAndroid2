@@ -35,14 +35,14 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import com.stredm.android.object.ImageViewChangeRequest;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.stredm.android.object.Set;
-import com.stredm.android.task.GetImageAsyncTask;
 import com.stredm.android.util.TimeUtils;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.ExecutionException;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
 		SeekBar.OnSeekBarChangeListener, ImageDownloader {
@@ -65,6 +65,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private ImageButton mPlaylistButton;
 	private ImageButton mTracklistButton;
     private ImageView mBackgroundOverlay;
+    private DisplayImageOptions options;
 
 	// Media Player
 	private MediaPlayer mp;
@@ -130,8 +131,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
         activity = ((SetMineMainActivity)getActivity());
 
-        imageCache = activity.imageCache;
-
 		// Listeners
 		mProgressBar.setOnSeekBarChangeListener(this); // Important
 		mp.setOnCompletionListener(this); // Important
@@ -141,6 +140,15 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 		// Getting all songs list
 		songsList = setsManager.getPlaylist();
+
+        options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.logo_small)
+                .showImageForEmptyUri(R.drawable.logo_small)
+                .showImageOnFail(R.drawable.logo_small)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .build();
 
 		// By default play first song
 //		this.currentSongIndex = ((SetMineMainActivity) getActivity()).getCurrentSongIndex();
@@ -518,21 +526,19 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			// Displaying Song title
 			mTitleLabel.setText(song.getEvent());
 			mArtistLabel.setText(song.getArtist());
-//			mTrackLabel.setText(song.getCurrentTrack(0));
+			mTrackLabel.setText(song.getCurrentTrack(0));
 //			mTrackLabel.setSelected(true);
 
 			// Display song image
-            new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL).execute(new ImageViewChangeRequest(song.getArtistImage(), mImageThumb));
-            new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL).execute(new ImageViewChangeRequest(song.getEventImage(), mImageView));
-            Bitmap blurredBitmap = null;
-            try {
-                blurredBitmap = activity.fastblur(new GetImageAsyncTask(activity, imageCache, activity.S3_ROOT_URL).execute(new ImageViewChangeRequest(song.getEventImage(), null)).get(), 4);
-                mBackgroundOverlay.setBackground(new BitmapDrawable(activity.getResources(), blurredBitmap));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            } catch (ExecutionException e) {
-                e.printStackTrace();
-            }
+
+            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getArtistImage(), mImageThumb, options);
+            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getEventImage(), mImageView, options, new SimpleImageLoadingListener() {
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).fastblur(loadedImage, 4);
+                    mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
+                }
+            });
 
 			// Changing Button Image to pause image
 			mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
@@ -598,7 +604,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			mTimeLabel.setText("" + utils.milliSecondsToTimer(time));
 
 			// set track name
-//			mTrackLabel.setText(song.getCurrentTrack(time));
+			mTrackLabel.setText(song.getCurrentTrack(time));
 //			mTrackLabel.setSelected(true);
 
 			// Updating progress bar
@@ -710,4 +716,9 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         Log.v("setting image bitmap", image.toString());
     }
 
+    private int dpToPx(int dp)
+    {
+        float density = getActivity().getResources().getDisplayMetrics().density;
+        return Math.round((float)dp * density);
+    }
 }

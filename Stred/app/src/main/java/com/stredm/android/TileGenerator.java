@@ -13,6 +13,7 @@ import com.stredm.android.object.ImageViewChangeRequest;
 import com.stredm.android.object.LineupSet;
 import com.stredm.android.object.Set;
 import com.stredm.android.task.GetImageAsyncTask;
+import com.stredm.android.util.DateUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -37,11 +38,13 @@ public class TileGenerator {
     public List<String> formattedLocation = new ArrayList<String>();
     public SetMineMainActivity activity;
     public String lastEventDate;
+    public DateUtils dateUtils;
 
     public TileGenerator(SetMineMainActivity activity, Context context, ImageCache imageCache) {
         this.activity = activity;
         this.context = context;
         this.imageCache = imageCache;
+        this.dateUtils = new DateUtils();
     }
 
     public List<View> modelsToSetTiles(List<Set> models) {
@@ -73,7 +76,7 @@ public class TileGenerator {
         LayoutInflater inflater = activity.getLayoutInflater();
         for(LineupSet l : models) {
             View artistTile = inflater.inflate(R.layout.artist_tile_upcoming, null);
-            ((TextView) artistTile.findViewById(R.id.setTime)).setText(getDayFromDate(lastEventDate, l.getDay()) + " " + l.getTime());
+            ((TextView) artistTile.findViewById(R.id.setTime)).setText(dateUtils.getDayFromDate(lastEventDate, l.getDay()) + " " + l.getTime());
             ((TextView) artistTile.findViewById(R.id.artistText)).setText(l.getArtist());
             if(!(l.getArtistImage().equals("null"))) {
                 if(models.size() < 60) {
@@ -100,8 +103,8 @@ public class TileGenerator {
             ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
             new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
-            final String eDate = formatDateText(element.startDate, element.endDate);
-            final String eCity = formatLocationFromAddress(element.address);
+            final String eDate = dateUtils.formatDateText(element.startDate, element.endDate);
+            final String eCity = dateUtils.formatLocationFromAddress(element.address);
             final String eImage = imageUrl;
             final String eId = element.id;
             final String eDateUnformatted = element.startDate;
@@ -140,8 +143,8 @@ public class TileGenerator {
             ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
             new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
-            final String eDate = formatDateText(element.startDate, element.endDate);
-            final String eCity = formatLocationFromAddress(element.address);
+            final String eDate = dateUtils.formatDateText(element.startDate, element.endDate);
+            final String eCity = dateUtils.formatLocationFromAddress(element.address);
             final String eImage = imageUrl;
             final String eId = element.id;
             final String eDateUnformatted = element.startDate;
@@ -179,17 +182,17 @@ public class TileGenerator {
         for(Event element : models) {
             View eventTile = inflater.inflate(R.layout.event_search_tile, null);
             String imageUrl = element.mainImageUrl;
-            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.resultImage));
+            ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
             new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
-            final String eDate = formatDateText(element.startDate, element.endDate);
-            final String eCity = formatLocationFromAddress(element.address);
+            final String eDate = dateUtils.formatDateText(element.startDate, element.endDate);
+            final String eCity = dateUtils.formatLocationFromAddress(element.address);
             final String eImage = imageUrl;
             final String eId = element.id;
             final String eDateUnformatted = element.startDate;
             ((TextView) eventTile.findViewById(R.id.eventText)).setText(element.event);
-            ((TextView) eventTile.findViewById(R.id.dateText)).setText(formatDateText(element.startDate, element.endDate));
-            ((TextView) eventTile.findViewById(R.id.locationText)).setText(formatLocationFromAddress(element.address));
+            ((TextView) eventTile.findViewById(R.id.dateText)).setText(eDate);
+            ((TextView) eventTile.findViewById(R.id.locationText)).setText(eCity);
             eventTile.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
@@ -213,66 +216,6 @@ public class TileGenerator {
         return tiles;
     }
 
-    public Date stringToDate(String dateString) {
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'");
-        try {
-            Date date = format.parse(dateString);
-            return date;
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-    public String formatDateText(String startDateString, String endDateString) {
-        Date startDate = stringToDate(startDateString);
-        Date endDate = stringToDate(endDateString);
-        String formattedDateString;
-        SimpleDateFormat monthDayFormat = new SimpleDateFormat("MMM' 'd");
-        SimpleDateFormat monthFormat = new SimpleDateFormat("M");
-        SimpleDateFormat yearFormat = new SimpleDateFormat("y");
-        SimpleDateFormat dayFormat = new SimpleDateFormat("d");
-        String firstDayMonth = monthFormat.format(startDate);
-        String lastDayMonth = monthFormat.format(endDate);
-        String yearString = yearFormat.format(startDate);
-        String firstDayString = monthDayFormat.format(startDate);
-        String lastDayString = dayFormat.format(endDate);
-        if(dayFormat.format(startDate).equals(lastDayString)) {
-            formattedDateString = firstDayString + ", " + yearString;
-        }
-        else if(firstDayMonth.equals(lastDayMonth)) {
-            formattedDateString = firstDayString + "-" + lastDayString + ", " + yearString;
-        }
-        else {
-            lastDayString = monthDayFormat.format(endDate);
-            formattedDateString = firstDayString + " - " + lastDayString + ", " + yearString;
-        }
-        return formattedDateString;
-    }
-
-    public String formatLocationFromAddress(String address) {
-        int comma = address.lastIndexOf(",");
-        String cityState = address.substring(0, comma);
-        comma = cityState.lastIndexOf(",");
-        cityState = address.substring(0, comma);
-        comma = cityState.lastIndexOf(",");
-        if(comma == -1)
-            cityState = address.substring(0, cityState.length()+4);
-        else {
-            cityState = address.substring(comma+2, cityState.length()+4);
-        }
-        return cityState;
-    }
-
-    public String getDayFromDate(String date, Integer day) {
-        SimpleDateFormat dayOfWeekFormat = new SimpleDateFormat("E");
-        Date startDate = stringToDate(date);
-        String dayOfWeek = dayOfWeekFormat.format(startDate);
-        Calendar c = Calendar.getInstance();
-        c.setTime(startDate);
-        c.add(Calendar.DAY_OF_MONTH, day - 1);
-        return dayOfWeekFormat.format(c.getTime());
-
-    }
 
 //    public String formatLocationFromLatLong(String address) {
 //        String cityState = "";
