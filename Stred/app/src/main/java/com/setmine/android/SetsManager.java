@@ -1,0 +1,69 @@
+package com.setmine.android;
+
+import com.setmine.android.object.Set;
+
+import org.json.JSONArray;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+/**
+ * Created by oscarlafarga on 9/23/14.
+ */
+public class SetsManager {
+
+    private List<Set> playlist = new ArrayList<Set>();
+    private List<Set> playlistShuffled;
+    private int playlistLength = 0;
+    public Set selectedSet;
+    public int selectedSetIndex;
+
+    public List<Set> getPlaylist() {
+        return this.playlist;
+    }
+
+    public List<Set> getPlaylistShuffled() {
+        return this.playlist;
+    }
+
+    public void clearPlaylist() {
+        getPlaylist().clear();
+        setPlaylistLength(0);
+        selectedSet = null;
+    }
+
+    public void generateSetlist(JSONArray json) {}
+
+    public void addToPlaylist(Set set) {
+        playlist.add(set);
+        setPlaylistLength(getPlaylistLength()+1);
+    }
+
+    public void setPlaylist(List<Set> pl) {
+        this.playlist = pl;
+        this.playlistShuffled = new ArrayList<Set>(pl);
+        Collections.shuffle(this.playlistShuffled);
+        setPlaylistLength(pl.size());
+    }
+
+    public void selectSetById(String setid) {
+        for(int i = 0; i < playlist.size(); i++) {
+            if(playlist.get(i).getId().equals(setid)) {
+                selectedSetIndex = i;
+                selectedSet = playlist.get(i);
+            }
+        }
+    }
+
+    public int getPlaylistLength() {
+        return playlistLength;
+    }
+
+    public void setPlaylistLength(int playlistLength) {
+        this.playlistLength = playlistLength;
+    }
+
+
+
+}
