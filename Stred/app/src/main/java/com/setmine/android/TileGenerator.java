@@ -8,6 +8,8 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.setmine.android.fragment.EventDetailFragment;
+import com.setmine.android.fragment.EventPageFragment;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.ImageViewChangeRequest;
 import com.setmine.android.object.LineupSet;
@@ -15,11 +17,7 @@ import com.setmine.android.object.Set;
 import com.setmine.android.task.GetImageAsyncTask;
 import com.setmine.android.util.DateUtils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**

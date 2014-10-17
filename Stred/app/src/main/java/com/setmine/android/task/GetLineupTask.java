@@ -4,7 +4,7 @@ import android.content.Context;
 import android.os.AsyncTask;
 
 import com.google.gson.GsonBuilder;
-import com.setmine.android.EventDetailFragment;
+import com.setmine.android.fragment.EventDetailFragment;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONException;

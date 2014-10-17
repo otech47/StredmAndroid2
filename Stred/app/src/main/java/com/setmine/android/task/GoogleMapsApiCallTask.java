@@ -3,7 +3,7 @@ package com.setmine.android.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.setmine.android.EventDetailFragment;
+import com.setmine.android.fragment.EventDetailFragment;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONException;

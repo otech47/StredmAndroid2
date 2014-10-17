@@ -54,7 +54,7 @@
         android:id="@+id/date"
         android:textSize="10sp"
         android:textColor="#ff000000"
-        android:layout_above="@id/locationText"
+        android:layout_above="@id/city"
         android:layout_toRightOf="@id/image"
         android:paddingLeft="10dp"
         android:singleLine="true"

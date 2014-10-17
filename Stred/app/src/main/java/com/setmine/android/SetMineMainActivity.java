@@ -11,11 +11,15 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.ViewParent;
 import android.widget.ImageView;
 
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.setmine.android.object.Event;
+import com.setmine.android.adapter.EventPagerAdapter;
+import com.setmine.android.adapter.PlayerPagerAdapter;
+import com.setmine.android.fragment.PlayerContainerFragment;
+import com.setmine.android.fragment.PlayerFragment;
+import com.setmine.android.fragment.TracklistFragment;
+import com.setmine.android.fragment.ViewPagerContainerFragment;
 import com.setmine.android.task.InitialApiCallAsyncTask;
 
 import org.json.JSONException;
@@ -41,13 +45,16 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
 
     public EventPagerAdapter mEventPagerAdapter;
     public ViewPager eventViewPager;
+    public PlayerPagerAdapter mPlayerPagerAdapter;
     public ModelsContentProvider modelsCP;
     public Integer screenHeight;
     public Integer screenWidth;
     public FragmentManager fragmentManager;
     public Menu menu;
     public SetsManager setsManager;
+    public PlayerContainerFragment playerContainerFragment;
     public PlayerFragment playerFragment;
+    public TracklistFragment tracklistFragment;
     public View playerFrame;
     public ViewPagerContainerFragment viewPagerContainerFragment;
     public View lastClickedPlayButton;
@@ -105,9 +112,10 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
             calculateScreenSize();
             viewPagerContainerFragment = new ViewPagerContainerFragment();
-            playerFragment = new PlayerFragment();
+            playerContainerFragment = new PlayerContainerFragment();
+//            playerFragment = new PlayerFragment();
             FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.add(R.id.player_frame, playerFragment);
+            ft.add(R.id.playerPagerContainer, playerContainerFragment);
             ft.add(R.id.eventPagerContainer, viewPagerContainerFragment);
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
@@ -163,7 +171,7 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
         playerFragment.setPlayListeners();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.player_frame));
+        transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack(null);
         transaction.commit();
