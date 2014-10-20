@@ -27,25 +27,21 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
-import com.nostra13.universalimageloader.core.display.RoundedBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.setmine.android.ApiResponse;
-import com.setmine.android.ImageCache;
-import com.setmine.android.ModelsContentProvider;
-import com.setmine.android.R;
-import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.fragment.EventDetailFragment;
 import com.setmine.android.object.Event;
 import com.setmine.android.task.ApiCallAsyncTask;
 import com.setmine.android.task.InitialApiCallAsyncTask;
 import com.setmine.android.util.DateUtils;
 
-import java.text.ParseException;
+import org.json.JSONObject;
+
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
@@ -158,7 +154,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
                     try {
                         List<Address> results = geocoder.getFromLocationName(v.getText().toString(), 1);
-                        if(results != null) {
+                        if (results != null) {
                             selectedLocation.setLatitude(results.get(0).getLatitude());
                             selectedLocation.setLongitude(results.get(0).getLongitude());
                         }

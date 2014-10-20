@@ -8,7 +8,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.setmine.android.fragment.EventDetailFragment;
-import com.setmine.android.fragment.EventPageFragment;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.ImageViewChangeRequest;
 import com.setmine.android.object.LineupSet;
@@ -31,7 +30,7 @@ public class TileGenerator {
     private Context context;
     public ImageCache imageCache;
     public int imagesLoaded = 0;
-    public EventPageFragment eventPageFragment;
+    public com.setmine.android.EventPageFragment eventPageFragment;
     public List<String> formattedLocation = new ArrayList<String>();
     public SetMineMainActivity activity;
     public String lastEventDate;

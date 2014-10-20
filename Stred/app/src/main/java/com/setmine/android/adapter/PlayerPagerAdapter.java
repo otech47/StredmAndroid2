@@ -6,10 +6,9 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
-import android.view.ViewGroup;
 
+import com.setmine.android.EventPageFragment;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.fragment.EventPageFragment;
 import com.setmine.android.fragment.PlayerFragment;
 import com.setmine.android.fragment.TracklistFragment;
 

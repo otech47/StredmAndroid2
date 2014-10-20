@@ -350,6 +350,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         Bitmap bitmap = sentBitmap.copy(sentBitmap.getConfig(), true);
 
         try {
+
             if (radius < 1) {
                 return (null);
             }
@@ -414,7 +415,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                 }
                 stackpointer = radius;
 
-            for (x = 0; x < w; x++) {
+                for (x = 0; x < w; x++) {
 
                     r[yi] = dv[rsum];
                     g[yi] = dv[gsum];
@@ -543,14 +544,12 @@ public class SetMineMainActivity extends FragmentActivity implements
                     yi += w;
                 }
             }
-        }
 
             Log.e("pix", w + " " + h + " " + pix.length);
             bitmap.setPixels(pix, 0, w, 0, 0, w, h);
 
+        } catch(ArrayIndexOutOfBoundsException e) {}
 
-        } catch(ArrayIndexOutOfBoundsException e){
-        }
         return (bitmap);
     }
 
