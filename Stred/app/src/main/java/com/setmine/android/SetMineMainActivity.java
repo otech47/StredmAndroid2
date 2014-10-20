@@ -25,6 +25,12 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.setmine.android.adapter.EventPagerAdapter;
+import com.setmine.android.adapter.PlayerPagerAdapter;
+import com.setmine.android.fragment.PlayerContainerFragment;
+import com.setmine.android.fragment.PlayerFragment;
+import com.setmine.android.fragment.TracklistFragment;
+import com.setmine.android.fragment.ViewPagerContainerFragment;
 import com.setmine.android.task.InitialApiCallAsyncTask;
 
 import org.json.JSONException;
@@ -53,13 +59,16 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public EventPagerAdapter mEventPagerAdapter;
     public ViewPager eventViewPager;
+    public PlayerPagerAdapter mPlayerPagerAdapter;
     public ModelsContentProvider modelsCP;
     public Integer screenHeight;
     public Integer screenWidth;
     public FragmentManager fragmentManager;
     public Menu menu;
     public SetsManager setsManager;
+    public PlayerContainerFragment playerContainerFragment;
     public PlayerFragment playerFragment;
+    public TracklistFragment tracklistFragment;
     public View playerFrame;
     public ViewPagerContainerFragment viewPagerContainerFragment;
     public View lastClickedPlayButton;
@@ -135,9 +144,10 @@ public class SetMineMainActivity extends FragmentActivity implements
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
             calculateScreenSize();
             viewPagerContainerFragment = new ViewPagerContainerFragment();
-            playerFragment = new PlayerFragment();
+            playerContainerFragment = new PlayerContainerFragment();
+//            playerFragment = new PlayerFragment();
             FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.add(R.id.player_frame, playerFragment);
+            ft.add(R.id.playerPagerContainer, playerContainerFragment);
             ft.add(R.id.eventPagerContainer, viewPagerContainerFragment);
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
@@ -191,7 +201,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         playerFragment.setPlayListeners();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.player_frame));
+        transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack(null);
         transaction.commit();
@@ -404,7 +414,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                 }
                 stackpointer = radius;
 
-                for (x = 0; x < w; x++) {
+            for (x = 0; x < w; x++) {
 
                     r[yi] = dv[rsum];
                     g[yi] = dv[gsum];
@@ -533,6 +543,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                     yi += w;
                 }
             }
+        }
 
             Log.e("pix", w + " " + h + " " + pix.length);
             bitmap.setPixels(pix, 0, w, 0, 0, w, h);

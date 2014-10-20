@@ -1,4 +1,4 @@
-package com.setmine.android;
+package com.setmine.android.adapter;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -10,13 +10,16 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.ListPopupWindow;
 
+import com.setmine.android.BitmapCache;
+import com.setmine.android.OnTaskCompleted;
+import com.setmine.android.OverflowInterface;
 import com.setmine.android.object.Set;
 import com.setmine.android.task.GetSetsTask;
 
 import java.util.List;
 
 public class ListAdapter<T> extends BaseAdapter implements BitmapCache,
-		OnTaskCompleted<Set>, OverflowInterface {
+        OnTaskCompleted<Set>, OverflowInterface {
 	protected Context context;
 	protected List<T> mResources;
 	protected LayoutInflater inflater;

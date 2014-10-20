@@ -1,4 +1,4 @@
-package com.setmine.android;
+package com.setmine.android.fragment;
 
 import android.annotation.TargetApi;
 import android.app.DownloadManager;
@@ -38,6 +38,12 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.setmine.android.ImageCache;
+import com.setmine.android.R;
+import com.setmine.android.SetMineApplication;
+import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.SetsManager;
+import com.setmine.android.TracklistActivity;
 import com.setmine.android.object.Set;
 import com.setmine.android.util.TimeUtils;
 
@@ -48,7 +54,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
-		SeekBar.OnSeekBarChangeListener, ImageDownloader {
+		SeekBar.OnSeekBarChangeListener {
 
 	public ImageButton mButtonPlay;
 	public ImageButton mButtonPlayTop;
@@ -166,8 +172,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		setSlideTouchGestures();
 //
 		setBackgroundNoTouch();
-//
-//		setTracklistListener();
+
+		setTracklistListener();
 //
 //		setShuffleListener();
 //
@@ -176,7 +182,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 //		setDownloadBroadcastReceiver();
 		// setPlayingNotification();
 
-        setRetainInstance(true);
+//        setRetainInstance(true);
 
 		return this.rootView;
 
@@ -320,19 +326,24 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	}
 
 
+    private void updateTracklist(Set song) {
+        ((SetMineMainActivity) getActivity()).tracklistFragment.updateTracklist(song.getTracklist());
+    }
+
 	private void setTracklistListener() {
 		mTracklistButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
+                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(1);
 //				((SetMineMainAct) getActivity()).sendEvent("Track List Clicked", "set", song.getArtist() + " - " + song.getEvent());
-				Intent intent = new Intent(context, TracklistActivity.class);
-				intent.putExtra("isShuffle", isShuffle);
-				intent.putExtra("position", currentSongIndex);
-				if (mp != null) {
-					intent.putExtra("time", mp.getCurrentPosition());
-				}
-				getActivity().startActivityForResult(intent, 0);
+//				Intent intent = new Intent(context, TracklistActivity.class);
+//				intent.putExtra("isShuffle", isShuffle);
+//				intent.putExtra("position", currentSongIndex);
+//				if (mp != null) {
+//					intent.putExtra("time", mp.getCurrentPosition());
+//				}
+//				getActivity().startActivityForResult(intent, 0);
 			}
 		});
 	}
@@ -534,6 +545,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			mTrackLabel.setText(song.getCurrentTrack(0));
 //			mTrackLabel.setSelected(true);
 
+            updateTracklist(song);
 			// Display song image
 
             ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getArtistImage(), mImageThumb, options);
@@ -583,7 +595,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private void playPrevious() {
 		currentSongIndex--;
 		if (currentSongIndex < 0) {
-			currentSongIndex = ((StredmApplication) context)
+			currentSongIndex = ((SetMineApplication) context)
 					.getPlaylistLength() - 1;
 		}
 		playSong(currentSongIndex);
@@ -718,14 +730,17 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		}
 	}
 
-    public void onImageDownloaded(ImageView imageView, Bitmap image) {
-        imageView.setImageBitmap(image);
-        Log.v("setting image bitmap", image.toString());
-    }
-
     private int dpToPx(int dp)
     {
         float density = getActivity().getResources().getDisplayMetrics().density;
         return Math.round((float)dp * density);
+    }
+
+    public int getCurrentSongIndex() {
+        return currentSongIndex;
+    }
+
+    public boolean getIsShuffle() {
+        return isShuffle;
     }
 }

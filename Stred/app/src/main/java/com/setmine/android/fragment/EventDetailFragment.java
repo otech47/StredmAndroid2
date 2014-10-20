@@ -1,4 +1,4 @@
-package com.setmine.android;
+package com.setmine.android.fragment;
 
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +22,10 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.setmine.android.LineupsSetsApiCaller;
+import com.setmine.android.R;
+import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.SetsManager;
 import com.setmine.android.object.Lineup;
 import com.setmine.android.object.LineupSet;
 import com.setmine.android.object.Set;

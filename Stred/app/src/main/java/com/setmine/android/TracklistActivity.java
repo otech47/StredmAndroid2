@@ -8,6 +8,7 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.setmine.android.adapter.ListTrackAdapter;
 import com.setmine.android.object.Set;
 
 public class TracklistActivity extends Activity {
@@ -17,7 +18,7 @@ public class TracklistActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_tracklist);
 
-		StredmApplication sa = ((StredmApplication) getApplicationContext());
+		SetMineApplication sa = ((SetMineApplication) getApplicationContext());
 		ListView listview = (ListView) findViewById(R.id.listview);
 		ListTrackAdapter listAdapter = null;
 		int pos = handleIntentPosition(getIntent());

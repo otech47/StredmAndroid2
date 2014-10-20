@@ -13,7 +13,7 @@ import com.setmine.android.object.Genre;
 import com.setmine.android.object.Mix;
 import com.setmine.android.object.Set;
 
-public class StredmApplication extends Application {
+public class SetMineApplication extends Application {
 	private List<Set> playlist;
 	private List<Set> playlistShuffled;
 	private List<Artist> artists;

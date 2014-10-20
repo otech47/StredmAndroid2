@@ -1,4 +1,4 @@
-package com.setmine.android;
+package com.setmine.android.adapter;
 
 import android.content.Context;
 import android.view.View;
@@ -6,6 +6,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.setmine.android.R;
+import com.setmine.android.ViewHolder;
+import com.setmine.android.adapter.ListAdapter;
 import com.setmine.android.object.Set;
 
 import java.util.List;

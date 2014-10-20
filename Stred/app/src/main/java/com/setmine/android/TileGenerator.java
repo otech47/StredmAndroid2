@@ -7,6 +7,8 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.setmine.android.fragment.EventDetailFragment;
+import com.setmine.android.fragment.EventPageFragment;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.ImageViewChangeRequest;
 import com.setmine.android.object.LineupSet;

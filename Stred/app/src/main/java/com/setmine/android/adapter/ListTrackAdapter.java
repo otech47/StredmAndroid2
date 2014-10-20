@@ -1,4 +1,4 @@
-package com.setmine.android;
+package com.setmine.android.adapter;
 
 import java.util.List;
 
@@ -7,6 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.setmine.android.R;
+import com.setmine.android.TrackHolder;
+import com.setmine.android.adapter.ListAdapter;
 import com.setmine.android.object.Track;
 import com.setmine.android.util.TimeUtils;
 
