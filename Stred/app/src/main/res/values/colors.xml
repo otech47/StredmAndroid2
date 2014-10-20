@@ -15,4 +15,5 @@
     <color name="setmine_gold_25_alpha">#33FFDF3D</color>
     <color name="player_background">#F7F7F7</color>
     <color name="tab_background">#F7F7F7</color>
+    <color name="main_background">#FF000000</color>
 </resources>

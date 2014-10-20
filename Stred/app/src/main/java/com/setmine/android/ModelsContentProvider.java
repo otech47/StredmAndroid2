@@ -59,7 +59,7 @@ public class ModelsContentProvider {
                 }
                 if(modelName.equals("searchEvents")) {
                     JSONObject upcoming = payload.getJSONObject("upcoming");
-                    JSONArray closest = upcoming.getJSONArray("closestEvents");
+                    JSONArray closest = upcoming.getJSONArray("soonestEventsAroundMe");
                     for(int i = 0 ; i < closest.length() ; i++) {
                         searchEvents.add(new Event(closest.getJSONObject(i)));
                     }

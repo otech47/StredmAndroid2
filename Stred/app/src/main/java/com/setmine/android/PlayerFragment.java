@@ -91,7 +91,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private String downloadedSetTitle;
 	private Context context;
     public ImageCache imageCache;
-    public ImageView externalPlayControl;
 
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -197,7 +196,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 						// Changing button image to play button
 						mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
 						mButtonPlayTop.setImageResource(R.drawable.ic_action_play_white);
-                        externalPlayControl.setImageResource(R.drawable.ic_action_play);
 					}
 				} else {
 					// Resume song
@@ -206,7 +204,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 						// Changing button image to pause button
 						mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
 						mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
-                        externalPlayControl.setImageResource(R.drawable.btn_pause);
 					}
 				}
 
@@ -214,8 +211,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		};
 		mButtonPlay.setOnClickListener(ocl);
 		mButtonPlayTop.setOnClickListener(ocl);
-        if(externalPlayControl != null)
-            externalPlayControl.setOnClickListener(ocl);
     }
 
 	private void setPreviousListener() {

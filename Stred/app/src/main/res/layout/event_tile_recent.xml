@@ -57,6 +57,7 @@
                 android:id="@+id/date"
                 android:textColor="#bbcccccc"
                 android:layout_gravity="bottom|right"
+                android:gravity="right"
                 android:layout_weight=".4"
                 android:textSize="15sp"
                 android:singleLine="true"
@@ -68,22 +69,13 @@
 
         </LinearLayout>
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="@string/hear_sets"
-            android:id="@+id/button"
-            android:layout_above="@id/cityDateContainer"
-            android:background="@drawable/transparent_gradient_setmine_blue"
-            android:alpha="50"/>
-
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="?android:attr/textAppearanceLarge"
             android:text="Event Text"
             android:id="@+id/event"
-            android:layout_above="@id/button"
+            android:layout_above="@id/cityDateContainer"
             android:layout_alignParentStart="true"
             android:textColor="#ffffff"
             android:textSize="25sp"
@@ -104,10 +96,10 @@
             android:layout_above="@id/event">
 
             <TextView
-                android:layout_width="65dp"
+                android:layout_width="85dp"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/recent"
+                android:text="@string/hear_sets"
                 android:id="@+id/type"
                 android:textColor="#ffffff"
                 android:gravity="center"

@@ -1,9 +1,14 @@
 package com.setmine.android;
 
+import android.app.Activity;
+import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
+import android.location.Location;
 import android.os.Bundle;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
@@ -11,11 +16,15 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.view.ViewParent;
 import android.widget.ImageView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.setmine.android.object.Event;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.setmine.android.task.InitialApiCallAsyncTask;
 
 import org.json.JSONException;
@@ -27,10 +36,11 @@ import java.util.concurrent.RejectedExecutionException;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.nostra13.universalimageloader.core.ImageLoader;
-
-public class SetMineMainActivity extends FragmentActivity implements InitialApiCaller, LineupsSetsApiCaller {
+public class SetMineMainActivity extends FragmentActivity implements
+        InitialApiCaller,
+        LineupsSetsApiCaller,
+        GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener {
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
     public static final String APP_VERSION = "1.1.1";
@@ -38,6 +48,8 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
     public static final String S3_ROOT_URL = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
+    private final static int
+            CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
 
     public EventPagerAdapter mEventPagerAdapter;
     public ViewPager eventViewPager;
@@ -56,6 +68,10 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
     public InitialApiCallAsyncTask asyncApiCaller;
     public MixpanelAPI mixpanel;
     public int asyncTasksInProgress;
+    public LocationClient locationClient;
+    public Location currentLocation;
+
+    // Implementing InitialApiCaller Interface
 
     @Override
     public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
@@ -65,10 +81,14 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
         }
     }
 
+    // Implementing LineupSetsApiCaller Interface
+
     @Override
     public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
         this.modelsCP.setModel(jsonObject, identifier);
     }
+
+    // Activity Handling
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,6 +104,16 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
             }
             Log.v("Application Opened Tracked", mixpanel.toString());
         }
+        if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS) {
+            Log.v("LOCATION FOUND", "NAH");
+            locationClient = new LocationClient(this, this, this);
+            locationClient.connect();
+        }
+        else {
+            currentLocation = new Location("default");
+            currentLocation.setLatitude(29.652175);
+            currentLocation.setLongitude(-82.325856);
+        }
         setsManager = new SetsManager();
         fragmentManager = getSupportFragmentManager();
         modelsCP = new ModelsContentProvider();
@@ -94,9 +124,9 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
                 .build();
         ImageLoader.getInstance().init(config);
         setContentView(R.layout.fragment_main);
+
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL).executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "upcoming", "upcomingEvents");
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL).executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL).executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "upcoming", "searchEvents");
     }
 
     public void finishOnCreate() {
@@ -158,8 +188,6 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
         if(playerFragment == null) {
             playerFragment = new PlayerFragment();
         }
-        playerFragment.externalPlayControl = (ImageView)v;
-        ((ImageView) v).setImageResource(R.drawable.ic_action_pause);
         playerFragment.setPlayListeners();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
@@ -188,6 +216,96 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
         mixpanel.flush();
         super.onDestroy();
     }
+
+    // Location Services
+
+    public static class ErrorDialogFragment extends DialogFragment {
+        // Global field to contain the error dialog
+        private Dialog mDialog;
+        // Default constructor. Sets the dialog field to null
+        public ErrorDialogFragment() {
+            super();
+            mDialog = null;
+        }
+        // Set the dialog to display
+        public void setDialog(Dialog dialog) {
+            mDialog = dialog;
+        }
+        // Return a Dialog to the DialogFragment.
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            return mDialog;
+        }
+    }
+    /*
+     * Handle results returned to the FragmentActivity
+     * by Google Play services
+     */
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch (requestCode) {
+            case CONNECTION_FAILURE_RESOLUTION_REQUEST :
+                switch (resultCode) {
+                    case Activity.RESULT_OK :
+                        break;
+                }
+        }
+    }
+
+    private boolean servicesConnected() {
+        // Check that Google Play services is available
+        int resultCode = GooglePlayServicesUtil.
+                        isGooglePlayServicesAvailable(this);
+        // If Google Play services is available
+        if (ConnectionResult.SUCCESS == resultCode) {
+            Log.v("Location Updates", "Google Play services is available.");
+            return true;
+            // Google Play services was not available for some reason.
+            // resultCode holds the error code.
+        } else {
+            // Get the error dialog from Google Play services
+            Dialog errorDialog = GooglePlayServicesUtil.getErrorDialog(
+                    resultCode,
+                    this,
+                    CONNECTION_FAILURE_RESOLUTION_REQUEST);
+
+            if (errorDialog != null) {
+                ErrorDialogFragment errorFragment = new ErrorDialogFragment();
+                errorFragment.setDialog(errorDialog);
+                errorFragment.show(getSupportFragmentManager(),
+                        "Location Updates");
+            }
+            return false;
+        }
+    }
+
+    // Implementing ConnectionCallbacks for Google Play Services
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        currentLocation = locationClient.getLastLocation();
+        locationClient.disconnect();
+        String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
+                +currentLocation.getLongitude();
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl,
+                        "searchEvents");
+    }
+
+    @Override
+    public void onDisconnected() {
+
+    }
+
+    // Implementing Failed Connection Listeners for Google Play Services
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+    }
+
+    // Blurring images for player, called by PlayerFragment
 
     public Bitmap fastblur(Bitmap sentBitmap, int radius) {
 
@@ -221,203 +339,207 @@ public class SetMineMainActivity extends FragmentActivity implements InitialApiC
 
         Bitmap bitmap = sentBitmap.copy(sentBitmap.getConfig(), true);
 
-        if (radius < 1) {
-            return (null);
-        }
-
-        int w = bitmap.getWidth();
-        int h = bitmap.getHeight();
-
-        int[] pix = new int[w * h];
-        Log.e("pix", w + " " + h + " " + pix.length);
-        bitmap.getPixels(pix, 0, w, 0, 0, w, h);
-
-        int wm = w - 1;
-        int hm = h - 1;
-        int wh = w * h;
-        int div = radius + radius + 1;
-
-        int r[] = new int[wh];
-        int g[] = new int[wh];
-        int b[] = new int[wh];
-        int rsum, gsum, bsum, x, y, i, p, yp, yi, yw;
-        int vmin[] = new int[Math.max(w, h)];
-
-        int divsum = (div + 1) >> 1;
-        divsum *= divsum;
-        int dv[] = new int[256 * divsum];
-        for (i = 0; i < 256 * divsum; i++) {
-            dv[i] = (i / divsum);
-        }
-
-        yw = yi = 0;
-
-        int[][] stack = new int[div][3];
-        int stackpointer;
-        int stackstart;
-        int[] sir;
-        int rbs;
-        int r1 = radius + 1;
-        int routsum, goutsum, boutsum;
-        int rinsum, ginsum, binsum;
-
-        for (y = 0; y < h; y++) {
-            rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-            for (i = -radius; i <= radius; i++) {
-                p = pix[yi + Math.min(wm, Math.max(i, 0))];
-                sir = stack[i + radius];
-                sir[0] = (p & 0xff0000) >> 16;
-                sir[1] = (p & 0x00ff00) >> 8;
-                sir[2] = (p & 0x0000ff);
-                rbs = r1 - Math.abs(i);
-                rsum += sir[0] * rbs;
-                gsum += sir[1] * rbs;
-                bsum += sir[2] * rbs;
-                if (i > 0) {
-                    rinsum += sir[0];
-                    ginsum += sir[1];
-                    binsum += sir[2];
-                } else {
-                    routsum += sir[0];
-                    goutsum += sir[1];
-                    boutsum += sir[2];
-                }
+        try {
+            if (radius < 1) {
+                return (null);
             }
-            stackpointer = radius;
 
-            for (x = 0; x < w; x++) {
+            int w = bitmap.getWidth();
+            int h = bitmap.getHeight();
 
-                r[yi] = dv[rsum];
-                g[yi] = dv[gsum];
-                b[yi] = dv[bsum];
+            int[] pix = new int[w * h];
+            Log.e("pix", w + " " + h + " " + pix.length);
+            bitmap.getPixels(pix, 0, w, 0, 0, w, h);
 
-                rsum -= routsum;
-                gsum -= goutsum;
-                bsum -= boutsum;
+            int wm = w - 1;
+            int hm = h - 1;
+            int wh = w * h;
+            int div = radius + radius + 1;
 
-                stackstart = stackpointer - radius + div;
-                sir = stack[stackstart % div];
+            int r[] = new int[wh];
+            int g[] = new int[wh];
+            int b[] = new int[wh];
+            int rsum, gsum, bsum, x, y, i, p, yp, yi, yw;
+            int vmin[] = new int[Math.max(w, h)];
 
-                routsum -= sir[0];
-                goutsum -= sir[1];
-                boutsum -= sir[2];
-
-                if (y == 0) {
-                    vmin[x] = Math.min(x + radius + 1, wm);
-                }
-                p = pix[yw + vmin[x]];
-
-                sir[0] = (p & 0xff0000) >> 16;
-                sir[1] = (p & 0x00ff00) >> 8;
-                sir[2] = (p & 0x0000ff);
-
-                rinsum += sir[0];
-                ginsum += sir[1];
-                binsum += sir[2];
-
-                rsum += rinsum;
-                gsum += ginsum;
-                bsum += binsum;
-
-                stackpointer = (stackpointer + 1) % div;
-                sir = stack[(stackpointer) % div];
-
-                routsum += sir[0];
-                goutsum += sir[1];
-                boutsum += sir[2];
-
-                rinsum -= sir[0];
-                ginsum -= sir[1];
-                binsum -= sir[2];
-
-                yi++;
+            int divsum = (div + 1) >> 1;
+            divsum *= divsum;
+            int dv[] = new int[256 * divsum];
+            for (i = 0; i < 256 * divsum; i++) {
+                dv[i] = (i / divsum);
             }
-            yw += w;
-        }
-        for (x = 0; x < w; x++) {
-            rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-            yp = -radius * w;
-            for (i = -radius; i <= radius; i++) {
-                yi = Math.max(0, yp) + x;
 
-                sir = stack[i + radius];
+            yw = yi = 0;
 
-                sir[0] = r[yi];
-                sir[1] = g[yi];
-                sir[2] = b[yi];
+            int[][] stack = new int[div][3];
+            int stackpointer;
+            int stackstart;
+            int[] sir;
+            int rbs;
+            int r1 = radius + 1;
+            int routsum, goutsum, boutsum;
+            int rinsum, ginsum, binsum;
 
-                rbs = r1 - Math.abs(i);
-
-                rsum += r[yi] * rbs;
-                gsum += g[yi] * rbs;
-                bsum += b[yi] * rbs;
-
-                if (i > 0) {
-                    rinsum += sir[0];
-                    ginsum += sir[1];
-                    binsum += sir[2];
-                } else {
-                    routsum += sir[0];
-                    goutsum += sir[1];
-                    boutsum += sir[2];
-                }
-
-                if (i < hm) {
-                    yp += w;
-                }
-            }
-            yi = x;
-            stackpointer = radius;
             for (y = 0; y < h; y++) {
-                // Preserve alpha channel: ( 0xff000000 & pix[yi] )
-                pix[yi] = ( 0xff000000 & pix[yi] ) | ( dv[rsum] << 16 ) | ( dv[gsum] << 8 ) | dv[bsum];
-
-                rsum -= routsum;
-                gsum -= goutsum;
-                bsum -= boutsum;
-
-                stackstart = stackpointer - radius + div;
-                sir = stack[stackstart % div];
-
-                routsum -= sir[0];
-                goutsum -= sir[1];
-                boutsum -= sir[2];
-
-                if (x == 0) {
-                    vmin[y] = Math.min(y + r1, hm) * w;
+                rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
+                for (i = -radius; i <= radius; i++) {
+                    p = pix[yi + Math.min(wm, Math.max(i, 0))];
+                    sir = stack[i + radius];
+                    sir[0] = (p & 0xff0000) >> 16;
+                    sir[1] = (p & 0x00ff00) >> 8;
+                    sir[2] = (p & 0x0000ff);
+                    rbs = r1 - Math.abs(i);
+                    rsum += sir[0] * rbs;
+                    gsum += sir[1] * rbs;
+                    bsum += sir[2] * rbs;
+                    if (i > 0) {
+                        rinsum += sir[0];
+                        ginsum += sir[1];
+                        binsum += sir[2];
+                    } else {
+                        routsum += sir[0];
+                        goutsum += sir[1];
+                        boutsum += sir[2];
+                    }
                 }
-                p = x + vmin[y];
+                stackpointer = radius;
 
-                sir[0] = r[p];
-                sir[1] = g[p];
-                sir[2] = b[p];
+                for (x = 0; x < w; x++) {
 
-                rinsum += sir[0];
-                ginsum += sir[1];
-                binsum += sir[2];
+                    r[yi] = dv[rsum];
+                    g[yi] = dv[gsum];
+                    b[yi] = dv[bsum];
 
-                rsum += rinsum;
-                gsum += ginsum;
-                bsum += binsum;
+                    rsum -= routsum;
+                    gsum -= goutsum;
+                    bsum -= boutsum;
 
-                stackpointer = (stackpointer + 1) % div;
-                sir = stack[stackpointer];
+                    stackstart = stackpointer - radius + div;
+                    sir = stack[stackstart % div];
 
-                routsum += sir[0];
-                goutsum += sir[1];
-                boutsum += sir[2];
+                    routsum -= sir[0];
+                    goutsum -= sir[1];
+                    boutsum -= sir[2];
 
-                rinsum -= sir[0];
-                ginsum -= sir[1];
-                binsum -= sir[2];
+                    if (y == 0) {
+                        vmin[x] = Math.min(x + radius + 1, wm);
+                    }
+                    p = pix[yw + vmin[x]];
 
-                yi += w;
+                    sir[0] = (p & 0xff0000) >> 16;
+                    sir[1] = (p & 0x00ff00) >> 8;
+                    sir[2] = (p & 0x0000ff);
+
+                    rinsum += sir[0];
+                    ginsum += sir[1];
+                    binsum += sir[2];
+
+                    rsum += rinsum;
+                    gsum += ginsum;
+                    bsum += binsum;
+
+                    stackpointer = (stackpointer + 1) % div;
+                    sir = stack[(stackpointer) % div];
+
+                    routsum += sir[0];
+                    goutsum += sir[1];
+                    boutsum += sir[2];
+
+                    rinsum -= sir[0];
+                    ginsum -= sir[1];
+                    binsum -= sir[2];
+
+                    yi++;
+                }
+                yw += w;
             }
+            for (x = 0; x < w; x++) {
+                rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
+                yp = -radius * w;
+                for (i = -radius; i <= radius; i++) {
+                    yi = Math.max(0, yp) + x;
+
+                    sir = stack[i + radius];
+
+                    sir[0] = r[yi];
+                    sir[1] = g[yi];
+                    sir[2] = b[yi];
+
+                    rbs = r1 - Math.abs(i);
+
+                    rsum += r[yi] * rbs;
+                    gsum += g[yi] * rbs;
+                    bsum += b[yi] * rbs;
+
+                    if (i > 0) {
+                        rinsum += sir[0];
+                        ginsum += sir[1];
+                        binsum += sir[2];
+                    } else {
+                        routsum += sir[0];
+                        goutsum += sir[1];
+                        boutsum += sir[2];
+                    }
+
+                    if (i < hm) {
+                        yp += w;
+                    }
+                }
+                yi = x;
+                stackpointer = radius;
+                for (y = 0; y < h; y++) {
+                    // Preserve alpha channel: ( 0xff000000 & pix[yi] )
+                    pix[yi] = ( 0xff000000 & pix[yi] ) | ( dv[rsum] << 16 ) | ( dv[gsum] << 8 ) | dv[bsum];
+
+                    rsum -= routsum;
+                    gsum -= goutsum;
+                    bsum -= boutsum;
+
+                    stackstart = stackpointer - radius + div;
+                    sir = stack[stackstart % div];
+
+                    routsum -= sir[0];
+                    goutsum -= sir[1];
+                    boutsum -= sir[2];
+
+                    if (x == 0) {
+                        vmin[y] = Math.min(y + r1, hm) * w;
+                    }
+                    p = x + vmin[y];
+
+                    sir[0] = r[p];
+                    sir[1] = g[p];
+                    sir[2] = b[p];
+
+                    rinsum += sir[0];
+                    ginsum += sir[1];
+                    binsum += sir[2];
+
+                    rsum += rinsum;
+                    gsum += ginsum;
+                    bsum += binsum;
+
+                    stackpointer = (stackpointer + 1) % div;
+                    sir = stack[stackpointer];
+
+                    routsum += sir[0];
+                    goutsum += sir[1];
+                    boutsum += sir[2];
+
+                    rinsum -= sir[0];
+                    ginsum -= sir[1];
+                    binsum -= sir[2];
+
+                    yi += w;
+                }
+            }
+
+            Log.e("pix", w + " " + h + " " + pix.length);
+            bitmap.setPixels(pix, 0, w, 0, 0, w, h);
+
+
+        } catch(ArrayIndexOutOfBoundsException e){
         }
-
-        Log.e("pix", w + " " + h + " " + pix.length);
-        bitmap.setPixels(pix, 0, w, 0, 0, w, h);
-
         return (bitmap);
     }
 

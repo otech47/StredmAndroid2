@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
@@ -15,11 +14,7 @@ import com.setmine.android.object.Set;
 import com.setmine.android.task.GetImageAsyncTask;
 import com.setmine.android.util.DateUtils;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -111,7 +106,7 @@ public class TileGenerator {
             ((TextView) eventTile.findViewById(R.id.event)).setText(eName.toUpperCase());
             ((TextView) eventTile.findViewById(R.id.date)).setText(eDate);
             ((TextView) eventTile.findViewById(R.id.city)).setText(eCity);
-            (eventTile.findViewById(R.id.button)).setOnClickListener(new View.OnClickListener() {
+            eventTile.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
                     eventDetailFragment.EVENT_ID = eId;
@@ -151,8 +146,7 @@ public class TileGenerator {
             ((TextView) eventTile.findViewById(R.id.event)).setText(eName.toUpperCase());
             ((TextView) eventTile.findViewById(R.id.date)).setText(eDate);
             ((TextView) eventTile.findViewById(R.id.city)).setText(eCity);
-            Button button = (Button)eventTile.findViewById(R.id.button);
-            button.setOnClickListener(new View.OnClickListener() {
+            eventTile.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
                     eventDetailFragment.EVENT_ID = eId;

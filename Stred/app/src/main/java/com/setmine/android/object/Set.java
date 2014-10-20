@@ -1,11 +1,14 @@
 package com.setmine.android.object;
 
+import android.util.Log;
+
 import com.setmine.android.util.TimeUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class Set {
@@ -176,11 +179,26 @@ public class Set {
     }
 
     public List<Track> generateTracklist(String tracklistString, String starttimesString) {
-        String[] tracklistArray = tracklistString.split(", ");
-        String[] starttimesArray = starttimesString.split(", ");
+        List<String> tracklistArray = new ArrayList<String>();
+        List<String> starttimesArray = new ArrayList<String>();
+        if(tracklistString.contains(", ")) {
+            tracklistArray = Arrays.asList(tracklistString.split(", "));
+            starttimesArray = Arrays.asList(starttimesString.split(", "));
+        }
+        else {
+            tracklistArray.add(tracklistString);
+            starttimesArray.add(starttimesString);
+        }
         List<Track> trackList = new ArrayList<Track>();
-        for(int i = 0 ; i < tracklistArray.length; i++) {
-            trackList.add(new Track(tracklistArray[i], starttimesArray[i]));
+        Log.v("Tracklist", tracklistString);
+        Log.v("Track Size", ((Integer)tracklistArray.size()).toString());
+        Log.v("Start Size", ((Integer)starttimesArray.size()).toString());
+        for(int i = 0 ; i < tracklistArray.size() ; i++) {
+            try {
+                trackList.add(new Track(tracklistArray.get(i), starttimesArray.get(i)));
+            } catch(IndexOutOfBoundsException e) {
+                Log.v("Error", e.toString());
+            }
         }
         return trackList;
     }
