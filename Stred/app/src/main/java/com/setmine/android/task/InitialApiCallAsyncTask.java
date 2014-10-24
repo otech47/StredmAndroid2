@@ -3,6 +3,7 @@ package com.setmine.android.task;
 import android.content.Context;
 import android.os.AsyncTask;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.util.HttpUtils;
@@ -52,6 +53,10 @@ public class InitialApiCallAsyncTask extends AsyncTask<String, Integer, JSONObje
     protected void onPostExecute(JSONObject jsonObject) {
         activity.asyncTasksInProgress--;
         Log.v("Task complete. Still in queue: ", ((Integer)activity.asyncTasksInProgress).toString());
-        activity.onInitialResponseReceived(jsonObject, modelType);
+        if(jsonObject != null) {
+            activity.onInitialResponseReceived(jsonObject, modelType);
+        } else {
+            Toast.makeText(activity.getApplicationContext(), "Check your Internet Connection", Toast.LENGTH_SHORT);
+        }
     }
 }

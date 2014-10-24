@@ -1,4 +1,4 @@
-package com.setmine.android;
+package com.setmine.android.fragment;
 
 import android.app.Activity;
 import android.content.Context;
@@ -17,6 +17,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.DatePicker;
 import android.widget.EditText;
@@ -30,7 +31,12 @@ import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.setmine.android.fragment.EventDetailFragment;
+import com.setmine.android.ApiCaller;
+import com.setmine.android.ApiResponse;
+import com.setmine.android.ImageCache;
+import com.setmine.android.ModelsContentProvider;
+import com.setmine.android.R;
+import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Event;
 import com.setmine.android.task.ApiCallAsyncTask;
 import com.setmine.android.task.InitialApiCallAsyncTask;
@@ -53,19 +59,18 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     public Context context;
     public View rootView;
     public Integer page;
-    public ImageCache imageCache;
     public ModelsContentProvider modelsCP;
     public ViewPager eventViewPager;
     public List<View> currentTiles;
     public List<Event> currentEvents;
     public DateUtils dateUtils;
     public DisplayImageOptions options;
-    public String lastEventDate;
     public Geocoder geocoder;
     public SetMineMainActivity activity;
     public Calendar selectedDate;
     public Location selectedLocation;
     public EventAdapter dynamicAdapter;
+    public String eventType;
 
     public EventPageFragment() {}
 
@@ -124,27 +129,31 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                              ViewGroup container, Bundle savedInstanceState) {
         Log.v("page is ", page.toString());
         ListView listView = null;
+        eventType = "";
         if(page == 1) {
             Log.v("page 1", " inflating");
+            eventType = "upcoming";
             rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsList);
-            listView.setAdapter(new EventAdapter(inflater, currentEvents, "upcoming"));
+            listView.setAdapter(new EventAdapter(inflater, currentEvents, eventType));
         }
         else if(page == 2) {
             Log.v("page 2", " inflating");
+            eventType = "recent";
             rootView = inflater.inflate(R.layout.events_scroll_view_recent, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsListRecent);
-            listView.setAdapter(new EventAdapter(inflater, currentEvents, "recent"));
+            listView.setAdapter(new EventAdapter(inflater, currentEvents, eventType));
         }
         else if(page == 3) {
             Log.v("page 3", " inflating");
+            eventType = "search";
             rootView = inflater.inflate(R.layout.events_finder, container, false);
             listView = (ListView) rootView.findViewById(R.id.searchResults);
             final EditText locationText = (EditText)rootView.findViewById(R.id.locationText);
             final TextView dateText = (TextView)rootView.findViewById(R.id.dateText);
             final DatePicker datePicker = (DatePicker)rootView.findViewById(R.id.datePicker);
 
-            dynamicAdapter = new EventAdapter(inflater, currentEvents, "search");
+            dynamicAdapter = new EventAdapter(inflater, currentEvents, eventType);
 
             listView.setAdapter(dynamicAdapter);
 
@@ -229,6 +238,29 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         }
         if(listView != null) {
             listView.setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
+            listView.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView <?> parent, View v,
+                int position, long id) {
+                    Event currentEvent = currentEvents.get(position);
+
+                    EventDetailFragment eventDetailFragment = new EventDetailFragment();
+                    eventDetailFragment.EVENT_ID = currentEvent.id;
+                    eventDetailFragment.EVENT_NAME = currentEvent.event;
+                    eventDetailFragment.EVENT_DATE = dateUtils.formatDateText(currentEvent.startDate, currentEvent.endDate);
+                    eventDetailFragment.EVENT_DATE_UNFORMATTED = currentEvent.startDate;
+                    eventDetailFragment.EVENT_CITY = dateUtils.formatLocationFromAddress(currentEvent.address);
+                    eventDetailFragment.EVENT_IMAGE = currentEvent.mainImageUrl;
+                    eventDetailFragment.EVENT_TYPE = (eventType.equals("search")?"upcoming":eventType);
+                    eventDetailFragment.LAST_EVENT_DATE = currentEvent.startDate;
+                    SetMineMainActivity activity = (SetMineMainActivity) getActivity();
+                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
+                    transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                    transaction.commit();
+                }
+            });
         }
         Log.v("EPF View Created ", page.toString());
         Log.v("rootview is ", rootView.toString());
@@ -327,31 +359,6 @@ public class EventPageFragment extends Fragment implements ApiCaller {
 
             ImageLoader.getInstance().displayImage(SetMineMainActivity.PUBLIC_ROOT_URL + "images/" + event.mainImageUrl, holder.image, options, animateFirstListener);
 
-            final String eName = event.event;
-            final String eDate = dateUtils.formatDateText(event.startDate, event.endDate);
-            final String eCity = dateUtils.formatLocationFromAddress(event.address);
-            final String eImage = event.mainImageUrl;
-            final String eId = event.id;
-            final String eDateUnformatted = event.startDate;
-            view.setOnClickListener(new View.OnClickListener() {
-                public void onClick(View v) {
-                    EventDetailFragment eventDetailFragment = new EventDetailFragment();
-                    eventDetailFragment.EVENT_ID = eId;
-                    eventDetailFragment.EVENT_NAME = eName;
-                    eventDetailFragment.EVENT_DATE = eDate;
-                    eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
-                    eventDetailFragment.EVENT_CITY = eCity;
-                    eventDetailFragment.EVENT_IMAGE = eImage;
-                    eventDetailFragment.EVENT_TYPE = (type.equals("search")?"upcoming":type);
-                    eventDetailFragment.LAST_EVENT_DATE = eDateUnformatted;
-                    SetMineMainActivity activity = (SetMineMainActivity) getActivity();
-                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-                    transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
-                    transaction.addToBackStack(null);
-                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                    transaction.commit();
-                }
-            });
 
             return view;
         }

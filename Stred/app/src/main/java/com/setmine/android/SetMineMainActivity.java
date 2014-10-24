@@ -71,7 +71,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     public TracklistFragment tracklistFragment;
     public View playerFrame;
     public ViewPagerContainerFragment viewPagerContainerFragment;
-    public View lastClickedPlayButton;
     public HashMap<String, List<View>> preloadedTiles = new HashMap<String, List<View>>();
     public InitialApiCallAsyncTask getLineupAsyncTask;
     public InitialApiCallAsyncTask asyncApiCaller;
@@ -185,16 +184,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     }
 
-    public void startPlayerFragment(View v) {
-        if(lastClickedPlayButton != null) {
-            ((ImageView)lastClickedPlayButton).setImageResource(R.drawable.ic_action_play);
-            lastClickedPlayButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startPlayerFragment(v);
-                }
-            });
-        }
+    public void startPlayerFragment(int setId) {
         if(playerFragment == null) {
             playerFragment = new PlayerFragment();
         }
@@ -205,11 +195,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack(null);
         transaction.commit();
-        View parent = (View) v.getParent();
-        int id = parent.getId();
-        setsManager.selectSetById(Integer.toString(((View) v.getParent()).getId()));
+        setsManager.selectSetById(Integer.toString(setId));
         playerFragment.playSong(setsManager.selectedSetIndex);
-        lastClickedPlayButton = v;
     }
 
     public void openPlayer() {
