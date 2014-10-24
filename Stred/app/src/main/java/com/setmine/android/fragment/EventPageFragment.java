@@ -33,7 +33,6 @@ import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.ApiCaller;
 import com.setmine.android.ApiResponse;
-import com.setmine.android.ImageCache;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
@@ -262,7 +261,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                     eventDetailFragment.EVENT_NAME = currentEvent.event;
                     eventDetailFragment.EVENT_DATE = dateUtils.formatDateText(currentEvent.startDate, currentEvent.endDate);
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = currentEvent.startDate;
-                    eventDetailFragment.EVENT_CITY = dateUtils.formatLocationFromAddress(currentEvent.address);
+                    eventDetailFragment.EVENT_ADDRESS = currentEvent.address;
                     eventDetailFragment.EVENT_IMAGE = currentEvent.mainImageUrl;
                     eventDetailFragment.EVENT_TYPE = (eventType.equals("search")?"upcoming":eventType);
                     eventDetailFragment.LAST_EVENT_DATE = currentEvent.startDate;
