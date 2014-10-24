@@ -5,7 +5,8 @@
     android:layout_height="100dp"
     android:padding="10dp"
     android:background="@drawable/top_bottom_border"
-    android:id="@+id/event_search_result">
+    android:id="@+id/event_search_result"
+    android:descendantFocusability="blocksDescendants">
 
     <ImageView
         android:layout_width="80dp"

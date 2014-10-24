@@ -4,7 +4,8 @@
     android:layout_width="match_parent"
     android:layout_height="350dp"
     android:background="#ff000000"
-    android:clipToPadding="false">
+    android:clipToPadding="false"
+    android:descendantFocusability="blocksDescendants">
 
     <ImageView
         android:layout_width="match_parent"

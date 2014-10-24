@@ -74,7 +74,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     public TracklistFragment tracklistFragment;
     public View playerFrame;
     public ViewPagerContainerFragment viewPagerContainerFragment;
-    public View lastClickedPlayButton;
     public HashMap<String, List<View>> preloadedTiles = new HashMap<String, List<View>>();
     public InitialApiCallAsyncTask getLineupAsyncTask;
     public InitialApiCallAsyncTask asyncApiCaller;
@@ -87,11 +86,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
-        Log.v("Response", "Received");
         this.modelsCP.setModel(jsonObject, modelType);
-        Log.v("upcoming", ((Integer)modelsCP.upcomingEvents.size()).toString());
-        Log.v("recent", ((Integer)modelsCP.recentEvents.size()).toString());
-        Log.v("search", ((Integer)modelsCP.searchEvents.size()).toString());
         if(modelsCP.upcomingEvents.size() > 1 && modelsCP.recentEvents.size() > 1 && modelsCP.searchEvents.size() > 1) {
             finishOnCreate();
         }
@@ -207,16 +202,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         startActivity(intent);
     }
 
-    public void startPlayerFragment(View v) {
-        if(lastClickedPlayButton != null) {
-            ((ImageView)lastClickedPlayButton).setImageResource(R.drawable.ic_action_play);
-            lastClickedPlayButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    startPlayerFragment(v);
-                }
-            });
-        }
+    public void startPlayerFragment(int setId) {
         if(playerFragment == null) {
             playerFragment = new PlayerFragment();
         }
@@ -227,11 +213,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack(null);
         transaction.commit();
-        View parent = (View) v.getParent();
-        int id = parent.getId();
-        setsManager.selectSetById(Integer.toString(((View) v.getParent()).getId()));
+        setsManager.selectSetById(Integer.toString(setId));
         playerFragment.playSong(setsManager.selectedSetIndex);
-        lastClickedPlayButton = v;
     }
 
     public void openPlayer() {
@@ -334,6 +317,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+
     }
 
     // Blurring images for player, called by PlayerFragment

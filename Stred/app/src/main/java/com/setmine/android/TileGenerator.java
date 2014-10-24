@@ -30,7 +30,7 @@ public class TileGenerator {
     private Context context;
     public ImageCache imageCache;
     public int imagesLoaded = 0;
-    public com.setmine.android.EventPageFragment eventPageFragment;
+    public com.setmine.android.fragment.EventPageFragment eventPageFragment;
     public List<String> formattedLocation = new ArrayList<String>();
     public SetMineMainActivity activity;
     public String lastEventDate;

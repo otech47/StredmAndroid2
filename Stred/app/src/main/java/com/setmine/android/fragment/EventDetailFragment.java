@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.Button;
 import android.widget.ImageView;
@@ -74,7 +75,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         Log.v("onLineupsSetsReceived", this.toString());
         ListView listView = null;
         if(identifier == "sets") {
-            List<Set> setModels = new ArrayList<Set>();
+            final List<Set> setModels = new ArrayList<Set>();
             try {
                 if(jsonObject.getString("status").equals("success")) {
                     JSONObject payload = jsonObject.getJSONObject("payload");
@@ -89,6 +90,13 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 e.printStackTrace();
             }
             lineupContainer.setAdapter(new SetAdapter(setModels));
+            lineupContainer.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                    Set s = setModels.get(position);
+                    ((SetMineMainActivity)getActivity()).startPlayerFragment(Integer.parseInt(s.getId()));
+                }
+            });
             activity.setsManager.setPlaylist(setModels);
             rootView.findViewById(R.id.loading).setVisibility(View.GONE);
         }
@@ -157,6 +165,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.event_detail, container, false);
+        lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
         ImageLoader.getInstance().displayImage(SetMineMainActivity.PUBLIC_ROOT_URL + "images/" + EVENT_IMAGE, eventImage, options);
         if(EVENT_IMAGE.equals(83)) {
@@ -309,6 +318,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         TextView playCount;
         TextView artistText;
         ImageView artistImage;
+        ImageView playButton;
     }
 
     class SetAdapter extends BaseAdapter {
@@ -358,6 +368,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 }
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
+                holder.playButton = (ImageView) view.findViewById(R.id.playButton);
                 view.setTag(holder);
                 view.setId(Integer.valueOf(set.getId()).intValue());
             } else {

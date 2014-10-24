@@ -7,7 +7,7 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.util.Log;
 import android.view.ViewGroup;
 
-import com.setmine.android.EventPageFragment;
+import com.setmine.android.fragment.EventPageFragment;
 
 import java.util.ArrayList;
 import java.util.List;
