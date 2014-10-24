@@ -43,7 +43,11 @@ public class DateUtils {
         return formattedDateString;
     }
 
-    public String formatLocationFromAddress(String address) {
+    public String formatAddressForDetail(String address) {
+        return address;
+    }
+
+    public String getCityStateFromAddress(String address) {
         int comma = address.lastIndexOf(",");
         String cityState = address.substring(0, comma);
         comma = cityState.lastIndexOf(",");

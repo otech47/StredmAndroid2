@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Point;
 import android.location.Location;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
@@ -16,7 +17,9 @@ import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
@@ -49,7 +52,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         GooglePlayServicesClient.OnConnectionFailedListener {
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
-    public static final String APP_VERSION = "1.1.1";
+    public static final String APP_VERSION = "1.2";
     public static final String API_VERSION = "1";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
@@ -84,7 +87,11 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
+        Log.v("Response", "Received");
         this.modelsCP.setModel(jsonObject, modelType);
+        Log.v("upcoming", ((Integer)modelsCP.upcomingEvents.size()).toString());
+        Log.v("recent", ((Integer)modelsCP.recentEvents.size()).toString());
+        Log.v("search", ((Integer)modelsCP.searchEvents.size()).toString());
         if(modelsCP.upcomingEvents.size() > 1 && modelsCP.recentEvents.size() > 1 && modelsCP.searchEvents.size() > 1) {
             finishOnCreate();
         }
@@ -119,17 +126,24 @@ public class SetMineMainActivity extends FragmentActivity implements
             locationClient.connect();
         }
         else {
+            Log.v("No", "Location");
             currentLocation = new Location("default");
             currentLocation.setLatitude(29.652175);
             currentLocation.setLongitude(-82.325856);
+            String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
+                    +currentLocation.getLongitude();
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                            eventSearchUrl,
+                            "searchEvents");
         }
         setsManager = new SetsManager();
         fragmentManager = getSupportFragmentManager();
         modelsCP = new ModelsContentProvider();
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
                 .diskCacheExtraOptions(480, 800, null)
-                .diskCacheSize(50 * 1024 * 1024)
-                .diskCacheFileCount(100)
+                .diskCacheSize(60 * 1024 * 1024)
+                .diskCacheFileCount(200)
                 .build();
         ImageLoader.getInstance().init(config);
         setContentView(R.layout.fragment_main);
@@ -183,6 +197,14 @@ public class SetMineMainActivity extends FragmentActivity implements
         fragmentManager.popBackStack();
         Log.v("FRAGMENT MANAGER after pop", fragmentManager.getFragments().toString());
 
+    }
+
+    public void copyToClipboard(View v) {
+        String address = ((TextView)((ViewGroup)v.getParent()).findViewById(R.id.locationText))
+                .getText().toString();
+        String url = "http://maps.google.com/maps?daddr="+address;
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW,  Uri.parse(url));
+        startActivity(intent);
     }
 
     public void startPlayerFragment(View v) {
@@ -312,7 +334,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
     }
 
     // Blurring images for player, called by PlayerFragment

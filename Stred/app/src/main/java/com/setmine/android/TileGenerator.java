@@ -100,7 +100,7 @@ public class TileGenerator {
             new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
             final String eDate = dateUtils.formatDateText(element.startDate, element.endDate);
-            final String eCity = dateUtils.formatLocationFromAddress(element.address);
+            final String eCity = dateUtils.getCityStateFromAddress(element.address);
             final String eImage = imageUrl;
             final String eId = element.id;
             final String eDateUnformatted = element.startDate;
@@ -114,7 +114,7 @@ public class TileGenerator {
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
-                    eventDetailFragment.EVENT_CITY = eCity;
+                    eventDetailFragment.EVENT_ADDRESS = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "upcoming";
                     lastEventDate = eDateUnformatted;
@@ -140,7 +140,7 @@ public class TileGenerator {
             new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
             final String eDate = dateUtils.formatDateText(element.startDate, element.endDate);
-            final String eCity = dateUtils.formatLocationFromAddress(element.address);
+            final String eCity = dateUtils.getCityStateFromAddress(element.address);
             final String eImage = imageUrl;
             final String eId = element.id;
             final String eDateUnformatted = element.startDate;
@@ -154,7 +154,7 @@ public class TileGenerator {
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
-                    eventDetailFragment.EVENT_CITY = eCity;
+                    eventDetailFragment.EVENT_ADDRESS = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "recent";
                     lastEventDate = eDateUnformatted;
@@ -181,7 +181,7 @@ public class TileGenerator {
             new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));
             final String eName = element.event;
             final String eDate = dateUtils.formatDateText(element.startDate, element.endDate);
-            final String eCity = dateUtils.formatLocationFromAddress(element.address);
+            final String eCity = dateUtils.getCityStateFromAddress(element.address);
             final String eImage = imageUrl;
             final String eId = element.id;
             final String eDateUnformatted = element.startDate;
@@ -195,7 +195,7 @@ public class TileGenerator {
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
-                    eventDetailFragment.EVENT_CITY = eCity;
+                    eventDetailFragment.EVENT_ADDRESS = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "upcoming";
                     lastEventDate = eDateUnformatted;

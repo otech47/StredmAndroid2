@@ -21,7 +21,7 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="?android:attr/actionBarSize"
+        android:layout_height="0dp"
         android:id="@+id/buffer"></FrameLayout>
 
     <RelativeLayout
@@ -171,7 +171,7 @@
 	        android:id="@+id/player_button_tracklist"
 	        android:layout_width="50dp"
 	        android:layout_height="50dp"
-            android:padding="10dp"
+            android:padding="5dp"
 	        android:adjustViewBounds="false"
 	        android:background="@null"
 	        android:scaleType="centerInside"

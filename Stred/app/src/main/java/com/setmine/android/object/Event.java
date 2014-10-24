@@ -16,6 +16,7 @@ public class Event {
     public String mainImageUrl;
     public String startDate;
     public String endDate;
+    public int paid;
     public int days;
     public String venue;
     public double latitude;
@@ -58,6 +59,7 @@ public class Event {
             setMainImageUrl(json.getString("landing_image"));
             setStartDate(json.getString("start_date"));
             setEndDate(json.getString("end_date"));
+            setPaid(json.getInt("paid"));
             setDays(json.getInt("days"));
             setVenue(json.getString("venue"));
             setLatitude(json.getDouble("latitude"));
@@ -154,6 +156,14 @@ public class Event {
 
     public void setEndDate(String endDate) {
         this.endDate = endDate;
+    }
+
+    public int getPaid() {
+        return paid;
+    }
+
+    public void setPaid(int paid) {
+        this.paid = paid;
     }
 
     public int getDays() {

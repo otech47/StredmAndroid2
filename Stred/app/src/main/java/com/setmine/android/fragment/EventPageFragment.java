@@ -66,6 +66,8 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     public Calendar selectedDate;
     public Location selectedLocation;
     public EventAdapter dynamicAdapter;
+    public List<Address> addressResultList;
+    public Address addressResult;
 
     public EventPageFragment() {}
 
@@ -107,6 +109,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         this.geocoder = new Geocoder(context, Locale.getDefault());
         this.selectedDate = Calendar.getInstance();
         this.selectedLocation = new Location(activity.currentLocation);
+        this.addressResultList = null;
+        this.addressResult = null;
+
 
         options =  new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
@@ -165,14 +170,23 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                     return true;
                 }
             });
-            try {
-                Address result = geocoder.getFromLocation(selectedLocation.getLatitude(),
-                        selectedLocation.getLongitude(), 1).get(0);
-                Log.v("REUSLT", result.toString());
-                locationText.setText(result.getLocality() + ", " + result.getAdminArea());
-            } catch (IOException e) {
-                e.printStackTrace();
+            if(addressResult == null) {
+                try {
+                    addressResultList = geocoder.getFromLocation(selectedLocation.getLatitude(),
+                            selectedLocation.getLongitude(), 1);
+                    if(addressResultList.size() > 0) {
+                        addressResult = addressResultList.get(0);
+                        locationText.setText(addressResult.getLocality() + ", " + addressResult.getAdminArea());
+                    }
+                    else {
+                        locationText.setText("No Address");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
             }
+
+
             locationText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
                 @Override
                 public void onFocusChange(View v, boolean hasFocus) {
@@ -321,7 +335,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 holder = (ViewHolder) view.getTag();
             }
 
-            holder.city.setText(dateUtils.formatLocationFromAddress(event.address));
+            holder.city.setText(dateUtils.getCityStateFromAddress(event.address));
             holder.event.setText(event.event);
             holder.date.setText(dateUtils.formatDateText(event.startDate, event.endDate));
 
@@ -329,10 +343,11 @@ public class EventPageFragment extends Fragment implements ApiCaller {
 
             final String eName = event.event;
             final String eDate = dateUtils.formatDateText(event.startDate, event.endDate);
-            final String eCity = dateUtils.formatLocationFromAddress(event.address);
+            final String eCity = dateUtils.formatAddressForDetail(event.address);
             final String eImage = event.mainImageUrl;
             final String eId = event.id;
             final String eDateUnformatted = event.startDate;
+            final int epaid = event.paid;
             view.setOnClickListener(new View.OnClickListener() {
                 public void onClick(View v) {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
@@ -340,8 +355,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                     eventDetailFragment.EVENT_NAME = eName;
                     eventDetailFragment.EVENT_DATE = eDate;
                     eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
-                    eventDetailFragment.EVENT_CITY = eCity;
+                    eventDetailFragment.EVENT_ADDRESS = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
+                    eventDetailFragment.EVENT_PAID = epaid;
                     eventDetailFragment.EVENT_TYPE = (type.equals("search")?"upcoming":type);
                     eventDetailFragment.LAST_EVENT_DATE = eDateUnformatted;
                     SetMineMainActivity activity = (SetMineMainActivity) getActivity();

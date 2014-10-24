@@ -53,10 +53,11 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     public String EVENT_NAME;
     public String EVENT_DATE;
     public String EVENT_DATE_UNFORMATTED;
-    public String EVENT_CITY;
+    public String EVENT_ADDRESS;
     public String EVENT_IMAGE;
     public String EVENT_TYPE;
     public String LAST_EVENT_DATE;
+    public int EVENT_PAID;
     public List<HashMap<String, String>> setMapsList;
     public ListView lineupContainer;
     public JSONObject savedApiResponse = null;
@@ -163,12 +164,13 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
         ((TextView)rootView.findViewById(R.id.eventText)).setText(EVENT_NAME);
         if(EVENT_TYPE == "recent") {
+            rootView.findViewById(R.id.directionsButton).setVisibility(View.GONE);
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_blue);
             ((TextView)rootView.findViewById(R.id.lineupText)).setText("Sets");
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
-            if(EVENT_NAME.equals("Electro Chemical Show")) {
+            if(EVENT_PAID == 1) {
                 Button buyTickets = (Button)rootView.findViewById(R.id.button_buy_tickets);
                 buyTickets.setVisibility(View.VISIBLE);
                 buyTickets.setOnClickListener(new View.OnClickListener() {
@@ -191,7 +193,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
             }
         }
         ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE);
-        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_CITY);
+        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_ADDRESS);
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         if(selectedLineup != null) {
             lineupContainer.setAdapter(new LineupSetAdapter(selectedLineup.getLineup()));
