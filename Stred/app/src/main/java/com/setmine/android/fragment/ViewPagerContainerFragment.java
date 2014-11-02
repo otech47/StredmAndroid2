@@ -37,6 +37,8 @@ public class ViewPagerContainerFragment extends Fragment {
         mViewPager.setAdapter(mEventPagerAdapter);
         ((SetMineMainActivity) getActivity()).eventViewPager = mViewPager;
         mViewPager.setOffscreenPageLimit(3);
+        ((SetMineMainActivity)getActivity()).eventViewPager = mViewPager;
+        ((SetMineMainActivity)getActivity()).actionBar.getCustomView().setVisibility(View.VISIBLE);
         return root;
     }
 }

@@ -13,24 +13,46 @@
     <ImageView
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/logo"
+        android:src="@drawable/artist_icon"
         android:scaleType="centerCrop"
         android:id="@+id/artistImage"
         android:layout_gravity="center"/>
 
-    <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:padding="10dp"
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:id="@+id/infoButton"
+        android:visibility="gone"
+        android:layout_centerVertical="true"
         android:layout_alignParentRight="true"
-        android:src="@drawable/logo"/>
+        android:background="@drawable/nav_icon_blue">
+
+        <ImageView
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:padding="10dp"
+            android:id="@+id/pastSetsImage"
+            android:layout_centerVertical="true"
+            android:src="@drawable/ic_action_search"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Past Sets"
+            android:paddingRight="@dimen/small_text_padding"
+            android:textSize="15sp"
+            android:textColor="@color/setmine_white"
+            android:layout_centerVertical="true"
+            android:layout_toRightOf="@id/pastSetsImage"/>
+
+    </RelativeLayout>
+
 
 
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:maxWidth="170dp"
         android:text="Artist"
         android:singleLine="true"
         android:ellipsize="marquee"
@@ -68,6 +90,8 @@
         android:paddingBottom="3sp"
         android:paddingLeft="8dp"
         android:textSize="12sp"/>
+
+
 
 
 </RelativeLayout>

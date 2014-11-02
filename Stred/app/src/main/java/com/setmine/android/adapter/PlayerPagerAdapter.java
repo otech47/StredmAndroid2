@@ -10,6 +10,7 @@ import android.util.Log;
 import com.setmine.android.fragment.EventPageFragment;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.fragment.PlayerFragment;
+import com.setmine.android.fragment.PlaylistFragment;
 import com.setmine.android.fragment.TracklistFragment;
 
 import java.util.ArrayList;
@@ -23,6 +24,7 @@ public class PlayerPagerAdapter extends FragmentPagerAdapter{
     public List<EventPageFragment> eventPageFragments = new ArrayList<EventPageFragment>();
     public PlayerFragment playerFragment;
     public TracklistFragment tracklistFragment;
+    public PlaylistFragment playListFragment;
     public int currentFragmentPosition;
     public FragmentManager fm;
     public Context context;
@@ -39,6 +41,11 @@ public class PlayerPagerAdapter extends FragmentPagerAdapter{
     @Override
     public Fragment getItem(int i) {
         if(i == 0) {
+            Log.d("getItem", "playlist");
+            playListFragment = new PlaylistFragment();
+            ((SetMineMainActivity)context).playlistFragment = playListFragment;
+            return playListFragment;
+        } else if(i == 1) {
             playerFragment = new PlayerFragment();
             ((SetMineMainActivity)context).playerFragment = playerFragment;
             return playerFragment;
@@ -56,7 +63,7 @@ public class PlayerPagerAdapter extends FragmentPagerAdapter{
 
     @Override
     public int getCount() {
-        return 2;
+        return 3;
     }
 
 }

@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:id="@+id/set_tile"
+    android:background="@color/setmine_white">
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:src="@drawable/logo"
+        android:scaleType="centerCrop"
+        android:id="@+id/artistImage"
+        android:layout_gravity="center"/>
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="40dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:id="@+id/playButton"
+        android:layout_alignParentEnd="true"
+        android:src="@drawable/ic_action_play"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:layout_toEndOf="@id/artistImage"
+        android:layout_toStartOf="@id/playButton">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Artist"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:layout_alignParentTop="true"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:scrollHorizontally="true"
+            android:id="@+id/artistText"
+            android:textColor="#FF000000"
+            android:textSize="17sp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@id/artistText"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Event"
+                android:id="@+id/eventText"
+                android:textColor="@color/setmine_blue"
+                android:layout_gravity="bottom"
+                android:textSize="13sp"
+                android:singleLine="true"
+                android:textStyle="bold"/>
+
+
+        </LinearLayout>
+
+
+    </RelativeLayout>
+
+    <TextView
+        android:layout_width="50dp"
+        android:layout_height="wrap_content"
+        android:text="0 plays"
+        android:id="@+id/playCount"
+        android:textColor="@color/setmine_blue"
+        android:layout_below="@id/playButton"
+        android:gravity="center"
+        android:layout_alignStart="@id/playButton"
+        android:textSize="11sp"/>
+
+</RelativeLayout>

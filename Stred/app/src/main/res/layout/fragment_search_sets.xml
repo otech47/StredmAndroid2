@@ -1,0 +1,146 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingTop="?android:attr/actionBarSize"
+    android:background="@color/setmine_white">
+
+
+    <SearchView
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:id="@+id/search_sets"
+        android:layout_alignParentTop="true"
+        android:iconifiedByDefault="false"
+        android:queryHint="Search Artist/Event/Mix/Genre..."
+        />
+
+
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:id="@+id/browse_container"
+        android:layout_below="@id/search_sets">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/browse_artist"
+            android:background="@drawable/selectable_browse_button"
+            android:src="@drawable/artist_icon"
+            android:padding="@dimen/browse_icon_padding" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/browse_festival"
+            android:background="@drawable/selectable_browse_button"
+            android:src="@drawable/festival_icon"
+            android:padding="@dimen/browse_icon_padding" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/browse_mix"
+            android:background="@drawable/selectable_browse_button"
+            android:src="@drawable/mix_icon"
+            android:padding="@dimen/browse_icon_padding" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/browse_genre"
+            android:background="@drawable/selectable_browse_button"
+            android:src="@drawable/genre_icon"
+            android:padding="@dimen/browse_icon_padding" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/browse_popular"
+            android:background="@drawable/selectable_browse_button_purple"
+            android:src="@drawable/popular_icon"
+            android:padding="@dimen/browse_icon_padding" />
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/browse_recent"
+            android:background="@drawable/selectable_browse_button_purple"
+            android:src="@drawable/recent_icon"
+            android:padding="@dimen/browse_icon_padding" />
+
+    </LinearLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/setSearchResultsContainer"
+        android:layout_toRightOf="@id/browse_container"
+        android:visibility="gone"
+        android:layout_below="@id/search_sets">
+
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/setsLoading"
+            android:layout_margin="@dimen/progress_padding"
+            android:layout_centerInParent="true"
+            android:gravity="center|bottom"
+            android:indeterminate="true" />
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/noResults"
+            android:layout_alignParentTop="true"
+            android:gravity="center"
+            android:text="No Results Found"
+            android:textColor="#FF000000"
+            android:textSize="20dp"
+            android:padding="@dimen/standard_padding"
+            android:visibility="gone" />
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/setSearchResults"
+            android:visibility="gone"
+            android:footerDividersEnabled="false"
+            android:headerDividersEnabled="false"
+            android:dividerHeight="0px">
+
+        </ListView>
+
+    </RelativeLayout>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/browseListContainer"
+        android:visibility="gone"
+        android:layout_toRightOf="@id/browse_container"
+        android:layout_below="@id/search_sets">
+
+        <ListView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/browseList"
+            android:footerDividersEnabled="false"
+            android:headerDividersEnabled="false"
+            android:dividerHeight="0px"/>
+
+    </RelativeLayout>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:src="@drawable/vertical_line_black"
+        android:layout_toRightOf="@id/browse_container"
+        android:layout_below="@id/search_sets"/>
+
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:src="@drawable/horizontal_line_black"
+        android:visibility="gone"
+        android:layout_below="@id/search_sets"/>
+
+
+</RelativeLayout>

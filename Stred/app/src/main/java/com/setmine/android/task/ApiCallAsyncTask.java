@@ -20,7 +20,7 @@ public class ApiCallAsyncTask extends AsyncTask<String, Integer, JSONObject> {
     String modelType;
     ApiCaller taskCaller;
 
-    public ApiCallAsyncTask(SetMineMainActivity activity, Context context, ApiCaller caller, String apiRoot) {
+    public ApiCallAsyncTask(SetMineMainActivity activity, Context context, String apiRoot, ApiCaller caller) {
         this.activity = activity;
         this.apiCaller = new HttpUtils(context, apiRoot);
         this.taskCaller = caller;

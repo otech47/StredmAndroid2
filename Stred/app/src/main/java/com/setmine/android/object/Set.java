@@ -182,17 +182,18 @@ public class Set {
         List<String> tracklistArray = new ArrayList<String>();
         List<String> starttimesArray = new ArrayList<String>();
         if(tracklistString.contains(", ")) {
-            tracklistArray = Arrays.asList(tracklistString.split(", "));
-            starttimesArray = Arrays.asList(starttimesString.split(", "));
+            tracklistArray = new ArrayList<String>(Arrays.asList(tracklistString.split(", ")));
+            starttimesArray = new ArrayList<String>(Arrays.asList(starttimesString.split(", ")));
         }
         else {
             tracklistArray.add(tracklistString);
             starttimesArray.add(starttimesString);
         }
         List<Track> trackList = new ArrayList<Track>();
-        Log.v("Tracklist", tracklistString);
-        Log.v("Track Size", ((Integer)tracklistArray.size()).toString());
-        Log.v("Start Size", ((Integer)starttimesArray.size()).toString());
+        while(tracklistArray.size() != starttimesArray.size()) {
+            String lastValue = starttimesArray.get(starttimesArray.size() - 1);
+            starttimesArray.add(lastValue);
+        }
         for(int i = 0 ; i < tracklistArray.size() ; i++) {
             try {
                 trackList.add(new Track(tracklistArray.get(i), starttimesArray.get(i)));

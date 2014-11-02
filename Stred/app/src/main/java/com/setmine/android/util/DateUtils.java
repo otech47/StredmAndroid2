@@ -48,17 +48,23 @@ public class DateUtils {
     }
 
     public String getCityStateFromAddress(String address) {
-        int comma = address.lastIndexOf(",");
-        String cityState = address.substring(0, comma);
-        comma = cityState.lastIndexOf(",");
-        cityState = address.substring(0, comma);
-        comma = cityState.lastIndexOf(",");
-        if(comma == -1)
-            cityState = address.substring(0, cityState.length()+4);
-        else {
-            cityState = address.substring(comma+2, cityState.length()+4);
+        try {
+            int comma = address.lastIndexOf(",");
+            String country = address.substring(comma+2);
+            String cityState = address.substring(0, comma);
+            comma = cityState.lastIndexOf(",");
+            cityState = address.substring(0, comma);
+            comma = cityState.lastIndexOf(",");
+            if(comma == -1)
+                cityState = address.substring(0, cityState.length()+4);
+            else {
+                cityState = address.substring(comma+2, cityState.length()+4);
+            }
+            return cityState;
+        } catch(IndexOutOfBoundsException e) {
+            e.printStackTrace();
         }
-        return cityState;
+        return "Location Not Available";
     }
 
     public String getDayFromDate(String date, Integer day) {

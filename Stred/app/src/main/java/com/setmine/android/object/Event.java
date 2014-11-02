@@ -56,15 +56,15 @@ public class Event {
             setTwitterLink(json.getString("twitter_link"));
             setIconImageUrl(json.getString("imageURL"));
             setWebLink(json.getString("web_link"));
-            setMainImageUrl(json.getString("landing_image"));
+            setMainImageUrl(json.getString("main_imageURL"));
             setStartDate(json.getString("start_date"));
             setEndDate(json.getString("end_date"));
-            setPaid(json.getInt("paid"));
             setDays(json.getInt("days"));
             setVenue(json.getString("venue"));
             setLatitude(json.getDouble("latitude"));
             setLongitude(json.getDouble("longitude"));
             setAddress(json.getString("address"));
+            setPaid(json.getInt("paid"));
         } catch (JSONException e) {
             e.printStackTrace();
         }

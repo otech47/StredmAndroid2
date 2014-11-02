@@ -19,6 +19,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
@@ -39,12 +40,13 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.ImageCache;
+import com.setmine.android.PlayerService;
 import com.setmine.android.R;
 import com.setmine.android.SetMineApplication;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.SetsManager;
-import com.setmine.android.TracklistActivity;
 import com.setmine.android.object.Set;
+import com.setmine.android.task.CountPlaysTask;
 import com.setmine.android.util.TimeUtils;
 
 import org.json.JSONException;
@@ -77,7 +79,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     private DisplayImageOptions options;
 
 	// Media Player
-	private MediaPlayer mp;
+	public MediaPlayer mp;
+
 	// Handler to update UI timer, progress bar etc,.
 	private final Handler mHandler = new Handler();
 	private TimeUtils utils;
@@ -88,8 +91,9 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private boolean isClosed;
 
     private SetMineMainActivity activity;
+    public PlayerService playerService;
 
-    private SetsManager setsManager;
+    public SetsManager setsManager;
     private List<Set> songsList;
 	private DownloadManager manager;
 	private long enqueue;
@@ -98,7 +102,16 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private Context context;
     public ImageCache imageCache;
 
-	@Override
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        activity = ((SetMineMainActivity)getActivity());
+        context = getActivity().getApplicationContext();
+        playerService = activity.playerService;
+        mp = playerService.mediaPlayer;
+    }
+
+    @Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
 		this.rootView = inflater.inflate(R.layout.player, container, false);
@@ -112,10 +125,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 				.findViewById(R.id.player_button_rewind);
 		mButtonFastForward = (ImageButton) rootView
 				.findViewById(R.id.player_button_fast_forward);
-		mButtonShuffle = (ImageButton) rootView
-				.findViewById(R.id.player_button_shuffle);
-		mButtonDownload = (ImageButton) rootView
-				.findViewById(R.id.player_button_download);
 		mProgressBar = (SeekBar) rootView
 				.findViewById(R.id.player_progress_bar);
 		mTimeLabel = (TextView) rootView.findViewById(R.id.player_song_time);
@@ -130,20 +139,18 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		mHeader = (RelativeLayout) rootView.findViewById(R.id.player_header);
 		mTracklistButton = (ImageButton) rootView
 				.findViewById(R.id.player_button_tracklist);
+        mPlaylistButton = (ImageButton)rootView.findViewById(R.id.player_button_playlist);
         mBackgroundOverlay = (ImageView) rootView.findViewById(R.id.background_overlay);
 //		setClosed(true);
 
-		// Mediaplayer
-		mp = new MediaPlayer();
-		utils = new TimeUtils();
 
-        activity = ((SetMineMainActivity)getActivity());
+        utils = new TimeUtils();
 
 		// Listeners
-		mProgressBar.setOnSeekBarChangeListener(this); // Important
-		mp.setOnCompletionListener(this); // Important
+		mProgressBar.setOnSeekBarChangeListener(this);
+		mp.setOnCompletionListener(this);
+        mp.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
 
-		context = getActivity().getApplicationContext();
         setsManager = activity.setsManager;
 
 		// Getting all songs list
@@ -173,7 +180,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 //
 		setBackgroundNoTouch();
 
-		setTracklistListener();
+		setPagerListeners();
 //
 //		setShuffleListener();
 //
@@ -330,22 +337,20 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         ((SetMineMainActivity) getActivity()).tracklistFragment.updateTracklist(song.getTracklist());
     }
 
-	private void setTracklistListener() {
+	private void setPagerListeners() {
 		mTracklistButton.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
-                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(1);
-//				((SetMineMainAct) getActivity()).sendEvent("Track List Clicked", "set", song.getArtist() + " - " + song.getEvent());
-//				Intent intent = new Intent(context, TracklistActivity.class);
-//				intent.putExtra("isShuffle", isShuffle);
-//				intent.putExtra("position", currentSongIndex);
-//				if (mp != null) {
-//					intent.putExtra("time", mp.getCurrentPosition());
-//				}
-//				getActivity().startActivityForResult(intent, 0);
+                activity.playerContainerFragment.mViewPager.setCurrentItem(2);
 			}
 		});
+        mPlaylistButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activity.playerContainerFragment.mViewPager.setCurrentItem(0);
+            }
+        });
 	}
 
 	private void setPlayingNotification() {
@@ -508,7 +513,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 	/**
 	 * Function to play a song
-	 * 
+	 *
 //	 * @param songIndex
 	 *            - index of song
 	 * */
@@ -518,19 +523,18 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 		try {
 			if (isShuffle) {
-				song = setsManager.getPlaylistShuffled().get(
-						position);
+				song = setsManager.getPlaylistShuffled().get(position);
 			} else {
-				song = setsManager.getPlaylist()
-						.get(position);
+				song = setsManager.getPlaylist().get(position);
 			}
-//			((SetMineMainAct) getActivity()).sendEvent("Set Played", "set",
-//					song.getArtist() + " - " + song.getEvent());
 
 			mp.reset();
 			mp.setDataSource(song.getSongURL());
 			mp.prepare();
-			mp.start();
+            mp.start();
+
+            CountPlaysTask cpTask = new CountPlaysTask(activity);
+            cpTask.execute(song.getId());
 
             JSONObject mixpanelProperties = new JSONObject();
             mixpanelProperties.put("id", song.getId());
@@ -549,10 +553,12 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			// Display song image
 
             ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getArtistImage(), mImageThumb, options);
-            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getEventImage(), mImageView, options, new SimpleImageLoadingListener() {
+            ImageLoader.getInstance().loadImage(activity.S3_ROOT_URL + song.getEventImage(), options, new SimpleImageLoadingListener() {
                 @Override
                 public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                    Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).fastblur(loadedImage, 4);
+                    Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).imageUtils.fastblur(loadedImage, 4);
+                    Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 1000);
+                    mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
                     mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
                 }
             });
@@ -686,8 +692,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	 * */
 	@Override
 	public void onCompletion(MediaPlayer arg0) {
-//		((SetMineMainAct) getActivity()).sendEvent("Set Completed", "set",
-//				song.getArtist() + " - " + song.getEvent());
 		playNext();
 	}
 

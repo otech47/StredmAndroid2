@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:id="@+id/set_tile"
+    android:background="@color/setmine_white">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Playlist Item"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:layout_alignParentTop="true"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:scrollHorizontally="true"
+            android:id="@+id/playListText"
+            android:textColor="#FF000000"
+            android:textSize="23sp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 plays"
+            android:id="@+id/playCount"
+            android:textColor="@color/setmine_blue"
+            android:layout_alignParentEnd="true"
+            android:layout_alignBottom="@id/playListText"
+            android:gravity="bottom"
+            android:textSize="11sp"/>
+
+
+    </RelativeLayout>
+
+
+
+</RelativeLayout>

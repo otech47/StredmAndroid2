@@ -31,6 +31,31 @@ public class HttpUtils {
         builder = new StringBuilder();
 	}
 
+    public void sendPlayCountGetRequest(String id) {
+        if(id != null) {
+            String url = apiUrl + "playCount?id=" + id;
+            HttpParams httpParameters = new BasicHttpParams();
+            HeaderGroup headers = new HeaderGroup();
+
+            HttpConnectionParams.setConnectionTimeout(httpParameters,
+                    TIMEOUT_CONNECTION);
+            HttpConnectionParams.setSoTimeout(httpParameters, TIMEOUT_SOCKET);
+
+            HttpClient httpclient = new DefaultHttpClient(httpParameters);
+
+            HttpGet request = new HttpGet(url);
+            request.setHeaders(headers.getAllHeaders());
+            ConnectionUtils cd = new ConnectionUtils(context);
+            if (cd.isConnectingToInternet()) {
+                try {
+                    httpclient.execute(request);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+
 	public InputStreamReader getReaderFromURL(String route) {
         String url = apiUrl + route;
 		reader = null;

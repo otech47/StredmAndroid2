@@ -30,6 +30,7 @@ import com.setmine.android.SetsManager;
 import com.setmine.android.object.Lineup;
 import com.setmine.android.object.LineupSet;
 import com.setmine.android.object.Set;
+import com.setmine.android.object.SetViewHolder;
 import com.setmine.android.task.LineupsSetsApiCallAsyncTask;
 import com.setmine.android.util.DateUtils;
 
@@ -58,6 +59,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     public String EVENT_IMAGE;
     public String EVENT_TYPE;
     public String LAST_EVENT_DATE;
+    public String EVENT_TICKET;
     public int EVENT_PAID;
     public List<HashMap<String, String>> setMapsList;
     public ListView lineupContainer;
@@ -93,11 +95,13 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
             lineupContainer.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                    v.setPressed(true);
                     Set s = setModels.get(position);
                     ((SetMineMainActivity)getActivity()).startPlayerFragment(Integer.parseInt(s.getId()));
                 }
             });
             activity.setsManager.setPlaylist(setModels);
+            activity.playlistFragment.updatePlaylist();
             rootView.findViewById(R.id.loading).setVisibility(View.GONE);
         }
         if(identifier == "lineups") {
@@ -167,7 +171,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         rootView = inflater.inflate(R.layout.event_detail, container, false);
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
-        ImageLoader.getInstance().displayImage(SetMineMainActivity.PUBLIC_ROOT_URL + "images/" + EVENT_IMAGE, eventImage, options);
+        ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + EVENT_IMAGE, eventImage, options);
         if(EVENT_IMAGE.equals(83)) {
             EVENT_IMAGE = "83";
         }
@@ -179,7 +183,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
-            if(EVENT_PAID == 1) {
+            if(EVENT_PAID == 0) {
                 Button buyTickets = (Button)rootView.findViewById(R.id.button_buy_tickets);
                 buyTickets.setVisibility(View.VISIBLE);
                 buyTickets.setOnClickListener(new View.OnClickListener() {
@@ -194,7 +198,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
-                        Uri ticketUrl = Uri.parse("https://www.eventbrite.com/e/electro-chemical-show-tickets-12742221327");
+                        Uri ticketUrl = Uri.parse(EVENT_TICKET);
                         Intent launchBrowser = new Intent(Intent.ACTION_VIEW, ticketUrl);
                         startActivity(launchBrowser);
                     }
@@ -203,6 +207,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
         ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE);
         ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_ADDRESS);
+        Log.v("actionbar:", activity.getActionBar().toString());
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         if(selectedLineup != null) {
             lineupContainer.setAdapter(new LineupSetAdapter(selectedLineup.getLineup()));
@@ -257,6 +262,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         TextView artistText;
         TextView setTime;
         ImageView artistImage;
+        View pastSetsButton;
     }
 
     class LineupSetAdapter extends BaseAdapter {
@@ -300,6 +306,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 holder.setTime = (TextView) view.findViewById(R.id.setTime);
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
+                holder.pastSetsButton = view.findViewById(R.id.infoButton);
                 view.setTag(holder);
             } else {
                 holder = (LineupSetViewHolder) view.getTag();
@@ -307,18 +314,21 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
 
             holder.setTime.setText(dateUtils.getDayFromDate(EVENT_DATE_UNFORMATTED, lineupSet.getDay()) + " " + lineupSet.getTime());
             holder.artistText.setText(lineupSet.getArtist());
+            if(lineupSet.isHasSets()) {
+                holder.pastSetsButton.setVisibility(View.VISIBLE);
+                holder.pastSetsButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        activity.openSearch(null);
+                        activity.searchSetsFragment.searchView.setQuery(holder.artistText.getText(), false);
+                    }
+                });
+            }
 
             ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + lineupSet.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }
-    }
-
-    private static class SetViewHolder {
-        TextView playCount;
-        TextView artistText;
-        ImageView artistImage;
-        ImageView playButton;
     }
 
     class SetAdapter extends BaseAdapter {
@@ -386,7 +396,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
     }
 
-    private static class AnimateFirstDisplayListener extends SimpleImageLoadingListener {
+    public static class AnimateFirstDisplayListener extends SimpleImageLoadingListener {
 
         static final List<String> displayedImages = Collections.synchronizedList(new LinkedList<String>());
 

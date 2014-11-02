@@ -1,24 +1,27 @@
 package com.setmine.android;
 
+import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
+import android.content.ServiceConnection;
 import android.graphics.Point;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -32,15 +35,20 @@ import com.setmine.android.adapter.EventPagerAdapter;
 import com.setmine.android.adapter.PlayerPagerAdapter;
 import com.setmine.android.fragment.PlayerContainerFragment;
 import com.setmine.android.fragment.PlayerFragment;
+import com.setmine.android.fragment.PlaylistFragment;
+import com.setmine.android.fragment.SearchSetsFragment;
 import com.setmine.android.fragment.TracklistFragment;
 import com.setmine.android.fragment.ViewPagerContainerFragment;
+import com.setmine.android.object.Set;
 import com.setmine.android.task.InitialApiCallAsyncTask;
+import com.setmine.android.util.ImageUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.HashMap;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.RejectedExecutionException;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
@@ -48,12 +56,13 @@ import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 public class SetMineMainActivity extends FragmentActivity implements
         InitialApiCaller,
         LineupsSetsApiCaller,
+        ApiCaller,
         GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener {
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
-    public static final String APP_VERSION = "1.2";
-    public static final String API_VERSION = "1";
+    public static final String APP_VERSION = "2.0";
+    public static final String API_VERSION = "2";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
     public static final String S3_ROOT_URL = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
@@ -63,47 +72,58 @@ public class SetMineMainActivity extends FragmentActivity implements
     public EventPagerAdapter mEventPagerAdapter;
     public ViewPager eventViewPager;
     public PlayerPagerAdapter mPlayerPagerAdapter;
-    public ModelsContentProvider modelsCP;
-    public Integer screenHeight;
-    public Integer screenWidth;
+
     public FragmentManager fragmentManager;
-    public Menu menu;
-    public SetsManager setsManager;
     public PlayerContainerFragment playerContainerFragment;
+    public PlaylistFragment playlistFragment;
     public PlayerFragment playerFragment;
     public TracklistFragment tracklistFragment;
-    public View playerFrame;
+    public SearchSetsFragment searchSetsFragment;
     public ViewPagerContainerFragment viewPagerContainerFragment;
-    public HashMap<String, List<View>> preloadedTiles = new HashMap<String, List<View>>();
-    public InitialApiCallAsyncTask getLineupAsyncTask;
-    public InitialApiCallAsyncTask asyncApiCaller;
-    public MixpanelAPI mixpanel;
+
+    public ModelsContentProvider modelsCP;
+    public SetsManager setsManager;
+    public PlayerService playerService;
+    public boolean serviceBound = false;
+
+    public Integer screenHeight;
+    public Integer screenWidth;
     public int asyncTasksInProgress;
+
+
+    public MixpanelAPI mixpanel;
     public LocationClient locationClient;
     public Location currentLocation;
 
-    // Implementing InitialApiCaller Interface
+    public boolean finishedOnCreate = false;
+    public Menu menu;
+    public ActionBar actionBar;
 
-    @Override
-    public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
-        this.modelsCP.setModel(jsonObject, modelType);
-        if(modelsCP.upcomingEvents.size() > 1 && modelsCP.recentEvents.size() > 1 && modelsCP.searchEvents.size() > 1) {
-            finishOnCreate();
+    public ImageUtils imageUtils;
+
+
+    public ServiceConnection playerServiceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            PlayerService.PlayerBinder binder = (PlayerService.PlayerBinder) service;
+            playerService = binder.getService();
+            serviceBound = true;
         }
-    }
 
-    // Implementing LineupSetsApiCaller Interface
-
-    @Override
-    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
-        this.modelsCP.setModel(jsonObject, identifier);
-    }
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            serviceBound = false;
+        }
+    };
 
     // Activity Handling
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        imageUtils = new ImageUtils();
+
         mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
         if(savedInstanceState == null) {
             JSONObject mixpanelProperties = new JSONObject();
@@ -115,7 +135,8 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
             Log.v("Application Opened Tracked", mixpanel.toString());
         }
-        if (GooglePlayServicesUtil.isGooglePlayServicesAvailable(this) == ConnectionResult.SUCCESS) {
+
+        if (servicesConnected()) {
             Log.v("LOCATION FOUND", "NAH");
             locationClient = new LocationClient(this, this, this);
             locationClient.connect();
@@ -132,38 +153,109 @@ public class SetMineMainActivity extends FragmentActivity implements
                             eventSearchUrl,
                             "searchEvents");
         }
+
         setsManager = new SetsManager();
         fragmentManager = getSupportFragmentManager();
         modelsCP = new ModelsContentProvider();
+
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
                 .diskCacheExtraOptions(480, 800, null)
-                .diskCacheSize(60 * 1024 * 1024)
-                .diskCacheFileCount(200)
+                .diskCacheSize(50 * 1024 * 1024)
+                .diskCacheFileCount(100)
                 .build();
         ImageLoader.getInstance().init(config);
+
         setContentView(R.layout.fragment_main);
 
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL).executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "upcoming", "upcomingEvents");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL).executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
+        actionBar = getActionBar();
+        Log.d("ActionBar", actionBar.toString());
+
+        applyCustomViewStyles();
+
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "upcoming", "upcomingEvents");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist", "artists");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "festival", "festivals");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "mix", "mixes");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "genre", "genres");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "popular", "popularSets");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "recent", "recentSets");
+
+    }
+
+
+    // Implementing InitialApiCaller Interface
+
+    @Override
+    public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
+        this.modelsCP.setModel(jsonObject, modelType);
+        Log.v("initial models ready", ((Boolean)modelsCP.initialModelsReady).toString());
+        if(modelsCP.initialModelsReady) {
+            finishOnCreate();
+        }
+    }
+
+    // Implementing LineupSetsApiCaller Interface
+
+    @Override
+    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
+        this.modelsCP.setModel(jsonObject, identifier);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+        Intent intent = new Intent(this, PlayerService.class);
+        startService(intent);
+        bindService(intent, playerServiceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if(serviceBound) {
+            unbindService(playerServiceConnection);
+            serviceBound = false;
+        }
     }
 
     public void finishOnCreate() {
-        Log.v("Finishing onCreate", " Line 98 ");
-        try {
-            getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
-            calculateScreenSize();
-            viewPagerContainerFragment = new ViewPagerContainerFragment();
-            playerContainerFragment = new PlayerContainerFragment();
-//            playerFragment = new PlayerFragment();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.add(R.id.playerPagerContainer, playerContainerFragment);
-            ft.add(R.id.eventPagerContainer, viewPagerContainerFragment);
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
-            ft.commit();
-        } catch (RejectedExecutionException r) {
+        if(!finishedOnCreate) {
+            Log.v("Finishing onCreate", " Line 98 ");
+            try {
+                getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
+                calculateScreenSize();
+                viewPagerContainerFragment = new ViewPagerContainerFragment();
+                playerContainerFragment = new PlayerContainerFragment();
+                searchSetsFragment = new SearchSetsFragment();
+                FragmentTransaction ft = fragmentManager.beginTransaction();
+                ft.add(R.id.playerPagerContainer, playerContainerFragment);
+                ft.add(R.id.eventPagerContainer, viewPagerContainerFragment);
+                ft.add(R.id.searchSetsContainer, searchSetsFragment);
+                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
+                ft.commit();
+            } catch (RejectedExecutionException r) {
+                    r.printStackTrace();
+            }
+            finishedOnCreate = true;
         }
+    }
 
+    public void applyCustomViewStyles() {
+        LayoutInflater inflater = LayoutInflater.from(this);
+        View customView = inflater.inflate(R.layout.custom_action_bar, null);
+        actionBar.setCustomView(customView);
+        actionBar.setDisplayShowCustomEnabled(true);
     }
 
     @Override
@@ -188,13 +280,22 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
 
     public void backButtonPress(View v) {
-        Log.v("FRAGMENT MANAGER", fragmentManager.getFragments().toString());
-        fragmentManager.popBackStack();
-        Log.v("FRAGMENT MANAGER after pop", fragmentManager.getFragments().toString());
-
+        onBackPressed();
     }
 
-    public void copyToClipboard(View v) {
+    @Override
+    public void onBackPressed() {
+        if(fragmentManager.getBackStackEntryCount() > 0)
+            super.onBackPressed();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
+    }
+
+    public void googleMapsAddressLookup(View v) {
         String address = ((TextView)((ViewGroup)v.getParent()).findViewById(R.id.locationText))
                 .getText().toString();
         String url = "http://maps.google.com/maps?daddr="+address;
@@ -202,23 +303,55 @@ public class SetMineMainActivity extends FragmentActivity implements
         startActivity(intent);
     }
 
+    public void playNavigationClick(View v) {
+        if(setsManager.getPlaylist().size() > 0) {
+            openPlayer();
+        }
+        else {
+            Random r = new Random();
+            int randomInt = r.nextInt(modelsCP.getPopularSets().size() - 1);
+            Log.d("randomin", Integer.toString(randomInt));
+            Set s = modelsCP.getPopularSets().get(randomInt);
+            List<Set> oneSetList = new ArrayList<Set>();
+            oneSetList.add(s);
+            setsManager.setPlaylist(oneSetList);
+            Log.d("setid", s.getId());
+            startPlayerFragment(Integer.parseInt(s.getId()));
+        }
+    }
+
+    @Override
+    public void onResponseReceived(JSONObject jsonObject, String identifier) {
+
+    }
+
     public void startPlayerFragment(int setId) {
         if(playerFragment == null) {
             playerFragment = new PlayerFragment();
         }
-        playerFragment.setPlayListeners();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.addToBackStack(null);
-        transaction.commit();
+        openPlayer();
+        playlistFragment.updatePlaylist();
         setsManager.selectSetById(Integer.toString(setId));
+        playerContainerFragment.mViewPager.setCurrentItem(1);
         playerFragment.playSong(setsManager.selectedSetIndex);
     }
 
+    public void openSearch(View v) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.show(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
+    }
+
     public void openPlayer() {
-        playerFrame.animate().translationY(0);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
         Log.v("Open ", "player");
     }
 
@@ -229,6 +362,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onDestroy() {
         mixpanel.flush();
+        playerService.stopSelf();
         super.onDestroy();
     }
 
@@ -310,7 +444,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onDisconnected() {
-
     }
 
     // Implementing Failed Connection Listeners for Google Play Services
@@ -322,240 +455,5 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     // Blurring images for player, called by PlayerFragment
 
-    public Bitmap fastblur(Bitmap sentBitmap, int radius) {
-
-        // Stack Blur v1.0 from
-        // http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html
-        //
-        // Java Author: Mario Klingemann <mario at quasimondo.com>
-        // http://incubator.quasimondo.com
-        // created Feburary 29, 2004
-        // Android port : Yahel Bouaziz <yahel at kayenko.com>
-        // http://www.kayenko.com
-        // ported april 5th, 2012
-
-        // This is a compromise between Gaussian Blur and Box blur
-        // It creates much better looking blurs than Box Blur, but is
-        // 7x faster than my Gaussian Blur implementation.
-        //
-        // I called it Stack Blur because this describes best how this
-        // filter works internally: it creates a kind of moving stack
-        // of colors whilst scanning through the image. Thereby it
-        // just has to add one new block of color to the right side
-        // of the stack and remove the leftmost color. The remaining
-        // colors on the topmost layer of the stack are either added on
-        // or reduced by one, depending on if they are on the right or
-        // on the left side of the stack.
-        //
-        // If you are using this algorithm in your code please add
-        // the following line:
-        //
-        // Stack Blur Algorithm by Mario Klingemann <mario@quasimondo.com>
-
-        Bitmap bitmap = sentBitmap.copy(sentBitmap.getConfig(), true);
-
-        try {
-
-            if (radius < 1) {
-                return (null);
-            }
-
-            int w = bitmap.getWidth();
-            int h = bitmap.getHeight();
-
-            int[] pix = new int[w * h];
-            Log.e("pix", w + " " + h + " " + pix.length);
-            bitmap.getPixels(pix, 0, w, 0, 0, w, h);
-
-            int wm = w - 1;
-            int hm = h - 1;
-            int wh = w * h;
-            int div = radius + radius + 1;
-
-            int r[] = new int[wh];
-            int g[] = new int[wh];
-            int b[] = new int[wh];
-            int rsum, gsum, bsum, x, y, i, p, yp, yi, yw;
-            int vmin[] = new int[Math.max(w, h)];
-
-            int divsum = (div + 1) >> 1;
-            divsum *= divsum;
-            int dv[] = new int[256 * divsum];
-            for (i = 0; i < 256 * divsum; i++) {
-                dv[i] = (i / divsum);
-            }
-
-            yw = yi = 0;
-
-            int[][] stack = new int[div][3];
-            int stackpointer;
-            int stackstart;
-            int[] sir;
-            int rbs;
-            int r1 = radius + 1;
-            int routsum, goutsum, boutsum;
-            int rinsum, ginsum, binsum;
-
-            for (y = 0; y < h; y++) {
-                rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-                for (i = -radius; i <= radius; i++) {
-                    p = pix[yi + Math.min(wm, Math.max(i, 0))];
-                    sir = stack[i + radius];
-                    sir[0] = (p & 0xff0000) >> 16;
-                    sir[1] = (p & 0x00ff00) >> 8;
-                    sir[2] = (p & 0x0000ff);
-                    rbs = r1 - Math.abs(i);
-                    rsum += sir[0] * rbs;
-                    gsum += sir[1] * rbs;
-                    bsum += sir[2] * rbs;
-                    if (i > 0) {
-                        rinsum += sir[0];
-                        ginsum += sir[1];
-                        binsum += sir[2];
-                    } else {
-                        routsum += sir[0];
-                        goutsum += sir[1];
-                        boutsum += sir[2];
-                    }
-                }
-                stackpointer = radius;
-
-                for (x = 0; x < w; x++) {
-
-                    r[yi] = dv[rsum];
-                    g[yi] = dv[gsum];
-                    b[yi] = dv[bsum];
-
-                    rsum -= routsum;
-                    gsum -= goutsum;
-                    bsum -= boutsum;
-
-                    stackstart = stackpointer - radius + div;
-                    sir = stack[stackstart % div];
-
-                    routsum -= sir[0];
-                    goutsum -= sir[1];
-                    boutsum -= sir[2];
-
-                    if (y == 0) {
-                        vmin[x] = Math.min(x + radius + 1, wm);
-                    }
-                    p = pix[yw + vmin[x]];
-
-                    sir[0] = (p & 0xff0000) >> 16;
-                    sir[1] = (p & 0x00ff00) >> 8;
-                    sir[2] = (p & 0x0000ff);
-
-                    rinsum += sir[0];
-                    ginsum += sir[1];
-                    binsum += sir[2];
-
-                    rsum += rinsum;
-                    gsum += ginsum;
-                    bsum += binsum;
-
-                    stackpointer = (stackpointer + 1) % div;
-                    sir = stack[(stackpointer) % div];
-
-                    routsum += sir[0];
-                    goutsum += sir[1];
-                    boutsum += sir[2];
-
-                    rinsum -= sir[0];
-                    ginsum -= sir[1];
-                    binsum -= sir[2];
-
-                    yi++;
-                }
-                yw += w;
-            }
-            for (x = 0; x < w; x++) {
-                rinsum = ginsum = binsum = routsum = goutsum = boutsum = rsum = gsum = bsum = 0;
-                yp = -radius * w;
-                for (i = -radius; i <= radius; i++) {
-                    yi = Math.max(0, yp) + x;
-
-                    sir = stack[i + radius];
-
-                    sir[0] = r[yi];
-                    sir[1] = g[yi];
-                    sir[2] = b[yi];
-
-                    rbs = r1 - Math.abs(i);
-
-                    rsum += r[yi] * rbs;
-                    gsum += g[yi] * rbs;
-                    bsum += b[yi] * rbs;
-
-                    if (i > 0) {
-                        rinsum += sir[0];
-                        ginsum += sir[1];
-                        binsum += sir[2];
-                    } else {
-                        routsum += sir[0];
-                        goutsum += sir[1];
-                        boutsum += sir[2];
-                    }
-
-                    if (i < hm) {
-                        yp += w;
-                    }
-                }
-                yi = x;
-                stackpointer = radius;
-                for (y = 0; y < h; y++) {
-                    // Preserve alpha channel: ( 0xff000000 & pix[yi] )
-                    pix[yi] = ( 0xff000000 & pix[yi] ) | ( dv[rsum] << 16 ) | ( dv[gsum] << 8 ) | dv[bsum];
-
-                    rsum -= routsum;
-                    gsum -= goutsum;
-                    bsum -= boutsum;
-
-                    stackstart = stackpointer - radius + div;
-                    sir = stack[stackstart % div];
-
-                    routsum -= sir[0];
-                    goutsum -= sir[1];
-                    boutsum -= sir[2];
-
-                    if (x == 0) {
-                        vmin[y] = Math.min(y + r1, hm) * w;
-                    }
-                    p = x + vmin[y];
-
-                    sir[0] = r[p];
-                    sir[1] = g[p];
-                    sir[2] = b[p];
-
-                    rinsum += sir[0];
-                    ginsum += sir[1];
-                    binsum += sir[2];
-
-                    rsum += rinsum;
-                    gsum += ginsum;
-                    bsum += binsum;
-
-                    stackpointer = (stackpointer + 1) % div;
-                    sir = stack[stackpointer];
-
-                    routsum += sir[0];
-                    goutsum += sir[1];
-                    boutsum += sir[2];
-
-                    rinsum -= sir[0];
-                    ginsum -= sir[1];
-                    binsum -= sir[2];
-
-                    yi += w;
-                }
-            }
-
-            Log.e("pix", w + " " + h + " " + pix.length);
-            bitmap.setPixels(pix, 0, w, 0, 0, w, h);
-
-        } catch(ArrayIndexOutOfBoundsException e) {}
-
-        return (bitmap);
-    }
 
 }

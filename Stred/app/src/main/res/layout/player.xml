@@ -132,31 +132,28 @@
 	</LinearLayout>
 
 	<ImageButton 
-		android:id="@+id/player_button_shuffle"
+		android:id="@+id/player_button_playlist"
 		android:layout_width="70dp"
 		android:layout_height="70dp"
-		android:adjustViewBounds="false"
 		android:background="@null"
 		android:scaleType="centerInside"
-		android:padding="10dp"
 		android:layout_alignBottom="@+id/player_footer"
 		android:layout_alignParentBottom="true"
-		android:layout_alignParentLeft="true"
-		android:src="@drawable/btn_shuffle"
-        android:visibility="invisible"/>
+		android:layout_alignParentStart="true"
+		android:src="@drawable/playlist_icon"/>
+
 
 	<ImageButton
-		android:id="@+id/player_button_download"
+		android:id="@+id/player_button_tracklist"
 		android:layout_width="70dp"
 		android:layout_height="70dp"
-		android:adjustViewBounds="false"
 		android:background="@null"
 		android:scaleType="centerInside"
-		android:padding="10dp"
-		android:layout_alignBottom="@id/player_footer"
+        android:padding="20dp"
+        android:src="@drawable/btn_tracklist"
+        android:layout_alignBottom="@id/player_footer"
 		android:layout_alignParentBottom="true"
-		android:layout_alignParentRight="true"
-        android:visibility="invisible" />
+		android:layout_alignParentEnd="true" />
 
 	<RelativeLayout
 	    android:id="@+id/player_tracklist"
@@ -167,22 +164,8 @@
 	    android:gravity="center"
         android:visibility="visible">
 
-		 <ImageButton
-	        android:id="@+id/player_button_tracklist"
-	        android:layout_width="50dp"
-	        android:layout_height="50dp"
-            android:padding="5dp"
-	        android:adjustViewBounds="false"
-	        android:background="@null"
-	        android:scaleType="centerInside"
-	        android:layout_alignParentTop="true"
-	        android:layout_alignParentRight="true"
-			android:src="@drawable/btn_tracklist"
-            android:visibility="visible" />
-
 		  <TextView
 		    android:id="@+id/player_track_title"
-		    android:layout_toLeftOf="@id/player_button_tracklist"
 		    android:layout_width="wrap_content"
 		    android:layout_height="wrap_content"
 		    android:scrollHorizontally="true"
@@ -190,13 +173,12 @@
 			android:marqueeRepeatLimit="marquee_forever"
 			android:focusable="true"
 			android:focusableInTouchMode="true"
-		    android:gravity="left"
             android:text="Track Name"
             android:textColor="#FFFFFFFF"
 		    android:layout_alignParentTop="true"
-		    android:layout_alignParentLeft="true"
+            android:paddingLeft="@dimen/small_text_padding"
+            android:paddingRight="@dimen/small_text_padding"
 		    android:layout_marginTop="10dp"
-		    android:layout_marginLeft="20dp"
 		    android:lines="1"
 		    android:singleLine="true"
 		    android:textSize="16sp" />

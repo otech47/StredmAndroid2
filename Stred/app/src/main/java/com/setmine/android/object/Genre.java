@@ -7,6 +7,8 @@ import org.json.JSONObject;
 public class Genre {
 	private String mId;
 	private String mGenre;
+
+    public Genre() {}
 	
 	public Genre(String id, String genre) {
 		setId(id);
@@ -15,8 +17,8 @@ public class Genre {
 
     public Genre(JSONObject json) {
         try {
-            setId(json.getString("id"));
             setId(json.getString("genre"));
+            setId(json.getString("id"));
         } catch (JSONException e) {
             e.printStackTrace();
         }

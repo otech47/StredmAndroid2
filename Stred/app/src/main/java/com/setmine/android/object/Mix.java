@@ -13,7 +13,8 @@ public class Mix {
     private String webLink;
     private String iconImageUrl;
 
-	
+    public Mix() {}
+
 	public Mix(String id, String mix) {
 		setId(id);
 		setMix(mix);
@@ -21,8 +22,8 @@ public class Mix {
 
     public Mix(JSONObject json) {
         try {
-            setId(json.getString("id"));
             setMix(json.getString("mix"));
+            setId(json.getString("id"));
             setBio(json.getString("bio"));
             setFacebookLink(json.getString("fb_link"));
             setTwitterLink(json.getString("twitter_link"));
@@ -31,7 +32,6 @@ public class Mix {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
     }
 	
 	public String getId() {

@@ -37,8 +37,8 @@
             <Button
                 android:layout_width="60dp"
                 android:layout_height="60dp"
-                android:background="@drawable/directions"
-                android:onClick="copyToClipboard"
+                android:background="@drawable/map_icon"
+                android:onClick="googleMapsAddressLookup"
                 android:id="@+id/directionsButton"
                 android:layout_alignParentLeft="true"/>
 
@@ -53,6 +53,8 @@
                 android:background="#BB000000"
                 android:textColor="#FFFFFFFF"
                 android:id="@+id/locationText"
+                android:paddingStart="5dp"
+                android:paddingEnd="5dp"
                 android:singleLine="true"/>
 
         </RelativeLayout>

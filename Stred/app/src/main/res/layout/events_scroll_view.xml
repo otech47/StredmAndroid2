@@ -10,7 +10,9 @@
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
         android:animateLayoutChanges="true"
-        android:background="@drawable/white_border"
+        android:footerDividersEnabled="false"
+        android:headerDividersEnabled="false"
+        android:dividerHeight="0px"
         android:id="@+id/eventsList">
 
     </ListView>
@@ -20,5 +22,15 @@
         android:layout_height="match_parent"
         android:src="@drawable/white_border"
         android:layout_alignParentRight="true"/>
+
+    <ImageView
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:id="@+id/recent_nav_icon"
+        android:src="@drawable/recent_nav_icon"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginEnd="@dimen/browse_icon_padding"
+        android:layout_marginBottom="@dimen/browse_icon_padding"/>
 
 </RelativeLayout>

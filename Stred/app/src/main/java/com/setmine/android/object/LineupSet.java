@@ -11,13 +11,15 @@ public class LineupSet {
     public String time;
     public int day;
     public String artistImage;
+    public boolean hasSets;
 
     public LineupSet(JSONObject json) {
         try {
             setArtist(json.getString("artist"));
             setDay(json.getInt("day"));
-            setTime(json.getString("time").substring(0, json.getString("time").length()-3));
+            setTime(json.getString("time"));
             setArtistImage(json.getString("imageURL"));
+            setHasSets(json.getBoolean("hasSets"));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -53,5 +55,13 @@ public class LineupSet {
 
     public void setArtistImage(String artistImage) {
         this.artistImage = artistImage;
+    }
+
+    public boolean isHasSets() {
+        return hasSets;
+    }
+
+    public void setHasSets(boolean hasSets) {
+        this.hasSets = hasSets;
     }
 }

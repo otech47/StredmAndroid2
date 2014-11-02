@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@drawable/nav_icon_blue"></item>
+    <item android:drawable="@drawable/calendar_icon"
+        android:left="20dp"
+        android:top="20dp"></item>
+    <item android:drawable="@drawable/ic_action_place"
+        android:right="20dp"
+        android:bottom="20dp"></item>
+</layer-list>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/pressable_button"
+    android:paddingStart="12dp"
+    android:paddingEnd="12dp"
+    android:paddingTop="9dp">
+
+    <!--<ImageView-->
+        <!--android:layout_width="75dp"-->
+        <!--android:layout_height="75dp"-->
+        <!--android:id="@+id/browse" -->
+        <!--android:padding="5dp"-->
+        <!--android:src="@drawable/logo_small"/>-->
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Browse Item"
+        android:paddingBottom="9dp"
+        android:textSize="22sp"
+        android:gravity="center_vertical"
+        android:id="@+id/browseItemText"
+        android:textColor="@color/setmine_black"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignStart="@id/browseItemText"
+        android:layout_alignEnd="@id/browseItemText"
+        android:layout_below="@id/browseItemText"
+        android:src="@drawable/horizontal_line_gray"/>
+
+</RelativeLayout>

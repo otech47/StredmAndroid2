@@ -56,7 +56,7 @@ public class InitialApiCallAsyncTask extends AsyncTask<String, Integer, JSONObje
         if(jsonObject != null) {
             activity.onInitialResponseReceived(jsonObject, modelType);
         } else {
-            Toast.makeText(activity.getApplicationContext(), "Check your Internet Connection", Toast.LENGTH_SHORT);
+            Toast.makeText(activity.getApplicationContext(), "Check your Internet Connection", Toast.LENGTH_SHORT).show();
         }
     }
 }

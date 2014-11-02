@@ -4,6 +4,9 @@
     <color name="setmine_purple">#FFBF55EC</color>
     <color name="setmine_blue">#FF59ABE3</color>
     <color name="setmine_gold">#FFFFDF3D</color>
+    <color name="setmine_purple_95_alpha">#EEBF55EC</color>
+    <color name="setmine_blue_95_alpha">#EE59ABE3</color>
+    <color name="setmine_gold_95_alpha">#EEFFDF3D</color>
     <color name="setmine_purple_75_alpha">#BBBF55EC</color>
     <color name="setmine_blue_75_alpha">#BB59ABE3</color>
     <color name="setmine_gold_75_alpha">#BBFFDF3D</color>
@@ -16,4 +19,8 @@
     <color name="player_background">#F7F7F7</color>
     <color name="tab_background">#F7F7F7</color>
     <color name="main_background">#FF000000</color>
+    <color name="setmine_white">#FFEEEEEE</color>
+    <color name="setmine_black">#FF000000</color>
+    <color name="setmine_gray">#66666666</color>
+    <color name="setmine_light_gray">#FFCCCCCC</color>
 </resources>

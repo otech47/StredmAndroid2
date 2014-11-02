@@ -7,7 +7,7 @@
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
     android:paddingBottom="15dp"
-    android:background="@drawable/top_bottom_border_blue"
+    android:background="@drawable/pressable_button"
     android:id="@+id/artist_tile_recent">
 
     <ImageView
@@ -25,8 +25,6 @@
         android:id="@+id/playButton"
         android:layout_alignParentRight="true"
         android:src="@drawable/ic_action_play"/>
-
-
 
     <TextView
         android:layout_width="wrap_content"

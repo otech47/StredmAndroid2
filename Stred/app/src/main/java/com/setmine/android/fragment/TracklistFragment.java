@@ -2,13 +2,10 @@ package com.setmine.android.fragment;
 
 import android.app.Activity;
 import android.content.Context;
-import android.content.Intent;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
-import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -18,15 +15,11 @@ import android.widget.ListView;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.R;
-import com.setmine.android.SetMineApplication;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.adapter.ListTrackAdapter;
-import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.Track;
 import com.setmine.android.util.TimeUtils;
@@ -90,7 +83,7 @@ public class TracklistFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 ((SetMineMainActivity) getActivity()).playerFragment.skipToTrack(position);
-                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(0);
+                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(1);
             }
         });
         return rootView;
@@ -105,7 +98,7 @@ public class TracklistFragment extends Fragment {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 ((SetMineMainActivity) getActivity()).playerFragment.skipToTrack(position);
-                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(0);
+                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(1);
             }
         });
     }
