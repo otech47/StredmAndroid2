@@ -13,7 +13,8 @@
         android:src="@drawable/logo"
         android:scaleType="centerCrop"
         android:id="@+id/artistImage"
-        android:layout_gravity="center"/>
+        android:layout_gravity="center"
+        android:contentDescription="" />
 
     <ImageView
         android:layout_width="50dp"
@@ -22,14 +23,19 @@
         android:paddingRight="10dp"
         android:id="@+id/playButton"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
         android:src="@drawable/ic_action_play"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:paddingLeft="10dp"
         android:paddingStart="10dp"
+        android:paddingRight="10dp"
         android:paddingEnd="10dp"
         android:layout_toEndOf="@id/artistImage"
+        android:layout_toRightOf="@id/artistImage"
+        android:layout_toLeftOf="@id/playButton"
         android:layout_toStartOf="@id/playButton">
 
         <TextView
@@ -77,7 +83,8 @@
         android:textColor="@color/setmine_blue"
         android:layout_below="@id/playButton"
         android:gravity="center"
+        android:layout_alignLeft="@id/playButton"
         android:layout_alignStart="@id/playButton"
-        android:textSize="11sp"/>
+        android:textSize="12sp"/>
 
 </RelativeLayout>

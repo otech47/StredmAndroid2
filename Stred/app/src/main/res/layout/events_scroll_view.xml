@@ -30,6 +30,8 @@
         android:src="@drawable/recent_nav_icon"
         android:layout_alignParentBottom="true"
         android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_marginRight="@dimen/browse_icon_padding"
         android:layout_marginEnd="@dimen/browse_icon_padding"
         android:layout_marginBottom="@dimen/browse_icon_padding"/>
 

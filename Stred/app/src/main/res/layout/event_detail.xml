@@ -54,6 +54,8 @@
                 android:textColor="#FFFFFFFF"
                 android:id="@+id/locationText"
                 android:paddingStart="5dp"
+                android:paddingLeft="5dp"
+                android:paddingRight="5dp"
                 android:paddingEnd="5dp"
                 android:singleLine="true"/>
 

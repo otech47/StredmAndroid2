@@ -61,7 +61,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         GooglePlayServicesClient.OnConnectionFailedListener {
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
-    public static final String APP_VERSION = "2.0";
+    public static final String APP_VERSION = "2.0.1";
     public static final String API_VERSION = "2";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";

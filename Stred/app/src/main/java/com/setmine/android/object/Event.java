@@ -65,6 +65,9 @@ public class Event {
             setLongitude(json.getDouble("longitude"));
             setAddress(json.getString("address"));
             setPaid(json.getInt("paid"));
+            if(this.paid == 0) {
+                setTicketLink(json.getString("ticket_link"));
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

@@ -140,7 +140,8 @@
 		android:layout_alignBottom="@+id/player_footer"
 		android:layout_alignParentBottom="true"
 		android:layout_alignParentStart="true"
-		android:src="@drawable/playlist_icon"/>
+        android:layout_alignParentLeft="true"
+        android:src="@drawable/playlist_icon"/>
 
 
 	<ImageButton
@@ -153,6 +154,7 @@
         android:src="@drawable/btn_tracklist"
         android:layout_alignBottom="@id/player_footer"
 		android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
 		android:layout_alignParentEnd="true" />
 
 	<RelativeLayout

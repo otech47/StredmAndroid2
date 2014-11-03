@@ -5,7 +5,9 @@
     android:layout_height="wrap_content"
     android:background="@drawable/pressable_button"
     android:paddingStart="12dp"
+    android:paddingLeft="12dp"
     android:paddingEnd="12dp"
+    android:paddingRight="12dp"
     android:paddingTop="9dp">
 
     <!--<ImageView-->
@@ -28,8 +30,10 @@
     <ImageView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_alignLeft="@id/browseItemText"
         android:layout_alignStart="@id/browseItemText"
         android:layout_alignEnd="@id/browseItemText"
+        android:layout_alignRight="@id/browseItemText"
         android:layout_below="@id/browseItemText"
         android:src="@drawable/horizontal_line_gray"/>
 
