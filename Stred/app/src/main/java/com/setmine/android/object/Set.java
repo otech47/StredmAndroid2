@@ -20,6 +20,7 @@ public class Set {
     private String mEvent;
     private String mGenre;
     private String mSongURL;
+    private String episode;
     private List<Track> mTracklist;
     private Integer popularity;
     private Integer mRadiomix;
@@ -42,6 +43,7 @@ public class Set {
             setSongURL(json.getString("songURL"));
             setPopularity(json.getInt("popularity"));
             setIsRadiomix(json.getInt("is_radiomix"));
+            setEpisode(json.getString("episode"));
             setTracklist(generateTracklist(json.getString("tracklist"), json.getString("starttimes")));
             setIsDownloaded(false);
         } catch (JSONException e) {
@@ -138,6 +140,14 @@ public class Set {
 
     public void setSongURL(String mSongURL) {
         this.mSongURL = amazonS3Url + mSongURL;
+    }
+
+    public String getEpisode() {
+        return episode;
+    }
+
+    public void setEpisode(String episode) {
+        this.episode = episode;
     }
 
     public List<Track> getTracklist() {

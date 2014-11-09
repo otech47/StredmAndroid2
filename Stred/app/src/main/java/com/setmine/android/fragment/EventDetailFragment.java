@@ -183,7 +183,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
-            if(EVENT_PAID == 0) {
+            if(EVENT_PAID == 1) {
                 Button buyTickets = (Button)rootView.findViewById(R.id.button_buy_tickets);
                 buyTickets.setVisibility(View.VISIBLE);
                 buyTickets.setOnClickListener(new View.OnClickListener() {

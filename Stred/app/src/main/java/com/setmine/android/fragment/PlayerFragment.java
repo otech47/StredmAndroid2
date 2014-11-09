@@ -23,7 +23,6 @@ import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
-import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -541,7 +540,17 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             mixpanelProperties.put("artist", song.getArtist());
             mixpanelProperties.put("event", song.getEvent());
             activity.mixpanel.track("Specific Set Played", mixpanelProperties);
-            Log.v("Specific Set Played Tracked", mixpanelProperties.toString());
+            activity.mixpanel.getPeople().increment("play_count", 1);
+            activity.mixpanel.getPeople().append("sets_played_ids", song.getId());
+            if(song.getEpisode().length() > 0) {
+                activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent()+" - "+song.getEpisode());
+            } else {
+                activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent());
+            }
+            activity.mixpanel.getPeople().append("sets_played_names", song.getId());
+            activity.mixpanel.getPeople().append("sets_played_artists", song.getArtist());
+            activity.mixpanel.getPeople().append("sets_played_events", song.getEvent());
+            activity.mixpanel.getPeople().append("sets_played_genres", song.getGenre());
 
             // Displaying Song title
 			mTitleLabel.setText(song.getEvent());

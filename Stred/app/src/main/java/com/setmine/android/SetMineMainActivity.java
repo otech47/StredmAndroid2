@@ -46,9 +46,13 @@ import com.setmine.android.util.ImageUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Random;
+import java.util.TimeZone;
 import java.util.concurrent.RejectedExecutionException;
 
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
@@ -61,7 +65,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         GooglePlayServicesClient.OnConnectionFailedListener {
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
-    public static final String APP_VERSION = "2.0.1";
+    public static final String APP_VERSION = "2.0.2";
     public static final String API_VERSION = "2";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
@@ -130,6 +134,21 @@ public class SetMineMainActivity extends FragmentActivity implements
             try {
                 mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
                 mixpanel.track("Application Opened", mixpanelProperties);
+                MixpanelAPI.People people = mixpanel.getPeople();
+                String id = mixpanel.getDistinctId();
+                mixpanel.identify(id);
+                people.identify(id);
+                Log.v("id", people.toString());
+                JSONObject peopleProperties = new JSONObject();
+                peopleProperties.put("user_id", id);
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+                df.setTimeZone(TimeZone.getTimeZone("UTC"));
+                String nowAsISO = df.format(new Date());
+                Log.d("date", nowAsISO);
+                peopleProperties.put("date_tracked", nowAsISO);
+                people.setOnce("user_id", id);
+                people.setOnce("date_tracked", nowAsISO);
+                people.setOnce(peopleProperties);
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -137,12 +156,10 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
 
         if (servicesConnected()) {
-            Log.v("LOCATION FOUND", "NAH");
             locationClient = new LocationClient(this, this, this);
             locationClient.connect();
         }
         else {
-            Log.v("No", "Location");
             currentLocation = new Location("default");
             currentLocation.setLatitude(29.652175);
             currentLocation.setLongitude(-82.325856);
@@ -213,7 +230,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-
         Intent intent = new Intent(this, PlayerService.class);
         startService(intent);
         bindService(intent, playerServiceConnection, Context.BIND_AUTO_CREATE);
