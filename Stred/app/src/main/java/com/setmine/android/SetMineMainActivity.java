@@ -238,10 +238,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onStop() {
         super.onStop();
-        if(serviceBound) {
-            unbindService(playerServiceConnection);
-            serviceBound = false;
-        }
     }
 
     public void finishOnCreate() {
@@ -378,6 +374,10 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onDestroy() {
         mixpanel.flush();
+        if(serviceBound) {
+            unbindService(playerServiceConnection);
+            serviceBound = false;
+        }
         playerService.stopSelf();
         super.onDestroy();
     }
