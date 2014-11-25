@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -27,6 +28,7 @@ import com.setmine.android.LineupsSetsApiCaller;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.SetsManager;
+import com.setmine.android.object.Artist;
 import com.setmine.android.object.Lineup;
 import com.setmine.android.object.LineupSet;
 import com.setmine.android.object.Set;
@@ -34,13 +36,10 @@ import com.setmine.android.object.SetViewHolder;
 import com.setmine.android.task.LineupsSetsApiCallAsyncTask;
 import com.setmine.android.util.DateUtils;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -58,10 +57,8 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     public String EVENT_ADDRESS;
     public String EVENT_IMAGE;
     public String EVENT_TYPE;
-    public String LAST_EVENT_DATE;
     public String EVENT_TICKET;
     public int EVENT_PAID;
-    public List<HashMap<String, String>> setMapsList;
     public ListView lineupContainer;
     public JSONObject savedApiResponse = null;
     public SetsManager setsManager;
@@ -70,59 +67,12 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     public List<LineupSet> currentLineupSet;
     public DateUtils dateUtils;
     DisplayImageOptions options;
-    Lineup selectedLineup;
-
-    @Override
-    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
-        Log.v("onLineupsSetsReceived", this.toString());
-        ListView listView = null;
-        if(identifier == "sets") {
-            final List<Set> setModels = new ArrayList<Set>();
-            try {
-                if(jsonObject.getString("status").equals("success")) {
-                    JSONObject payload = jsonObject.getJSONObject("payload");
-                    JSONObject festival = null;
-                    festival = payload.getJSONObject("festival");
-                    JSONArray sets = festival.getJSONArray("sets");
-                    for(int i = 0 ; i < sets.length() ; i++) {
-                        setModels.add(new Set(sets.getJSONObject(i)));
-                    }
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            lineupContainer.setAdapter(new SetAdapter(setModels));
-            lineupContainer.setOnItemClickListener(new ListView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
-                    v.setPressed(true);
-                    Set s = setModels.get(position);
-                    ((SetMineMainActivity)getActivity()).startPlayerFragment(Integer.parseInt(s.getId()));
-                }
-            });
-            activity.setsManager.setPlaylist(setModels);
-            activity.playlistFragment.updatePlaylist();
-            rootView.findViewById(R.id.loading).setVisibility(View.GONE);
-        }
-        if(identifier == "lineups") {
-            Log.v("Lineup received ", identifier);
-            activity.modelsCP.setModel(jsonObject, "lineups");
-            currentLineupSet = activity.modelsCP.getLastLineup().getLineup();
-            rootView.findViewById(R.id.loading).setVisibility(View.GONE);
-            lineupContainer.setAdapter(new LineupSetAdapter(currentLineupSet));
-        }
-    }
+    Lineup selectedLineup = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-//        Query content provider for lineups or sets
-//        If null, check async task status
-//        If started, cancel all others, continue with task
-//        If not started, launch task
-//        Do this logic within Content Provider
-
-        setMapsList = new ArrayList<HashMap<String, String>>();
+        Log.v("Event Detail Fragment Created", "");
         setsManager = ((SetMineMainActivity)getActivity()).setsManager;
         context = getActivity().getApplicationContext();
         activity = (SetMineMainActivity)getActivity();
@@ -135,35 +85,8 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 .considerExifParams(true)
                 .build();
         dateUtils = new DateUtils();
-        Log.v("EVENT TYPE", EVENT_TYPE.toString());
-        if(EVENT_TYPE.equals("recent")) {
-            new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
-                    .execute("festival?search=" + Uri.encode(EVENT_NAME), "sets");
-        }
-        else if(EVENT_TYPE.equals("upcoming")) {
-            selectedLineup = null;
-            if(activity.modelsCP.lineups.size() > 0) {
-                for(int i = 0 ; i < activity.modelsCP.lineups.size() ; i++) {
-                    if(activity.modelsCP.lineups.get(i).getEvent().equals(this.EVENT_NAME)) {
-                        selectedLineup = (activity.modelsCP.lineups.get(i));
-                        break;
-                    }
-                }
-                if(selectedLineup == null) {
-                    new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
-                            .execute("lineup/" + Uri.encode(EVENT_ID), "lineups");
-                }
-            }
-            else {
-                new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
-                        .execute("lineup/" + Uri.encode(EVENT_ID), "lineups");
-            }
-        }
-        else {
-            Log.v("Detail Fragment has no type", " ");
-        }
-        Log.v("Detail Fragment Created", "");
     }
+
 
     @Nullable
     @Override
@@ -172,6 +95,9 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
         ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + EVENT_IMAGE, eventImage, options);
+        ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE);
+        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_ADDRESS);
+        lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         if(EVENT_IMAGE.equals(83)) {
             EVENT_IMAGE = "83";
         }
@@ -180,6 +106,12 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
             rootView.findViewById(R.id.directionsButton).setVisibility(View.GONE);
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_blue);
             ((TextView)rootView.findViewById(R.id.lineupText)).setText("Sets");
+            if(activity.modelsCP.detailSets.containsKey(EVENT_NAME)) {
+                finishCreateView();
+            } else {
+                new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
+                        .execute("festival?search=" + Uri.encode(EVENT_NAME), "sets");
+            }
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
@@ -194,7 +126,6 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                             mixpanelProperties.put("id", EVENT_ID);
                             mixpanelProperties.put("event", EVENT_NAME);
                             activity.mixpanel.track("Ticket Link Clicked", mixpanelProperties);
-                            Log.v("Ticket Link Click Tracked", mixpanelProperties.toString());
                         } catch (JSONException e) {
                             e.printStackTrace();
                         }
@@ -204,24 +135,24 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                     }
                 });
             }
+            if(activity.modelsCP.lineups.containsKey(EVENT_NAME)) {
+                finishCreateView();
+            } else {
+                new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
+                        .execute("lineup/" + Uri.encode(EVENT_ID), "lineups");
+            }
         }
-        ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE);
-        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_ADDRESS);
-        Log.v("actionbar:", activity.getActionBar().toString());
-        lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
-        if(selectedLineup != null) {
-            lineupContainer.setAdapter(new LineupSetAdapter(selectedLineup.getLineup()));
-        }
+
         try {
             JSONObject mixpanelProperties = new JSONObject();
             mixpanelProperties.put("id", this.EVENT_ID);
             mixpanelProperties.put("event", this.EVENT_NAME);
             activity.mixpanel.track("Event Click Through", mixpanelProperties);
-            Log.v("Event Click Through Tracked", mixpanelProperties.toString());
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        Log.v("Detail Fragment View created", rootView.toString());
+
+        Log.v("Event Detail Fragment View created", rootView.toString());
         return rootView;
     }
 
@@ -231,38 +162,71 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         super.onDestroyView();
     }
 
-    public JSONArray getSetsFromJson(JSONObject json) {
-        JSONObject payload;
-        JSONObject festival = null;
-        JSONArray sets = null;
-        try {
-            payload = json.getJSONObject("payload");
-            festival = payload.getJSONObject("festival");
-            sets = festival.getJSONArray("sets");
-            return sets;
-        } catch (JSONException e) {
-            e.printStackTrace();
+    // Implement Lineup/Sets API Response Callback
+
+    @Override
+    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
+        Log.v("Event Detail onLineupsSetsReceived", this.toString());
+        if(identifier == "sets") {
+            activity.modelsCP.setDetailSets(jsonObject);
         }
-        return null;
+        if(identifier == "lineups") {
+            activity.modelsCP.setLineups(jsonObject);
+        }
+        finishCreateView();
     }
-    public JSONArray getLineupFromJson(JSONObject json) {
-        JSONObject payload;
-        JSONArray lineup = null;
-        try {
-            payload = json.getJSONObject("payload");
-            lineup = payload.getJSONArray("lineup");
-            return lineup;
-        } catch (JSONException e) {
-            e.printStackTrace();
+
+    // Models must be valid before executing this method
+
+    public void finishCreateView() {
+        if(EVENT_TYPE == "recent") {
+            final List<Set> setModels = activity.modelsCP.getDetailSets(EVENT_NAME);
+            lineupContainer.setAdapter(new SetAdapter(setModels));
+            lineupContainer.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                    v.setPressed(true);
+                    Set s = setModels.get(position);
+                    ((SetMineMainActivity)getActivity()).startPlayerFragment(Integer.parseInt(s.getId()));
+                }
+            });
+            activity.setsManager.setPlaylist(setModels);
+            activity.playlistFragment.updatePlaylist();
+        } else {
+            selectedLineup = activity.modelsCP.getLineups(EVENT_NAME);
+            currentLineupSet = selectedLineup.getLineup();
+            rootView.findViewById(R.id.loading).setVisibility(View.GONE);
+            lineupContainer.setAdapter(new LineupSetAdapter(currentLineupSet));
+            lineupContainer.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                    v.setPressed(true);
+                    String artistName = currentLineupSet.get(position).getArtist();
+                    Artist currentArtist = null;
+                    List<Artist> allArtists = activity.modelsCP.getAllArtists();
+                    for(int i = 0 ; i < allArtists.size() ; i++) {
+                        if(allArtists.get(i).getArtist().equals(artistName)) {
+                            currentArtist = allArtists.get(i);
+                        }
+                    }
+                    ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
+                    artistDetailFragment.selectedArtist = currentArtist;
+                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
+                    transaction.replace(R.id.eventPagerContainer, artistDetailFragment, "artistDetailFragment");
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                    transaction.commit();
+                }
+            });
         }
-        return null;
+        rootView.findViewById(R.id.loading).setVisibility(View.GONE);
     }
 
     private static class LineupSetViewHolder {
         TextView artistText;
         TextView setTime;
         ImageView artistImage;
-        View pastSetsButton;
+        View detailActionButton;
     }
 
     class LineupSetAdapter extends BaseAdapter {
@@ -299,14 +263,14 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         public View getView(final int position, View convertView, ViewGroup parent) {
             View view = convertView;
             final LineupSetViewHolder holder;
-            LineupSet lineupSet = lineupSets.get(position);
+            final LineupSet lineupSet = lineupSets.get(position);
             if (convertView == null) {
                 view = inflater.inflate(R.layout.artist_tile_upcoming, parent, false);
                 holder = new LineupSetViewHolder();
                 holder.setTime = (TextView) view.findViewById(R.id.setTime);
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.pastSetsButton = view.findViewById(R.id.infoButton);
+                holder.detailActionButton = view.findViewById(R.id.detailActionButton);
                 view.setTag(holder);
             } else {
                 holder = (LineupSetViewHolder) view.getTag();
@@ -314,16 +278,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
 
             holder.setTime.setText(dateUtils.getDayFromDate(EVENT_DATE_UNFORMATTED, lineupSet.getDay()) + " " + lineupSet.getTime());
             holder.artistText.setText(lineupSet.getArtist());
-            if(lineupSet.isHasSets()) {
-                holder.pastSetsButton.setVisibility(View.VISIBLE);
-                holder.pastSetsButton.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        activity.openSearch(null);
-                        activity.searchSetsFragment.searchView.setQuery(holder.artistText.getText(), false);
-                    }
-                });
-            }
+            holder.detailActionButton.setVisibility(View.GONE);
 
             ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + lineupSet.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
@@ -365,25 +320,40 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         public View getView(final int position, View convertView, ViewGroup parent) {
             View view = convertView;
             final SetViewHolder holder;
-            Set set = sets.get(position);
+            final Set set = sets.get(position);
             if (convertView == null) {
-                if(EVENT_TYPE.equals("upcoming")) {
-                    view = inflater.inflate(R.layout.artist_tile_upcoming, parent, false);
-                } else if(EVENT_TYPE.equals("recent")) {
-                    view = inflater.inflate(R.layout.artist_tile_recent, parent, false);
-                }
+                view = inflater.inflate(R.layout.artist_tile_recent, parent, false);
                 holder = new SetViewHolder();
                 if(EVENT_TYPE.equals("recent")) {
                     holder.playCount = (TextView) view.findViewById(R.id.playCount);
                 }
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.playButton = (ImageView) view.findViewById(R.id.playButton);
+                holder.detailActionButton = view.findViewById(R.id.detailActionButton);
                 view.setTag(holder);
                 view.setId(Integer.valueOf(set.getId()).intValue());
             } else {
                 holder = (SetViewHolder) view.getTag();
             }
+            holder.detailActionButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    Artist currentArtist = null;
+                    for (int i = 0; i < activity.modelsCP.getArtists().size(); i++) {
+                        if (activity.modelsCP.getArtists().get(i)
+                                .getArtist().equals(set.getArtist())) {
+                            currentArtist = activity.modelsCP.getArtists().get(i);
+                        }
+                    }
+                    ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
+                    artistDetailFragment.selectedArtist = currentArtist;
+                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
+                    transaction.replace(R.id.eventPagerContainer, artistDetailFragment, "artistDetailFragment");
+                    transaction.addToBackStack(null);
+                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                    transaction.commit();
+                }
+            });
 
             if(holder.playCount != null) {
                 holder.playCount.setText(set.getPopularity() + " plays");

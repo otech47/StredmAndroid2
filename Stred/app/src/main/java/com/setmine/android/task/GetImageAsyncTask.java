@@ -86,7 +86,6 @@ public class GetImageAsyncTask extends AsyncTask<ImageViewChangeRequest, Void, B
                 inSampleSize *= 2;
             }
         }
-        Log.v("sample size", inSampleSize.toString());
         return inSampleSize;
     }
 }

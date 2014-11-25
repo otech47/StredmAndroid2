@@ -7,7 +7,7 @@
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
     android:paddingBottom="15dp"
-    android:background="@drawable/pressable_button"
+    android:background="@drawable/pressable_button_blue"
     android:id="@+id/artist_tile_recent">
 
     <ImageView
@@ -17,14 +17,6 @@
         android:scaleType="centerCrop"
         android:id="@+id/artistImage"
         android:layout_gravity="center"/>
-
-    <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
-        android:padding="10dp"
-        android:id="@+id/playButton"
-        android:layout_alignParentRight="true"
-        android:src="@drawable/ic_action_play"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -66,6 +58,36 @@
         android:paddingBottom="3sp"
         android:paddingLeft="8dp"
         android:textSize="12sp"/>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/detailActionButton"
+        android:visibility="visible"
+        android:padding="6dp"
+        android:background="@drawable/pressable_info_button"
+        android:layout_centerVertical="true"
+        android:layout_alignParentRight="true">
+
+        <ImageView
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:id="@+id/iconImage"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/artist_icon"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Artist Info"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:id="@+id/iconText"
+            android:textColor="@color/setmine_black"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/iconImage"/>
+
+    </RelativeLayout>
 
 
 </RelativeLayout>

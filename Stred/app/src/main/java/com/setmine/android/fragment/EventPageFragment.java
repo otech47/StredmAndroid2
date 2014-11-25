@@ -97,7 +97,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         }
         else
             currentTiles = null;
-        Log.v("EPF Attached "+page.toString(), getActivity().toString());
+        Log.v("Event Page Fragment Attached "+page.toString(), getActivity().toString());
     }
 
     @Override
@@ -121,18 +121,16 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 .cacheOnDisk(true)
                 .considerExifParams(true)
                 .build();
-        Log.v("EPF Created "+page.toString(), getActivity().toString());
+        Log.v("Event Page Fragment Created "+page.toString(), getActivity().toString());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        Log.v("page is ", page.toString());
         ListView listView = null;
         eventType = "";
         this.eventViewPager = activity.eventViewPager;
         if(page == 1) {
-            Log.v("page 1", " inflating");
             eventType = "upcoming";
             rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsList);
@@ -140,13 +138,11 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             rootView.findViewById(R.id.recent_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Log.d("TEST", eventViewPager.toString());
                     eventViewPager.setCurrentItem(1);
                 }
             });
         }
         else if(page == 2) {
-            Log.v("page 2", " inflating");
             eventType = "recent";
             rootView = inflater.inflate(R.layout.events_scroll_view_recent, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsListRecent);
@@ -165,7 +161,6 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             });
         }
         else if(page == 3) {
-            Log.v("page 3", " inflating");
             eventType = "search";
             rootView = inflater.inflate(R.layout.events_finder, container, false);
             listView = (ListView) rootView.findViewById(R.id.searchResults);
@@ -231,7 +226,6 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        Log.v("Location Lost ", "Focus");
                         eventSearch(v);
                     }
                 }
@@ -279,7 +273,6 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 public void onItemClick(AdapterView <?> parent, View v,
                 int position, long id) {
                     Event currentEvent = currentEvents.get(position);
-
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
                     eventDetailFragment.EVENT_ID = currentEvent.id;
                     eventDetailFragment.EVENT_NAME = currentEvent.event;
@@ -290,7 +283,6 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                     eventDetailFragment.EVENT_TYPE = (eventType.equals("search")?"upcoming":eventType);
                     eventDetailFragment.EVENT_PAID = currentEvent.getPaid();
                     eventDetailFragment.EVENT_TICKET = currentEvent.getTicketLink();
-                    eventDetailFragment.LAST_EVENT_DATE = currentEvent.startDate;
                     SetMineMainActivity activity = (SetMineMainActivity) getActivity();
                     FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
                     transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
@@ -300,13 +292,11 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 }
             });
         }
-        Log.v("EPF View Created ", page.toString());
-        Log.v("rootview is ", rootView.toString());
+        Log.v("Event Page Fragment View Created ", page.toString());
         return rootView;
     }
 
     public void eventSearch(View v) {
-        View parentView = v.getRootView();
         dynamicAdapter.clear();
         dynamicAdapter.notifyDataSetChanged();
         String latitude = ((Double)selectedLocation.getLatitude()).toString();
@@ -375,7 +365,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             Event event = events.get(position);
             if (convertView == null) {
                 if(type.equals("upcoming")) {
-                    view = inflater.inflate(R.layout.event_tile, parent, false);
+                    view = inflater.inflate(R.layout.event_tile_upcoming, parent, false);
                 } else if (type.equals("recent")){
                     view = inflater.inflate(R.layout.event_tile_recent, parent, false);
                 } else {

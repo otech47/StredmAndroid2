@@ -4,7 +4,6 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -128,7 +127,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
                         Artist a = activity.modelsCP.getArtists().get(position);
-                        searchView.setQuery(a.getArtist(), false);
+                        activity.openArtistPage(a);
                     }
                 });
             }
@@ -148,7 +147,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
                         Event e = activity.modelsCP.getEvents().get(position);
-                        searchView.setQuery(e.getEvent(), false);
+                        activity.openEventPage(e);
                     }
                 });
             }
@@ -297,7 +296,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Set s = searchResultSetAdapter.sets.get(position);
-                    Log.d("item", ((Integer) Integer.parseInt(s.getId())).toString());
                     activity.startPlayerFragment(Integer.parseInt(s.getId()));
                 }
             });
@@ -554,7 +552,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.eventText = (TextView) view.findViewById(R.id.eventText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.playButton = (ImageView) view.findViewById(R.id.playButton);
+                holder.playButton = (ImageView) view.findViewById(R.id.detailActionButton);
                 view.setTag(holder);
                 view.setId(Integer.valueOf(set.getId()).intValue());
             } else {

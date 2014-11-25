@@ -14,17 +14,18 @@
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="150dp"
+            android:layout_height="120dp"
             android:id="@+id/eventImage"
             android:src="@drawable/logo"
             android:scaleType="centerCrop"/>
 
         <TextView
             android:layout_width="match_parent"
-            android:layout_height="70dp"
+            android:layout_height="wrap_content"
             android:text="Event Text"
             android:gravity="center"
             android:textSize="25sp"
+            android:padding="@dimen/standard_padding"
             android:textColor="#FFFFFFFF"
             android:background="@color/setmine_purple"
             android:id="@+id/eventText"/>
@@ -32,7 +33,8 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:background="@color/setmine_black">
 
             <Button
                 android:layout_width="60dp"
@@ -44,13 +46,13 @@
 
             <TextView
                 android:layout_width="match_parent"
-                android:layout_height="60dp"
+                android:layout_height="wrap_content"
                 android:text="Location"
                 android:layout_centerInParent="true"
+                android:padding="5dp"
                 android:layout_toRightOf="@id/directionsButton"
                 android:gravity="center|left"
                 android:textSize="14sp"
-                android:background="#BB000000"
                 android:textColor="#FFFFFFFF"
                 android:id="@+id/locationText"
                 android:paddingStart="5dp"
@@ -77,16 +79,7 @@
             android:background="@drawable/transparent_gradient_setmine_gold"
             android:alpha="50"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="35dp"
-            android:text="Date"
-            android:gravity="bottom|left"
-            android:id="@+id/dateText"
-            android:padding="5dp"
-            android:background="#BB000000"
-            android:textColor="#FFFFFFFF"
-            />
+
 
         <LinearLayout
             android:orientation="horizontal"
@@ -101,9 +94,20 @@
             android:id="@+id/lineupText"
             android:gravity="bottom|left"
             android:padding="5dp"
-            android:background="#BB000000"
-            android:textColor="#FFFFFFFF"
+            android:background="@color/setmine_black"
+            android:textColor="@color/setmine_white"
             android:textSize="20sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date"
+            android:gravity="bottom|left"
+            android:id="@+id/dateText"
+            android:padding="5dp"
+            android:background="@color/setmine_black"
+            android:textColor="@color/setmine_white"
+            />
 
         <ListView
             android:orientation="vertical"
@@ -121,14 +125,5 @@
             android:indeterminate="true" />
 
     </LinearLayout>
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="70dp"
-        android:id="@+id/backButton"
-        android:src="@drawable/ic_action_previous_item"
-        android:onClick="backButtonPress"
-        android:layout_marginTop="?android:attr/actionBarSize"
-        />
 
 </RelativeLayout>

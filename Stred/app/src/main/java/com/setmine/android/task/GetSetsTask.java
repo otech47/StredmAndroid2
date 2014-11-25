@@ -31,7 +31,6 @@ public class GetSetsTask extends AsyncTask<String, Integer, JSONObject> {
             modelType = params[1];
         }
         String apiRequest = params[0];
-        Log.d("Apirequest", apiRequest);
         JSONObject jsonResponse = null;
         try {
             if(!this.isCancelled()) {

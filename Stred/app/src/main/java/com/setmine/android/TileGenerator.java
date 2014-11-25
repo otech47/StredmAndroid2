@@ -94,7 +94,7 @@ public class TileGenerator {
         List<View> tiles = new ArrayList<View>();
         LayoutInflater inflater = activity.getLayoutInflater();
         for(Event element : models) {
-            View eventTile = inflater.inflate(R.layout.event_tile, null);
+            View eventTile = inflater.inflate(R.layout.event_tile_upcoming, null);
             String imageUrl = element.mainImageUrl;
             ImageView imageView = ((ImageView) eventTile.findViewById(R.id.image));
             new GetImageAsyncTask(activity, imageCache, activity.PUBLIC_ROOT_URL + "images/").executeOnExecutor(GetImageAsyncTask.THREAD_POOL_EXECUTOR, new ImageViewChangeRequest(imageUrl, imageView));

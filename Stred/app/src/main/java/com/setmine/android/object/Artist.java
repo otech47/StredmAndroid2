@@ -10,6 +10,7 @@ public class Artist {
     private String mBio;
     private String mFacebookLink;
     private String mTwitterLink;
+    private String mWebLink;
     private String mImageUrl;
 
     public Artist() {
@@ -31,6 +32,9 @@ public class Artist {
             setBio(json.getString("bio"));
             setFacebookLink(json.getString("fb_link"));
             setTwitterLink(json.getString("twitter_link"));
+            if(json.has("web_link")) {
+                setWebLink(json.getString("web_link"));
+            }
             setImageUrl(json.getString("imageURL"));
         } catch (JSONException e) {
             e.printStackTrace();
@@ -75,6 +79,14 @@ public class Artist {
 
     public void setTwitterLink(String twitterLink) {
         this.mTwitterLink = twitterLink;
+    }
+
+    public String getWebLink() {
+        return mWebLink;
+    }
+
+    public void setWebLink(String mWebLink) {
+        this.mWebLink = mWebLink;
     }
 
     public String getImageUrl() {

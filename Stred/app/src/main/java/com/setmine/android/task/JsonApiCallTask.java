@@ -37,9 +37,7 @@ public class JsonApiCallTask extends AsyncTask<String, Integer, JSONObject> {
             detail = params[1];
             try {
                 String apiRequest = params[0];
-                Log.v("url", apiRequest);
                 String jsonString = apiCallsManager.getJSONStringFromURL(apiRequest);
-                Log.v("detail jsonString in task", jsonString);
                 response = new JSONObject(jsonString);
             }
             catch (Exception e) {
@@ -50,9 +48,7 @@ public class JsonApiCallTask extends AsyncTask<String, Integer, JSONObject> {
             detail = "";
             try {
                 String apiRequest = params[0];
-                Log.v("url", apiRequest);
                 String jsonString = apiCallsManager.getJSONStringFromURL(apiRequest);
-                Log.v("jsonString in task", jsonString);
                 response = new JSONObject(jsonString);
             }
             catch (Exception e) {

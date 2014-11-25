@@ -1,7 +1,6 @@
 package com.setmine.android.util;
 
 import android.content.Context;
-import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -87,7 +86,6 @@ public class HttpUtils {
     public String getJSONStringFromURL(String route) {
         String url = apiUrl + route;
         String jsonString = "";
-        Log.v("full url", url);
         try {
             HttpResponse response = null;
             HttpParams httpParameters = new BasicHttpParams();

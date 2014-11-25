@@ -56,6 +56,10 @@ public class SetsManager {
         }
     }
 
+    public void playSelectedSet() {
+
+    }
+
     public int getPlaylistLength() {
         return playlistLength;
     }

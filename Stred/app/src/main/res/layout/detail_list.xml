@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/detailListContainer"
+        android:background="@drawable/top_bottom_border_purple"
+        android:orientation="vertical">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/noResults"
+            android:gravity="center"
+            android:textColor="@color/setmine_black"
+            android:text="No Events Found"
+            android:padding="10dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/message"
+            android:padding="5dp"
+            android:textColor="@color/setmine_black"
+            android:gravity="center"
+            android:text="Check back soon we're adding more every day!"/>
+
+    </LinearLayout>
+
+</ScrollView>

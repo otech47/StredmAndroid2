@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:id="@+id/artistDetailContainer"
+    android:background="@color/setmine_black">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:animateLayoutChanges="true" >
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            android:id="@+id/artistImage"
+            android:src="@drawable/logo"
+            android:scaleType="centerCrop"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Artist Name"
+            android:maxLines="2"
+            android:gravity="center"
+            android:textSize="25sp"
+            android:textColor="#FFFFFFFF"
+            android:padding="@dimen/standard_padding"
+            android:background="@color/setmine_blue"
+            android:id="@+id/artistName"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/socialContainer">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="35dp"
+                android:text="Social"
+                android:textSize="20sp"
+                android:gravity="bottom"
+                android:background="@color/setmine_black"
+                android:textColor="#FFFFFFFF"
+                android:id="@+id/socialHeader"
+                android:paddingStart="10dp"
+                android:paddingLeft="10dp"
+                android:paddingBottom="5dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:id="@+id/socialButtons"
+                android:layout_below="@id/socialHeader">
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="50dp"
+                    android:layout_weight="1"
+                    android:id="@+id/facebookButton"
+                    android:background="@color/facebook_blue"
+                    android:text="facebook"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_weight="1"
+                    android:layout_height="50dp"
+                    android:id="@+id/twitterButton"
+                    android:background="@color/twitter_blue"
+                    android:text="twitter"/>
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_weight="1"
+                    android:layout_height="50dp"
+                    android:id="@+id/webButton"
+                    android:background="@color/setmine_purple"
+                    android:text="website"/>
+
+            </LinearLayout>
+
+        </RelativeLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:orientation="vertical">
+
+            <ProgressBar
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/detail_loading"
+                android:layout_margin="@dimen/progress_padding"
+                android:layout_alignParentBottom="true"
+                android:gravity="center|bottom"
+                android:indeterminate="true" />
+
+            <com.viewpagerindicator.TitlePageIndicator
+                android:id="@+id/titleTabs"
+                android:padding="10dp"
+                android:textSize="18sp"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                app:footerColor="@color/setmine_purple"
+                android:background="@color/main_background"
+                />
+
+            <android.support.v4.view.ViewPager
+                xmlns:android="http://schemas.android.com/apk/res/android"
+                android:id="@+id/artistDetailPager"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:layout_weight="1"
+                android:background="@color/main_background"/>
+
+        </LinearLayout>
+
+
+
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@color/setmine_light_gray">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:text="Biography"
+                android:textSize="20sp"
+                android:gravity="bottom"
+                android:background="@color/setmine_gray"
+                android:textColor="#FFFFFFFF"
+                android:id="@+id/bioHeader"
+                android:paddingStart="10dp"
+                android:paddingLeft="10dp"
+                android:paddingBottom="5dp"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/bioHeader"
+                android:text="No Biography Available"
+                android:padding="@dimen/small_text_padding"/>
+
+        </RelativeLayout>
+
+
+
+
+    </LinearLayout>
+
+
+</RelativeLayout>

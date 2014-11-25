@@ -33,14 +33,19 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.setmine.android.adapter.EventPagerAdapter;
 import com.setmine.android.adapter.PlayerPagerAdapter;
+import com.setmine.android.fragment.ArtistDetailFragment;
+import com.setmine.android.fragment.EventDetailFragment;
+import com.setmine.android.fragment.MainViewPagerContainerFragment;
 import com.setmine.android.fragment.PlayerContainerFragment;
 import com.setmine.android.fragment.PlayerFragment;
 import com.setmine.android.fragment.PlaylistFragment;
 import com.setmine.android.fragment.SearchSetsFragment;
 import com.setmine.android.fragment.TracklistFragment;
-import com.setmine.android.fragment.ViewPagerContainerFragment;
+import com.setmine.android.object.Artist;
+import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.task.InitialApiCallAsyncTask;
+import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.ImageUtils;
 
 import org.json.JSONException;
@@ -60,12 +65,11 @@ import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 public class SetMineMainActivity extends FragmentActivity implements
         InitialApiCaller,
         LineupsSetsApiCaller,
-        ApiCaller,
         GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener {
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
-    public static final String APP_VERSION = "2.0.2";
+    public static final String APP_VERSION = "3.0";
     public static final String API_VERSION = "2";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
@@ -83,7 +87,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public PlayerFragment playerFragment;
     public TracklistFragment tracklistFragment;
     public SearchSetsFragment searchSetsFragment;
-    public ViewPagerContainerFragment viewPagerContainerFragment;
+    public MainViewPagerContainerFragment mainViewPagerContainerFragment;
 
     public ModelsContentProvider modelsCP;
     public SetsManager setsManager;
@@ -104,6 +108,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public ActionBar actionBar;
 
     public ImageUtils imageUtils;
+    public DateUtils dateUtils;
 
 
     public ServiceConnection playerServiceConnection = new ServiceConnection() {
@@ -127,6 +132,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
 
         imageUtils = new ImageUtils();
+        dateUtils = new DateUtils();
 
         mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
         if(savedInstanceState == null) {
@@ -138,13 +144,11 @@ public class SetMineMainActivity extends FragmentActivity implements
                 String id = mixpanel.getDistinctId();
                 mixpanel.identify(id);
                 people.identify(id);
-                Log.v("id", people.toString());
                 JSONObject peopleProperties = new JSONObject();
                 peopleProperties.put("user_id", id);
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
                 df.setTimeZone(TimeZone.getTimeZone("UTC"));
                 String nowAsISO = df.format(new Date());
-                Log.d("date", nowAsISO);
                 peopleProperties.put("date_tracked", nowAsISO);
                 people.setOnce("user_id", id);
                 people.setOnce("date_tracked", nowAsISO);
@@ -152,7 +156,6 @@ public class SetMineMainActivity extends FragmentActivity implements
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            Log.v("Application Opened Tracked", mixpanel.toString());
         }
 
         if (servicesConnected()) {
@@ -169,11 +172,16 @@ public class SetMineMainActivity extends FragmentActivity implements
                     .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
                             eventSearchUrl,
                             "searchEvents");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                            "upcoming",
+                            "upcomingEvents");
         }
 
         setsManager = new SetsManager();
         fragmentManager = getSupportFragmentManager();
         modelsCP = new ModelsContentProvider();
+
 
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
                 .diskCacheExtraOptions(480, 800, null)
@@ -185,12 +193,22 @@ public class SetMineMainActivity extends FragmentActivity implements
         setContentView(R.layout.fragment_main);
 
         actionBar = getActionBar();
-        Log.d("ActionBar", actionBar.toString());
+
+
+        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+            @Override
+            public void onBackStackChanged() {
+                if(fragmentManager.getBackStackEntryCount() > 0) {
+                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
+                } else {
+                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
+                }
+            }
+        });
 
         applyCustomViewStyles();
 
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "upcoming", "upcomingEvents");
+
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
@@ -205,26 +223,8 @@ public class SetMineMainActivity extends FragmentActivity implements
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "popular", "popularSets");
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "recent", "recentSets");
-
-    }
-
-
-    // Implementing InitialApiCaller Interface
-
-    @Override
-    public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
-        this.modelsCP.setModel(jsonObject, modelType);
-        Log.v("initial models ready", ((Boolean)modelsCP.initialModelsReady).toString());
-        if(modelsCP.initialModelsReady) {
-            finishOnCreate();
-        }
-    }
-
-    // Implementing LineupSetsApiCaller Interface
-
-    @Override
-    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
-        this.modelsCP.setModel(jsonObject, identifier);
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist?all=true", "allArtists");
     }
 
     @Override
@@ -240,18 +240,34 @@ public class SetMineMainActivity extends FragmentActivity implements
         super.onStop();
     }
 
+    // Implementing InitialApiCaller Interface
+
+    @Override
+    public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
+        this.modelsCP.setModel(jsonObject, modelType);
+        if(modelsCP.initialModelsReady) {
+            finishOnCreate();
+        }
+    }
+
+    // Implementing LineupSetsApiCaller Interface
+
+    @Override
+    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
+        this.modelsCP.setModel(jsonObject, identifier);
+    }
+
     public void finishOnCreate() {
         if(!finishedOnCreate) {
-            Log.v("Finishing onCreate", " Line 98 ");
             try {
                 getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
                 calculateScreenSize();
-                viewPagerContainerFragment = new ViewPagerContainerFragment();
+                mainViewPagerContainerFragment = new MainViewPagerContainerFragment();
                 playerContainerFragment = new PlayerContainerFragment();
                 searchSetsFragment = new SearchSetsFragment();
                 FragmentTransaction ft = fragmentManager.beginTransaction();
                 ft.add(R.id.playerPagerContainer, playerContainerFragment);
-                ft.add(R.id.eventPagerContainer, viewPagerContainerFragment);
+                ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
                 ft.add(R.id.searchSetsContainer, searchSetsFragment);
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
@@ -282,8 +298,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         getWindowManager().getDefaultDisplay().getSize(size);
         screenHeight = size.y;
         screenWidth = size.x;
-        Log.v("Height", screenHeight.toString());
-        Log.v("Width", screenWidth.toString());
     }
 
     @Override
@@ -291,8 +305,14 @@ public class SetMineMainActivity extends FragmentActivity implements
         super.attachBaseContext(new CalligraphyContextWrapper(newBase));
     }
 
-    public void backButtonPress(View v) {
-        onBackPressed();
+    public void homeButtonPress(View v) {
+        fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
     }
 
     @Override
@@ -322,19 +342,12 @@ public class SetMineMainActivity extends FragmentActivity implements
         else {
             Random r = new Random();
             int randomInt = r.nextInt(modelsCP.getPopularSets().size() - 1);
-            Log.d("randomin", Integer.toString(randomInt));
             Set s = modelsCP.getPopularSets().get(randomInt);
             List<Set> oneSetList = new ArrayList<Set>();
             oneSetList.add(s);
             setsManager.setPlaylist(oneSetList);
-            Log.d("setid", s.getId());
             startPlayerFragment(Integer.parseInt(s.getId()));
         }
-    }
-
-    @Override
-    public void onResponseReceived(JSONObject jsonObject, String identifier) {
-
     }
 
     public void startPlayerFragment(int setId) {
@@ -364,7 +377,34 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
-        Log.v("Open ", "player");
+    }
+
+    public void openArtistPage(Artist artist) {
+        ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
+        artistDetailFragment.selectedArtist = artist;
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.eventPagerContainer, artistDetailFragment, "artistDetailFragment");
+        transaction.addToBackStack(null);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
+    }
+
+    public void openEventPage(Event event) {
+        EventDetailFragment eventDetailFragment = new EventDetailFragment();
+        eventDetailFragment.EVENT_ID = event.getId();
+        eventDetailFragment.EVENT_NAME = event.getEvent();
+        eventDetailFragment.EVENT_DATE = dateUtils.formatDateText(event.getStartDate(), event.getEndDate());
+        eventDetailFragment.EVENT_DATE_UNFORMATTED = event.getStartDate();
+        eventDetailFragment.EVENT_ADDRESS = event.getAddress();
+        eventDetailFragment.EVENT_IMAGE = event.getMainImageUrl();
+        eventDetailFragment.EVENT_TYPE = "recent";
+        eventDetailFragment.EVENT_PAID = event.getPaid();
+        eventDetailFragment.EVENT_TICKET = event.getTicketLink();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
+        transaction.addToBackStack(null);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
     }
 
     public void closePlayer() {
@@ -448,7 +488,14 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
-        currentLocation = locationClient.getLastLocation();
+        if(locationClient.getLastLocation() != null) {
+            currentLocation = locationClient.getLastLocation();
+        }
+        else {
+            currentLocation = new Location("default");
+            currentLocation.setLatitude(29.652175);
+            currentLocation.setLongitude(-82.325856);
+        }
         locationClient.disconnect();
         String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
                 +currentLocation.getLongitude();
@@ -456,6 +503,9 @@ public class SetMineMainActivity extends FragmentActivity implements
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl,
                         "searchEvents");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, eventSearchUrl, "upcomingEventsAroundMe");
+
     }
 
     @Override
@@ -466,7 +516,20 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
+        locationClient.disconnect();
+        currentLocation = new Location("default");
+        currentLocation.setLatitude(29.652175);
+        currentLocation.setLongitude(-82.325856);
+        String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
+                +currentLocation.getLongitude();
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl,
+                        "searchEvents");
+        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                        "upcoming",
+                        "upcomingEvents");
     }
 
     // Blurring images for player, called by PlayerFragment

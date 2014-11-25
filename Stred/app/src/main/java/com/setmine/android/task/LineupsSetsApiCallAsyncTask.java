@@ -38,11 +38,9 @@ public class LineupsSetsApiCallAsyncTask extends AsyncTask<String, Integer, JSON
             modelType = params[1];
         }
         String apiRequest = params[0];
-        Log.v("JSONAPITask requested url", apiRequest);
         JSONObject jsonResponse = null;
         try {
             String jsonString = apiCaller.getJSONStringFromURL(apiRequest);
-            Log.v("Returned JSON String", jsonString);
             jsonResponse = new JSONObject(jsonString);
         }
         catch (Exception e) {

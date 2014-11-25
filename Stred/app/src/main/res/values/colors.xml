@@ -21,6 +21,10 @@
     <color name="main_background">#FF000000</color>
     <color name="setmine_white">#FFEEEEEE</color>
     <color name="setmine_black">#FF000000</color>
-    <color name="setmine_gray">#66666666</color>
+    <color name="setmine_gray">#FF333333</color>
     <color name="setmine_light_gray">#FFCCCCCC</color>
+    <color name="facebook_blue">#FF3B5998</color>
+    <color name="twitter_blue">#FF4099FF</color>
+    <color name="transparent">#00000000</color>
+
 </resources>

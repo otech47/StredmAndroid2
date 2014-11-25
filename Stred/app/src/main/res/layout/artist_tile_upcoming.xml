@@ -7,7 +7,7 @@
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
     android:paddingBottom="15dp"
-    android:background="@drawable/top_bottom_border_purple"
+    android:background="@drawable/pressable_button_purple"
     android:id="@+id/artist_tile_upcoming">
 
     <ImageView
@@ -21,28 +21,30 @@
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/infoButton"
-        android:visibility="gone"
+        android:id="@+id/detailActionButton"
+        android:visibility="visible"
+        android:padding="6dp"
+        android:background="@drawable/pressable_info_button"
         android:layout_centerVertical="true"
-        android:layout_alignParentRight="true"
-        android:background="@drawable/nav_icon_blue">
+        android:layout_alignParentRight="true">
 
         <ImageView
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:padding="10dp"
-            android:id="@+id/pastSetsImage"
-            android:layout_centerVertical="true"
-            android:src="@drawable/ic_action_search"/>
+            android:layout_width="26dp"
+            android:layout_height="26dp"
+            android:id="@+id/iconImage"
+            android:layout_centerHorizontal="true"
+            android:src="@drawable/artist_icon"/>
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Past Sets"
-            android:paddingRight="@dimen/small_text_padding"
-            android:textSize="15sp"
-            android:textColor="@color/setmine_white"
-            android:layout_centerVertical="true"
-            android:layout_toRightOf="@id/pastSetsImage"/>
+            android:text="Artist Info"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:id="@+id/iconText"
+            android:textColor="@color/setmine_black"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@id/iconImage"/>
 
     </RelativeLayout>
 

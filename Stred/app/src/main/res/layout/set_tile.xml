@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:padding="10dp"
     android:id="@+id/set_tile"
-    android:background="@color/setmine_white">
+    android:background="@drawable/pressable_button_blue">
 
     <ImageView
         android:layout_width="50dp"
@@ -17,11 +17,11 @@
         android:contentDescription="" />
 
     <ImageView
-        android:layout_width="50dp"
+        android:layout_width="60dp"
         android:layout_height="40dp"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:id="@+id/playButton"
+        android:id="@+id/detailActionButton"
         android:layout_alignParentEnd="true"
         android:layout_alignParentRight="true"
         android:src="@drawable/ic_action_play"/>
@@ -35,8 +35,8 @@
         android:paddingEnd="10dp"
         android:layout_toEndOf="@id/artistImage"
         android:layout_toRightOf="@id/artistImage"
-        android:layout_toLeftOf="@id/playButton"
-        android:layout_toStartOf="@id/playButton">
+        android:layout_toLeftOf="@id/detailActionButton"
+        android:layout_toStartOf="@id/detailActionButton">
 
         <TextView
             android:layout_width="match_parent"
@@ -76,15 +76,15 @@
     </RelativeLayout>
 
     <TextView
-        android:layout_width="50dp"
+        android:layout_width="60dp"
         android:layout_height="wrap_content"
         android:text="0 plays"
         android:id="@+id/playCount"
         android:textColor="@color/setmine_blue"
-        android:layout_below="@id/playButton"
+        android:layout_below="@id/detailActionButton"
         android:gravity="center"
-        android:layout_alignLeft="@id/playButton"
-        android:layout_alignStart="@id/playButton"
+        android:layout_alignLeft="@id/detailActionButton"
+        android:layout_alignStart="@id/detailActionButton"
         android:textSize="12sp"/>
 
 </RelativeLayout>

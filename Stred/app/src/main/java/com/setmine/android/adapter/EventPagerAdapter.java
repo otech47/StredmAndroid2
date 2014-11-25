@@ -19,6 +19,13 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
     public EventPageFragment currentFragment;
     public int currentFragmentPosition;
     public FragmentManager fm;
+    public final String[] TITLES = new String[] {
+            "Featured",
+            "Recent",
+            "Find"
+    };
+
+    public final int NUM_TITLES = TITLES.length;
 
     public EventPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -30,14 +37,13 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
         EventPageFragment eventPageFragment = new EventPageFragment();
         Bundle args = new Bundle();
         args.putInt(EventPageFragment.ARG_OBJECT, i + 1);
-        Log.v("args", args.toString());
         eventPageFragment.setArguments(args);
         return eventPageFragment;
     }
 
     @Override
     public int getCount() {
-        return 3;
+        return NUM_TITLES;
     }
 
     @Override
@@ -47,4 +53,8 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
         currentFragment = (EventPageFragment)object;
     }
 
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return TITLES[position % NUM_TITLES];
+    }
 }

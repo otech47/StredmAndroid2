@@ -3,7 +3,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/pressable_button"
+    android:background="@drawable/pressable_button_blue"
     android:paddingStart="12dp"
     android:paddingLeft="12dp"
     android:paddingEnd="12dp"
