@@ -24,6 +24,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import com.facebook.AppEventsLogger;
+import com.facebook.Session;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -35,6 +37,7 @@ import com.setmine.android.adapter.EventPagerAdapter;
 import com.setmine.android.adapter.PlayerPagerAdapter;
 import com.setmine.android.fragment.ArtistDetailFragment;
 import com.setmine.android.fragment.EventDetailFragment;
+import com.setmine.android.fragment.LoginFragment;
 import com.setmine.android.fragment.MainViewPagerContainerFragment;
 import com.setmine.android.fragment.PlayerContainerFragment;
 import com.setmine.android.fragment.PlayerFragment;
@@ -68,14 +71,19 @@ public class SetMineMainActivity extends FragmentActivity implements
         GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener {
 
+    private final static int
+            CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+    private final static int
+            FACEBOOK_LOGIN = 326350;
+
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
     public static final String APP_VERSION = "3.0";
     public static final String API_VERSION = "2";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
     public static final String S3_ROOT_URL = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
-    private final static int
-            CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
+
+    private static final String TAG = "SetMineMainActivity";
 
     public EventPagerAdapter mEventPagerAdapter;
     public ViewPager eventViewPager;
@@ -88,6 +96,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public TracklistFragment tracklistFragment;
     public SearchSetsFragment searchSetsFragment;
     public MainViewPagerContainerFragment mainViewPagerContainerFragment;
+    public LoginFragment loginFragment;
 
     public ModelsContentProvider modelsCP;
     public SetsManager setsManager;
@@ -134,6 +143,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         imageUtils = new ImageUtils();
         dateUtils = new DateUtils();
 
+        fragmentManager = getSupportFragmentManager();
+
         mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
         if(savedInstanceState == null) {
             JSONObject mixpanelProperties = new JSONObject();
@@ -178,9 +189,10 @@ public class SetMineMainActivity extends FragmentActivity implements
                             "upcomingEvents");
         }
 
-        setsManager = new SetsManager();
-        fragmentManager = getSupportFragmentManager();
+
+        loginFragment = new LoginFragment();
         modelsCP = new ModelsContentProvider();
+        setsManager = new SetsManager();
 
 
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
@@ -228,6 +240,13 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
 
     @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        super.onCreateOptionsMenu(menu);
+        this.menu = menu;
+        return true;
+    }
+
+    @Override
     protected void onStart() {
         super.onStart();
         Intent intent = new Intent(this, PlayerService.class);
@@ -235,9 +254,47 @@ public class SetMineMainActivity extends FragmentActivity implements
         bindService(intent, playerServiceConnection, Context.BIND_AUTO_CREATE);
     }
 
+
+
+    // For Facebook SDK
+
     @Override
-    protected void onStop() {
-        super.onStop();
+    protected void onPause() {
+        super.onPause();
+
+        Log.d(TAG, "ONPAUSE");
+
+        // Logs 'app deactivate' App Event.
+
+        AppEventsLogger.deactivateApp(this);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        Log.d(TAG, "ONRESUME");
+
+
+        // Logs 'install' and 'app activate' App Events.
+
+        AppEventsLogger.activateApp(this);
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    protected void onDestroy() {
+        mixpanel.flush();
+        if(serviceBound) {
+            unbindService(playerServiceConnection);
+            serviceBound = false;
+        }
+        playerService.stopSelf();
+        super.onDestroy();
     }
 
     // Implementing InitialApiCaller Interface
@@ -265,10 +322,12 @@ public class SetMineMainActivity extends FragmentActivity implements
                 mainViewPagerContainerFragment = new MainViewPagerContainerFragment();
                 playerContainerFragment = new PlayerContainerFragment();
                 searchSetsFragment = new SearchSetsFragment();
+                loginFragment = new LoginFragment();
                 FragmentTransaction ft = fragmentManager.beginTransaction();
                 ft.add(R.id.playerPagerContainer, playerContainerFragment);
                 ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
                 ft.add(R.id.searchSetsContainer, searchSetsFragment);
+                ft.add(R.id.loginContainer, loginFragment);
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
                 ft.commit();
@@ -284,13 +343,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         View customView = inflater.inflate(R.layout.custom_action_bar, null);
         actionBar.setCustomView(customView);
         actionBar.setDisplayShowCustomEnabled(true);
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        super.onCreateOptionsMenu(menu);
-        this.menu = menu;
-        return true;
     }
 
     public void calculateScreenSize() {
@@ -310,6 +362,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
@@ -322,6 +375,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
@@ -361,10 +415,25 @@ public class SetMineMainActivity extends FragmentActivity implements
         playerFragment.playSong(setsManager.selectedSetIndex);
     }
 
+    public void openUserHomePage() {
+        // Show eventsPager set at first item
+    }
+
+    public void openLogin(View v) {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.show(fragmentManager.findFragmentById(R.id.loginContainer));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
+    }
+
     public void openSearch(View v) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
@@ -374,6 +443,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
@@ -389,17 +459,11 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.commit();
     }
 
-    public void openEventPage(Event event) {
+    public void openEventPage(Event event, String eventType) {
         EventDetailFragment eventDetailFragment = new EventDetailFragment();
-        eventDetailFragment.EVENT_ID = event.getId();
-        eventDetailFragment.EVENT_NAME = event.getEvent();
-        eventDetailFragment.EVENT_DATE = dateUtils.formatDateText(event.getStartDate(), event.getEndDate());
-        eventDetailFragment.EVENT_DATE_UNFORMATTED = event.getStartDate();
-        eventDetailFragment.EVENT_ADDRESS = event.getAddress();
-        eventDetailFragment.EVENT_IMAGE = event.getMainImageUrl();
-        eventDetailFragment.EVENT_TYPE = "recent";
-        eventDetailFragment.EVENT_PAID = event.getPaid();
-        eventDetailFragment.EVENT_TICKET = event.getTicketLink();
+        eventDetailFragment.currentEvent = event;
+        eventDetailFragment.EVENT_TYPE = (eventType.equals("search")?"upcoming":eventType);
+        eventDetailFragment.onEventAssigned();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
         transaction.addToBackStack(null);
@@ -409,17 +473,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void closePlayer() {
         Log.v("Close ", "player");
-    }
-
-    @Override
-    protected void onDestroy() {
-        mixpanel.flush();
-        if(serviceBound) {
-            unbindService(playerServiceConnection);
-            serviceBound = false;
-        }
-        playerService.stopSelf();
-        super.onDestroy();
     }
 
     // Location Services
@@ -448,12 +501,15 @@ public class SetMineMainActivity extends FragmentActivity implements
      */
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
             case CONNECTION_FAILURE_RESOLUTION_REQUEST :
                 switch (resultCode) {
                     case Activity.RESULT_OK :
                         break;
                 }
+            case FACEBOOK_LOGIN :
+                Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
         }
     }
 

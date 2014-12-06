@@ -41,6 +41,7 @@ public class LineupsSetsApiCallAsyncTask extends AsyncTask<String, Integer, JSON
         JSONObject jsonResponse = null;
         try {
             String jsonString = apiCaller.getJSONStringFromURL(apiRequest);
+
             jsonResponse = new JSONObject(jsonString);
         }
         catch (Exception e) {

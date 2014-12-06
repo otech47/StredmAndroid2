@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/setmine_white">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Sign Up for Free!"
+        android:id="@+id/headerText1"
+        android:textSize="24sp"
+        android:paddingBottom="10dp"
+        android:paddingTop="10dp"
+        android:textColor="@color/setmine_black"
+        android:gravity="center"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Access Exclusive SetMine Premium Features"
+        android:textSize="15sp"
+        android:id="@+id/headerText2"
+        android:layout_below="@id/headerText1"
+        android:textColor="@color/setmine_black"
+        android:gravity="center"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_margin="20dp"
+        android:id="@+id/headerBorder"
+        android:background="@color/setmine_black"
+        android:layout_below="@id/headerText2" />
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/headerBorder"
+        android:id="@+id/loginButtonsContainer">
+
+        <com.facebook.widget.LoginButton
+            android:layout_height="wrap_content"
+            android:layout_width="wrap_content"
+            android:id="@+id/facebookLoginButton"
+            android:layout_centerInParent="true"/>
+
+
+    </RelativeLayout>
+
+</RelativeLayout>

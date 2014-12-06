@@ -29,6 +29,7 @@ import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.SetsManager;
 import com.setmine.android.object.Artist;
+import com.setmine.android.object.Event;
 import com.setmine.android.object.Lineup;
 import com.setmine.android.object.LineupSet;
 import com.setmine.android.object.Set;
@@ -50,10 +51,12 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
 
     public View rootView;
     private static final String amazonS3Url = "http://setmine.s3-website-us-east-1.amazonaws.com/namecheap/";
+    public Event currentEvent;
     public String EVENT_ID;
     public String EVENT_NAME;
-    public String EVENT_DATE;
-    public String EVENT_DATE_UNFORMATTED;
+    public String EVENT_DATE_FORMATTED;
+    public String EVENT_START_DATE_UNFORMATTED;
+    public String EVENT_END_DATE_UNFORMATTED;
     public String EVENT_ADDRESS;
     public String EVENT_IMAGE;
     public String EVENT_TYPE;
@@ -68,6 +71,20 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     public DateUtils dateUtils;
     DisplayImageOptions options;
     Lineup selectedLineup = null;
+
+    public void onEventAssigned() {
+        dateUtils = new DateUtils();
+        EVENT_ID = currentEvent.getId();
+        EVENT_NAME = currentEvent.getEvent();
+        EVENT_START_DATE_UNFORMATTED = currentEvent.getStartDate();
+        EVENT_END_DATE_UNFORMATTED = currentEvent.getEndDate();
+        EVENT_DATE_FORMATTED = dateUtils
+                .formatDateText(EVENT_START_DATE_UNFORMATTED, EVENT_END_DATE_UNFORMATTED);
+        EVENT_ADDRESS = currentEvent.getAddress();
+        EVENT_IMAGE = currentEvent.getMainImageUrl();
+        EVENT_PAID = currentEvent.getPaid();
+        EVENT_TICKET = currentEvent.getTicketLink();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -84,7 +101,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 .cacheOnDisk(true)
                 .considerExifParams(true)
                 .build();
-        dateUtils = new DateUtils();
+
     }
 
 
@@ -95,7 +112,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
         ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + EVENT_IMAGE, eventImage, options);
-        ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE);
+        ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE_FORMATTED);
         ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_ADDRESS);
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         if(EVENT_IMAGE.equals(83)) {
@@ -115,7 +132,57 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
+            rootView.findViewById(R.id.bottomBorder).setBackgroundResource(R.color.setmine_purple);
             if(EVENT_PAID == 1) {
+                rootView.findViewById(R.id.socialButtons).setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            JSONObject mixpanelProperties = new JSONObject();
+                            mixpanelProperties.put("id", EVENT_ID);
+                            mixpanelProperties.put("event", EVENT_NAME);
+                            activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Uri fbUrl = Uri.parse(currentEvent.getFacebookLink());
+                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, fbUrl);
+                        startActivity(launchBrowser);
+                    }
+                });
+                rootView.findViewById(R.id.twitterButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            JSONObject mixpanelProperties = new JSONObject();
+                            mixpanelProperties.put("id", EVENT_ID);
+                            mixpanelProperties.put("event", EVENT_NAME);
+                            activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Uri twitterUrl = Uri.parse(currentEvent.getTwitterLink());
+                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, twitterUrl);
+                        startActivity(launchBrowser);
+                    }
+                });
+                rootView.findViewById(R.id.webButton).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            JSONObject mixpanelProperties = new JSONObject();
+                            mixpanelProperties.put("id", EVENT_ID);
+                            mixpanelProperties.put("event", EVENT_NAME);
+                            activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+                        Uri webUrl = Uri.parse(currentEvent.getWebLink());
+                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, webUrl);
+                        startActivity(launchBrowser);
+                    }
+                });
                 Button buyTickets = (Button)rootView.findViewById(R.id.button_buy_tickets);
                 buyTickets.setVisibility(View.VISIBLE);
                 buyTickets.setOnClickListener(new View.OnClickListener() {
@@ -276,7 +343,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 holder = (LineupSetViewHolder) view.getTag();
             }
 
-            holder.setTime.setText(dateUtils.getDayFromDate(EVENT_DATE_UNFORMATTED, lineupSet.getDay()) + " " + lineupSet.getTime());
+            holder.setTime.setText(dateUtils.getDayFromDate(EVENT_START_DATE_UNFORMATTED, lineupSet.getDay()) + " " + lineupSet.getTime());
             holder.artistText.setText(lineupSet.getArtist());
             holder.detailActionButton.setVisibility(View.GONE);
 

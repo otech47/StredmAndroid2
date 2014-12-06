@@ -34,6 +34,9 @@
             android:value="AIzaSyDNioSTZynd_bvoF7fsBVo_2KwUfZ9B1SA"/>
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
+        <meta-data android:name="com.facebook.sdk.ApplicationId"
+            android:value="@string/facebook_app_id"></meta-data>
+
         <activity
             android:name="com.setmine.android.SetMineMainActivity"
             android:label="@string/app_name" >
@@ -43,7 +46,11 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name="com.mixpanel.android.surveys.SurveyActivity" />
+        <activity
+            android:name="com.mixpanel.android.surveys.SurveyActivity" />
+        <activity
+            android:name="com.facebook.LoginActivity"
+            android:label="@string/facebook_login"></activity>
         <service android:name="com.setmine.android.PlayerService" />
     </application>
 

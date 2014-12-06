@@ -28,7 +28,7 @@ public class PlayerContainerFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View root = inflater.inflate(R.layout.player_pager_container, container, false);
+        View root = inflater.inflate(R.layout.fragment_player_pager_container, container, false);
         fragmentManager = getChildFragmentManager();
         mViewPager = (ViewPager)root.findViewById(R.id.playerpager);
         mPlayerPagerAdapter = new PlayerPagerAdapter(fragmentManager, getActivity());

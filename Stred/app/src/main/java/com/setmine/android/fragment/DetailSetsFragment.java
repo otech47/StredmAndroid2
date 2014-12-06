@@ -96,8 +96,8 @@ public class DetailSetsFragment extends Fragment {
                         EventDetailFragment eventDetailFragment = new EventDetailFragment();
                         eventDetailFragment.EVENT_ID = currentEvent.id;
                         eventDetailFragment.EVENT_NAME = currentEvent.event;
-                        eventDetailFragment.EVENT_DATE = dateUtils.formatDateText(currentEvent.startDate, currentEvent.endDate);
-                        eventDetailFragment.EVENT_DATE_UNFORMATTED = currentEvent.startDate;
+                        eventDetailFragment.EVENT_DATE_FORMATTED = dateUtils.formatDateText(currentEvent.startDate, currentEvent.endDate);
+                        eventDetailFragment.EVENT_START_DATE_UNFORMATTED = currentEvent.startDate;
                         eventDetailFragment.EVENT_ADDRESS = currentEvent.address;
                         eventDetailFragment.EVENT_IMAGE = currentEvent.mainImageUrl;
                         eventDetailFragment.EVENT_TYPE = "recent";

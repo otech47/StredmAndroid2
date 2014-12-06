@@ -30,36 +30,104 @@
             android:background="@color/setmine_purple"
             android:id="@+id/eventText"/>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:id="@+id/socialButtons"
+            android:visibility="gone"
+            android:paddingTop="1dp">
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:id="@+id/facebookButton"
+                android:background="@color/facebook_blue"
+                android:text="facebook"/>
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_height="40dp"
+                android:id="@+id/twitterButton"
+                android:background="@color/twitter_blue"
+                android:text="twitter"/>
+
+            <Button
+                android:layout_width="match_parent"
+                android:layout_weight="1"
+                android:layout_height="40dp"
+                android:id="@+id/webButton"
+                android:background="@color/setmine_purple"
+                android:text="website"/>
+
+        </LinearLayout>
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_marginTop="1dp"
+            android:text="Buy Tickets"
+            android:id="@+id/button_buy_tickets"
+            android:textColor="#FF000000"
+            android:visibility="gone"
+            android:background="@drawable/transparent_gradient_setmine_gold"
+            android:alpha="50"/>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@color/setmine_black">
+            android:background="@color/setmine_black"
+            android:padding="1dp">
 
-            <Button
+            <RelativeLayout
                 android:layout_width="60dp"
-                android:layout_height="60dp"
-                android:background="@drawable/map_icon"
-                android:onClick="googleMapsAddressLookup"
+                android:layout_height="wrap_content"
                 android:id="@+id/directionsButton"
-                android:layout_alignParentLeft="true"/>
+                android:onClick="googleMapsAddressLookup"
+                android:background="@drawable/pressable_purple_to_black"
+                android:layout_alignParentLeft="true" >
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="35dp"
+                    android:id="@+id/directionsButtonImage"
+                    android:src="@drawable/ic_action_place" />
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/venue_map"
+                    android:textSize="10sp"
+                    android:paddingBottom="2dp"
+                    android:gravity="center"
+                    android:layout_below="@id/directionsButtonImage"/>
+
+            </RelativeLayout>
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="Location"
                 android:layout_centerInParent="true"
-                android:padding="5dp"
                 android:layout_toRightOf="@id/directionsButton"
                 android:gravity="center|left"
                 android:textSize="14sp"
                 android:textColor="#FFFFFFFF"
                 android:id="@+id/locationText"
-                android:paddingStart="5dp"
-                android:paddingLeft="5dp"
+                android:paddingStart="8dp"
+                android:paddingLeft="8dp"
                 android:paddingRight="5dp"
                 android:paddingEnd="5dp"
                 android:singleLine="true"/>
+            <View
+                android:layout_height="2dp"
+                android:layout_width="match_parent"
+                android:layout_alignBottom="@id/directionsButton"
+                android:id="@+id/bottomBorder"
+                android:background="@color/setmine_purple"/>
 
         </RelativeLayout>
 
@@ -69,23 +137,22 @@
         <!--android:layout_height="40dp"-->
         <!--android:id="@+id/mapView"/>-->
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="50dp"
-            android:text="Buy Tickets"
-            android:id="@+id/button_buy_tickets"
-            android:textColor="#FF000000"
-            android:visibility="gone"
-            android:background="@drawable/transparent_gradient_setmine_gold"
-            android:alpha="50"/>
-
-
-
         <LinearLayout
             android:orientation="horizontal"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/dateTilesContainer" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Date"
+            android:gravity="bottom|left"
+            android:id="@+id/dateText"
+            android:padding="5dp"
+            android:background="@color/setmine_black"
+            android:textColor="@color/setmine_white"
+            />
 
         <TextView
             android:layout_width="match_parent"
@@ -98,16 +165,7 @@
             android:textColor="@color/setmine_white"
             android:textSize="20sp"/>
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Date"
-            android:gravity="bottom|left"
-            android:id="@+id/dateText"
-            android:padding="5dp"
-            android:background="@color/setmine_black"
-            android:textColor="@color/setmine_white"
-            />
+
 
         <ListView
             android:orientation="vertical"

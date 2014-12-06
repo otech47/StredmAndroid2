@@ -112,8 +112,8 @@ public class TileGenerator {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
                     eventDetailFragment.EVENT_ID = eId;
                     eventDetailFragment.EVENT_NAME = eName;
-                    eventDetailFragment.EVENT_DATE = eDate;
-                    eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
+                    eventDetailFragment.EVENT_DATE_FORMATTED = eDate;
+                    eventDetailFragment.EVENT_START_DATE_UNFORMATTED = eDateUnformatted;
                     eventDetailFragment.EVENT_ADDRESS = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "upcoming";
@@ -152,8 +152,8 @@ public class TileGenerator {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
                     eventDetailFragment.EVENT_ID = eId;
                     eventDetailFragment.EVENT_NAME = eName;
-                    eventDetailFragment.EVENT_DATE = eDate;
-                    eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
+                    eventDetailFragment.EVENT_DATE_FORMATTED = eDate;
+                    eventDetailFragment.EVENT_START_DATE_UNFORMATTED = eDateUnformatted;
                     eventDetailFragment.EVENT_ADDRESS = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "recent";
@@ -193,8 +193,8 @@ public class TileGenerator {
                     EventDetailFragment eventDetailFragment = new EventDetailFragment();
                     eventDetailFragment.EVENT_ID = eId;
                     eventDetailFragment.EVENT_NAME = eName;
-                    eventDetailFragment.EVENT_DATE = eDate;
-                    eventDetailFragment.EVENT_DATE_UNFORMATTED = eDateUnformatted;
+                    eventDetailFragment.EVENT_DATE_FORMATTED = eDate;
+                    eventDetailFragment.EVENT_START_DATE_UNFORMATTED = eDateUnformatted;
                     eventDetailFragment.EVENT_ADDRESS = eCity;
                     eventDetailFragment.EVENT_IMAGE = eImage;
                     eventDetailFragment.EVENT_TYPE = "upcoming";

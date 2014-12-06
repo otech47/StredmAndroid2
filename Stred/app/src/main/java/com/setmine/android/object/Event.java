@@ -1,17 +1,20 @@
 package com.setmine.android.object;
 
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Event {
+public class Event implements Parcelable {
 	public String id;
 	public String event;
     public String bio;
     public String facebookLink;
     public String twitterLink;
     public String webLink;
-    public String ticketLink;
+    public String ticketLink = "No Ticket Link";
     public String iconImageUrl;
     public String mainImageUrl;
     public String startDate;
@@ -22,6 +25,68 @@ public class Event {
     public double latitude;
     public double longitude;
     public String address;
+
+    // Parcelable Implementation
+
+    public static final Parcelable.Creator<Event> CREATOR = new Parcelable.Creator<Event>() {
+        public Event createFromParcel(Parcel in) {
+            return new Event(in);
+        }
+
+        public Event[] newArray(int size) {
+            return new Event[size];
+        }
+    };
+
+    private Event(Parcel in) {
+        id = in.readString();
+        event = in.readString();
+        bio = in.readString();
+        facebookLink = in.readString();
+        twitterLink = in.readString();
+        webLink = in.readString();
+        ticketLink = in.readString();
+        iconImageUrl = in.readString();
+        mainImageUrl = in.readString();
+        startDate = in.readString();
+        endDate = in.readString();
+        paid = in.readInt();
+        days = in.readInt();
+        venue = in.readString();
+        latitude = in.readDouble();
+        longitude = in.readDouble();
+        address = in.readString();
+    }
+
+
+    @Override
+    public int describeContents() {
+        return Integer.parseInt(getId());
+    }
+
+    @Override
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeString(id);
+        out.writeString(event);
+        out.writeString(bio);
+        out.writeString(facebookLink);
+        out.writeString(twitterLink);
+        out.writeString(webLink);
+        out.writeString(ticketLink);
+        out.writeString(iconImageUrl);
+        out.writeString(mainImageUrl);
+        out.writeString(startDate);
+        out.writeString(endDate);
+        out.writeInt(paid);
+        out.writeInt(days);
+        out.writeString(venue);
+        out.writeDouble(latitude);
+        out.writeDouble(longitude);
+        out.writeString(address);
+
+    }
+
+    // Object Creation and Method Definitions
 
     public Event() {}
     public Event(String id, String event, String bio,

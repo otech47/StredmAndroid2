@@ -10,7 +10,6 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -273,22 +272,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 public void onItemClick(AdapterView <?> parent, View v,
                 int position, long id) {
                     Event currentEvent = currentEvents.get(position);
-                    EventDetailFragment eventDetailFragment = new EventDetailFragment();
-                    eventDetailFragment.EVENT_ID = currentEvent.id;
-                    eventDetailFragment.EVENT_NAME = currentEvent.event;
-                    eventDetailFragment.EVENT_DATE = dateUtils.formatDateText(currentEvent.startDate, currentEvent.endDate);
-                    eventDetailFragment.EVENT_DATE_UNFORMATTED = currentEvent.startDate;
-                    eventDetailFragment.EVENT_ADDRESS = currentEvent.address;
-                    eventDetailFragment.EVENT_IMAGE = currentEvent.mainImageUrl;
-                    eventDetailFragment.EVENT_TYPE = (eventType.equals("search")?"upcoming":eventType);
-                    eventDetailFragment.EVENT_PAID = currentEvent.getPaid();
-                    eventDetailFragment.EVENT_TICKET = currentEvent.getTicketLink();
-                    SetMineMainActivity activity = (SetMineMainActivity) getActivity();
-                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-                    transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
-                    transaction.addToBackStack(null);
-                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                    transaction.commit();
+                    activity.openEventPage(currentEvent, eventType);
                 }
             });
         }
