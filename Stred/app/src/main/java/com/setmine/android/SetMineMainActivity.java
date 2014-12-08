@@ -218,6 +218,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
         });
 
+        handleIntent(getIntent());
         applyCustomViewStyles();
 
 
@@ -562,6 +563,14 @@ public class SetMineMainActivity extends FragmentActivity implements
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, eventSearchUrl, "upcomingEventsAroundMe");
 
+    }
+
+    private void handleIntent(Intent intent) {
+        if(intent != null && intent.getAction() != null) {
+            if(intent.getAction().equals("com.stredm.android.OPEN_PLAYER")) {
+                openPlayer();
+            }
+        }
     }
 
     @Override
