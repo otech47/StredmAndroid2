@@ -2,21 +2,26 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.setmine.android">
 
-    <uses-sdk
-        android:minSdkVersion="15"
-        android:targetSdkVersion="19" />
+    <!--Required-->
+
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
-    <uses-permission android:name="android.permission.INTERNET"/>
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
 
+    <!--Required for Push Notifications-->
 
-    <!--For User Location Access-->
+    <permission android:name="com.setmine.android.permission.C2D_MESSAGE" android:protectionLevel="signature" />
+    <uses-permission android:name="com.setmine.android.permission.C2D_MESSAGE" />
+    <uses-permission android:name="android.permission.GET_ACCOUNTS" />
+    <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
+
+    <!--Required for User Location Access-->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
 
-    <uses-permission android:name="android.permission.BLUETOOTH" />
 
     <!--Map Rendering-->
     <uses-feature
@@ -29,20 +34,20 @@
         android:label="@string/app_name"
         android:theme="@style/SetMine"
         android:name="com.setmine.android.util.TypeFaceUtil">
+
         <meta-data
             android:name="com.google.android.maps.v2.API_KEY"
             android:value="AIzaSyDNioSTZynd_bvoF7fsBVo_2KwUfZ9B1SA"/>
         <meta-data android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
         <meta-data android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id"></meta-data>
+            android:value="@string/facebook_app_id"/>
 
         <activity
             android:name="com.setmine.android.SetMineMainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -50,8 +55,23 @@
             android:name="com.mixpanel.android.surveys.SurveyActivity" />
         <activity
             android:name="com.facebook.LoginActivity"
-            android:label="@string/facebook_login"></activity>
+            android:label="@string/facebook_login"/>
+
+        <!--Service for SetMine Player-->
+
         <service android:name="com.setmine.android.PlayerService" />
+
+        <!--Receiver for Push Notifications-->
+
+        <receiver android:name="com.mixpanel.android.mpmetrics.GCMReceiver"
+            android:permission="com.google.android.c2dm.permission.SEND" >
+            <intent-filter>
+                <action android:name="com.google.android.c2dm.intent.RECEIVE" />
+                <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
+                <category android:name="com.setmine.android" />
+            </intent-filter>
+        </receiver>
+
     </application>
 
 </manifest>
