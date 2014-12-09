@@ -223,7 +223,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                 peopleProperties.put("date_tracked", nowAsISO);
                 people.setOnce("user_id", id);
                 people.setOnce("Client", "SetMine");
-                people.setOnce("Version", "SEM"+APP_VERSION);
+                people.setOnce("Version", "SetMine v"+APP_VERSION);
                 people.setOnce("date_tracked", nowAsISO);
                 people.setOnce(peopleProperties);
             } catch (JSONException e) {
