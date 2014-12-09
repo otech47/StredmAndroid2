@@ -6,9 +6,11 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -19,6 +21,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
@@ -53,9 +56,10 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
-		SeekBar.OnSeekBarChangeListener {
+		SeekBar.OnSeekBarChangeListener, MediaPlayer.OnPreparedListener {
 
 	public ImageButton mButtonPlay;
 	public ImageButton mButtonPlayTop;
@@ -100,6 +104,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private String downloadedSetTitle;
 	private Context context;
     public ImageCache imageCache;
+    private Intent playIntent = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -107,7 +112,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         activity = ((SetMineMainActivity)getActivity());
         context = getActivity().getApplicationContext();
         playerService = activity.playerService;
-        mp = playerService.mediaPlayer;
+        mp = playerService.mMediaPlayer;
     }
 
     @Override
@@ -194,31 +199,29 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 	}
 
-
+    private void updatePlayPauseButton() {
+        if(mp != null) {
+            if (mp.isPlaying()) {
+                // Changing button image to pause button
+                mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
+                mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
+            } else {
+                // Changing button image to play button
+                mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
+                mButtonPlayTop.setImageResource(R.drawable.ic_action_play_white);
+            }
+        }
+    }
 
 	public void setPlayListeners() {
 		OnClickListener ocl = new OnClickListener() {
 
 			@Override
 			public void onClick(View arg0) {
-				// check for already playing
-				if (mp.isPlaying()) {
-					if (mp != null) {
-						mp.pause();
-						// Changing button image to play button
-						mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
-						mButtonPlayTop.setImageResource(R.drawable.ic_action_play_white);
-					}
-				} else {
-					// Resume song
-					if (mp != null) {
-						mp.start();
-						// Changing button image to pause button
-						mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
-						mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
-					}
-				}
+            // check for already playing
+            sendIntentToService("PLAY_PAUSE");
 
+                updatePlayPauseButton();
 			}
 		};
 		mButtonPlay.setOnClickListener(ocl);
@@ -341,13 +344,13 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 			@Override
 			public void onClick(View v) {
-                activity.playerContainerFragment.mViewPager.setCurrentItem(2);
+                activity.playerContainerFragment.mViewPager.setCurrentItem(2, true);
 			}
 		});
         mPlaylistButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.playerContainerFragment.mViewPager.setCurrentItem(0);
+                activity.playerContainerFragment.mViewPager.setCurrentItem(0, true);
             }
         });
 	}
@@ -519,19 +522,37 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
     public void playSong(int position) {
 		// Play song
+        if (isShuffle) {
+            song = setsManager.getPlaylistShuffled().get(position);
+        } else {
+            song = setsManager.getPlaylist().get(position);
+        }
 
-		try {
-			if (isShuffle) {
-				song = setsManager.getPlaylistShuffled().get(position);
-			} else {
-				song = setsManager.getPlaylist().get(position);
-			}
+        try {
+            // get datasource from intent
+            mp.reset();
+            mp.setDataSource(song.getSongURL());
+            mp.setOnPreparedListener(this);
+            mp.prepareAsync(); // prepare async to not block main thread
 
-			mp.reset();
-			mp.setDataSource(song.getSongURL());
-			mp.prepare();
-            mp.start();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Override
+    public void onPrepared(MediaPlayer mediaPlayer) {
+        try {
+            mediaPlayer.start();
+            Intent playIntent = new Intent(getActivity(), PlayerService.class);
+            playIntent.setAction("NOTIFICATION_ON");
+            playIntent.putExtra("ARTIST", song.getArtist());
+            playIntent.putExtra("EVENT", song.getEvent());
+            sendIntentToService(playIntent);
             CountPlaysTask cpTask = new CountPlaysTask(activity);
             cpTask.execute(song.getId());
 
@@ -553,13 +574,13 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             activity.mixpanel.getPeople().append("sets_played_genres", song.getGenre());
 
             // Displaying Song title
-			mTitleLabel.setText(song.getEvent());
-			mArtistLabel.setText(song.getArtist());
-			mTrackLabel.setText(song.getCurrentTrack(0));
+            mTitleLabel.setText(song.getEvent());
+            mArtistLabel.setText(song.getArtist());
+            mTrackLabel.setText(song.getCurrentTrack(0));
 //			mTrackLabel.setSelected(true);
 
             updateTracklist(song);
-			// Display song image
+            // Display song image
 
             ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getArtistImage(), mImageThumb, options);
             ImageLoader.getInstance().loadImage(activity.S3_ROOT_URL + song.getEventImage(), options, new SimpleImageLoadingListener() {
@@ -572,33 +593,31 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
                 }
             });
 
-			// Changing Button Image to pause image
-			mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
-			mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
+            // Changing Button Image to pause image
+            mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
+            mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
 
-			// set Progress bar values
-			mProgressBar.setProgress(0);
-			mProgressBar.setMax(100);
+            // set Progress bar values
+            mProgressBar.setProgress(0);
+            mProgressBar.setMax(100);
 
-			if (song.isDownloaded()) {
-				mButtonDownload.setVisibility(View.GONE);
-			} else {
+            if (song.isDownloaded()) {
+                mButtonDownload.setVisibility(View.GONE);
+            } else {
 //				mButtonDownload.setVisibility(View.VISIBLE);
-			}
-			// Updating progress bar
-			updateProgressBar();
-		} catch (IllegalArgumentException e) {
-			e.printStackTrace();
-		} catch (IllegalStateException e) {
-			e.printStackTrace();
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (JSONException e) {
+            }
+            // Updating progress bar
+            updateProgressBar();
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        } catch (IllegalStateException e) {
+            e.printStackTrace();
+        } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
-	private void playNext() {
+    private void playNext() {
 		currentSongIndex++;
 		if (currentSongIndex >= setsManager
 				.getPlaylistLength()) {
@@ -645,6 +664,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			int progress = (utils.getProgressPercentage(time, duration));
 			// Log.d("Progress", ""+progress);
 			mProgressBar.setProgress(progress);
+
+            updatePlayPauseButton();
 
 			// Running this thread after 100 milliseconds
 			mHandler.postDelayed(this, 100);
@@ -714,6 +735,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	public void onDestroy() {
 		super.onDestroy();
 		mp.release();
+//        mp = null;
 		mHandler.removeCallbacks(mUpdateTimeTask);
 	}
 
@@ -749,6 +771,17 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         return Math.round((float)dp * density);
     }
 
+    private void sendIntentToService(String intentAction) {
+        Intent playIntent = new Intent(getActivity(), PlayerService.class);
+        playIntent.setAction(intentAction);
+        playIntent.putExtra(intentAction, true);
+        sendIntentToService(playIntent);
+    }
+
+    private void sendIntentToService(Intent intent) {
+        getActivity().startService(intent);
+    }
+
     public int getCurrentSongIndex() {
         return currentSongIndex;
     }
@@ -756,4 +789,5 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     public boolean getIsShuffle() {
         return isShuffle;
     }
+
 }

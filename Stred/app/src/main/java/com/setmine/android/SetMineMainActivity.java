@@ -7,7 +7,6 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.content.pm.PackageManager;
 import android.graphics.Point;
 import android.location.Location;
 import android.net.Uri;
@@ -78,7 +77,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             FACEBOOK_LOGIN = 326350;
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
-    public static String APP_VERSION;
+    public static final String APP_VERSION = "3.0";
     public static final String API_VERSION = "2";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
@@ -141,14 +140,34 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        try {
-            APP_VERSION = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
+        imageUtils = new ImageUtils();
+        dateUtils = new DateUtils();
 
-        // Check for Google Play Services for Location
-        // Use Gainesville, FL if not found, and don't use soonestEventsAroundMe
+        fragmentManager = getSupportFragmentManager();
+
+        mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
+        if(savedInstanceState == null) {
+            JSONObject mixpanelProperties = new JSONObject();
+            try {
+                mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
+                mixpanel.track("Application Opened", mixpanelProperties);
+                MixpanelAPI.People people = mixpanel.getPeople();
+                String id = mixpanel.getDistinctId();
+                mixpanel.identify(id);
+                people.identify(id);
+                JSONObject peopleProperties = new JSONObject();
+                peopleProperties.put("user_id", id);
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+                df.setTimeZone(TimeZone.getTimeZone("UTC"));
+                String nowAsISO = df.format(new Date());
+                peopleProperties.put("date_tracked", nowAsISO);
+                people.setOnce("user_id", id);
+                people.setOnce("date_tracked", nowAsISO);
+                people.setOnce(peopleProperties);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
 
         if (servicesConnected()) {
             locationClient = new LocationClient(this, this, this);
@@ -170,9 +189,12 @@ public class SetMineMainActivity extends FragmentActivity implements
                             "upcomingEvents");
         }
 
-        // Create utilities, get instances, and save common variables
 
-        imageUtils = new ImageUtils();
+        loginFragment = new LoginFragment();
+        modelsCP = new ModelsContentProvider();
+        setsManager = new SetsManager();
+
+
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
                 .diskCacheExtraOptions(480, 800, null)
                 .diskCacheSize(50 * 1024 * 1024)
@@ -180,13 +202,10 @@ public class SetMineMainActivity extends FragmentActivity implements
                 .build();
         ImageLoader.getInstance().init(config);
 
-        dateUtils = new DateUtils();
-        fragmentManager = getSupportFragmentManager();
-        mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
-        loginFragment = new LoginFragment();
-        modelsCP = new ModelsContentProvider();
-        setsManager = new SetsManager();
+        setContentView(R.layout.fragment_main);
+
         actionBar = getActionBar();
+
 
         fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
@@ -199,43 +218,9 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
         });
 
-        // Mixpanel Startup Work
-
-        if(savedInstanceState == null) {
-            JSONObject mixpanelProperties = new JSONObject();
-            try {
-                mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
-                mixpanel.track("Application Opened", mixpanelProperties);
-                MixpanelAPI.People people = mixpanel.getPeople();
-                String id = mixpanel.getDistinctId();
-                mixpanel.identify(id);
-                people.identify(id);
-
-                // Initialize Push Notifications with Google Sender ID
-
-                people.initPushHandling("699004373125");
-
-                JSONObject peopleProperties = new JSONObject();
-                peopleProperties.put("user_id", id);
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-                df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                String nowAsISO = df.format(new Date());
-                peopleProperties.put("date_tracked", nowAsISO);
-                people.setOnce("user_id", id);
-                people.setOnce("Client", "SetMine");
-                people.setOnce("Version", "SetMine v"+APP_VERSION);
-                people.setOnce("date_tracked", nowAsISO);
-                people.setOnce(peopleProperties);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-        setContentView(R.layout.fragment_main);
-
+        handleIntent(getIntent());
         applyCustomViewStyles();
 
-        // Get All initial Data Models from SetMine API and store
 
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
@@ -578,6 +563,14 @@ public class SetMineMainActivity extends FragmentActivity implements
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, eventSearchUrl, "upcomingEventsAroundMe");
 
+    }
+
+    private void handleIntent(Intent intent) {
+        if(intent != null && intent.getAction() != null) {
+            if(intent.getAction().equals("com.stredm.android.OPEN_PLAYER")) {
+                openPlayer();
+            }
+        }
     }
 
     @Override

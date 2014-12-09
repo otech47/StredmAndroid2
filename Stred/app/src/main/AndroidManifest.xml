@@ -49,6 +49,7 @@
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name="com.stredm.android.OPEN_PLAYER"/>
             </intent-filter>
         </activity>
         <activity
