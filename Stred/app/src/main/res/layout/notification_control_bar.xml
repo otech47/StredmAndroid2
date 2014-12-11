@@ -35,12 +35,24 @@
         android:layout_toRightOf="@+id/notification_image"
         android:layout_toEndOf="@+id/notification_image" />
 
-    <ImageButton
+    <ImageView
+        android:padding="16dp"
         android:scaleType="centerCrop"
         android:layout_width="64dp"
         android:layout_height="64dp"
         android:id="@+id/button_play_pause"
         android:src="@drawable/ic_action_pause_white"
+        android:layout_alignParentTop="true"
+        android:layout_toLeftOf="@+id/button_remove"
+        android:layout_toStartOf="@+id/button_remove" />
+
+    <ImageView
+        android:padding="16dp"
+        android:scaleType="centerCrop"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
+        android:id="@+id/button_remove"
+        android:src="@drawable/ic_action_download"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
         android:layout_alignParentEnd="true" />

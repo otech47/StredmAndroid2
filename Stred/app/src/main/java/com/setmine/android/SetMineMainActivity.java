@@ -191,7 +191,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
             @Override
             public void onBackStackChanged() {
-                if(fragmentManager.getBackStackEntryCount() > 0) {
+                if (fragmentManager.getBackStackEntryCount() > 0) {
                     actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
                 } else {
                     actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
@@ -301,7 +301,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+//        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -464,7 +464,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     public void openArtistPage(Artist artist) {
@@ -495,12 +495,16 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void handleIntent(Intent intent) {
         if(intent != null && intent.getAction() != null) {
-            if(intent.getAction().equals("com.stredm.android.OPEN_PLAYER")) {
+            if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
                 openPlayer();
             }
         }
     }
 
+    @Override
+    public void onNewIntent(Intent intent) {
+        handleIntent(intent);
+    }
     // Location Services
 
     public static class ErrorDialogFragment extends DialogFragment {
