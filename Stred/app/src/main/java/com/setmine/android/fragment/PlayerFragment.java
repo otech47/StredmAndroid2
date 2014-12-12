@@ -59,7 +59,7 @@ import java.util.List;
 import java.util.Map;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
-		SeekBar.OnSeekBarChangeListener, MediaPlayer.OnPreparedListener {
+		SeekBar.OnSeekBarChangeListener {
 
 	public ImageButton mButtonPlay;
 	public ImageButton mButtonPlayTop;
@@ -532,26 +532,16 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             // get datasource from intent
             mp.reset();
             mp.setDataSource(song.getSongURL());
-            mp.setOnPreparedListener(this);
-            mp.prepareAsync(); // prepare async to not block main thread
+//            mp.setOnPreparedListener(this);
+            mp.prepare(); // prepare async to not block main thread
 
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 
-    @Override
-    public void onPrepared(MediaPlayer mediaPlayer) {
-        try {
-            mediaPlayer.start();
+            mp.start();
             Intent playIntent = new Intent(getActivity(), PlayerService.class);
             playIntent.setAction("NOTIFICATION_ON");
             playIntent.putExtra("ARTIST", song.getArtist());
             playIntent.putExtra("EVENT", song.getEvent());
+            playIntent.putExtra("IMAGE", activity.S3_ROOT_URL + song.getArtistImage());
             sendIntentToService(playIntent);
             CountPlaysTask cpTask = new CountPlaysTask(activity);
             cpTask.execute(song.getId());
@@ -613,6 +603,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         } catch (IllegalStateException e) {
             e.printStackTrace();
         } catch (JSONException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }

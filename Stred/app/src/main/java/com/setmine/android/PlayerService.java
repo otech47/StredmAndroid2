@@ -7,16 +7,26 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
+import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
+import android.view.View;
+import android.widget.ImageView;
 import android.widget.RemoteViews;
 
 import com.google.android.gms.common.api.Api;
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.R;
 import com.setmine.android.fragment.PlayerFragment;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 
 public class PlayerService extends Service {
@@ -35,7 +45,10 @@ public class PlayerService extends Service {
             if(intent.getAction().equals("PLAY_PAUSE")) {
                 playPause();
             } else if(intent.getAction().equals("NOTIFICATION_ON")) {
-                showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"));
+                showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"), intent.getStringExtra("IMAGE"));
+            } else if(intent.getAction().equals("NOTIFICATION_OFF")) {
+                pause();
+                removeNotification();
             } else if(intent.getAction().equals("FAST_FORWARD")) {
                 // do fast forward
             }
@@ -54,6 +67,11 @@ public class PlayerService extends Service {
             }
         }
         m_NM.notify(NOTIFICATION_ID, mNotification);
+    }
+    private void pause() {
+        if(mMediaPlayer != null && mMediaPlayer.isPlaying()) {
+            mMediaPlayer.pause();
+        }
     }
 
     @Override
@@ -80,8 +98,12 @@ public class PlayerService extends Service {
         }
     }
 
+    private void removeNotification() {
+        m_NM.cancel(NOTIFICATION_ID);
+    }
+
     @TargetApi(16)
-    private void showNotification(String artist, String event) {
+    private void showNotification(String artist, String event, String image) {
         PendingIntent pendingIntent = null;
         Intent intent = null;
 
@@ -92,7 +114,29 @@ public class PlayerService extends Service {
                     R.layout.notification_control_bar);
         }
 
-        intent = new Intent(getApplicationContext(), PlayerService.class).setAction("PLAY_PAUSE");
+        DisplayImageOptions options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.logo_small)
+                .showImageForEmptyUri(R.drawable.logo_small)
+                .showImageOnFail(R.drawable.logo_small)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .build();
+
+        mRemoteViews.setTextViewText(R.id.text_artist, artist);
+        mRemoteViews.setTextViewText(R.id.text_event, event);
+
+        ImageLoader.getInstance().loadImage(image, options, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                mRemoteViews.setImageViewBitmap(R.id.notification_image, loadedImage);
+                m_NM.notify(NOTIFICATION_ID, mNotification);
+            }
+        });
+
+        // Play/pause intent
+        intent = new Intent(getApplicationContext(), PlayerService.class)
+                .setAction("PLAY_PAUSE");
         pendingIntent = PendingIntent.getService(getApplicationContext(),
                 REQUEST_CODE_STOP, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
@@ -100,15 +144,27 @@ public class PlayerService extends Service {
         mRemoteViews.setOnClickPendingIntent(R.id.button_play_pause,
                 pendingIntent);
 
-        mRemoteViews.setTextViewText(R.id.text_artist, artist);
-        mRemoteViews.setTextViewText(R.id.text_event, event);
+        // Open player intent
+        intent = new Intent(getApplicationContext(), SetMineMainActivity.class)
+                .setAction("com.setmine.android.OPEN_PLAYER")
+                .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
+        pendingIntent = PendingIntent.getActivity(getApplicationContext(),
+                REQUEST_CODE_STOP, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
 
-//        intent = new Intent(getApplicationContext(), SetMineMainActivity.class).setAction("com.stredm.android.OPEN_PLAYER");
-//        pendingIntent = PendingIntent.getActivity(getApplicationContext(),
-//                REQUEST_CODE_STOP, intent,
-//                PendingIntent.FLAG_UPDATE_CURRENT);
-//
-//        mRemoteViews.setOnClickPendingIntent(R.id.notification_background, pendingIntent);
+        mRemoteViews.setOnClickPendingIntent(R.id.notification_background, pendingIntent);
+
+        // Remove notification intent
+        intent = new Intent(getApplicationContext(), PlayerService.class)
+                .setAction("NOTIFICATION_OFF");
+        pendingIntent = PendingIntent.getService(getApplicationContext(),
+                REQUEST_CODE_STOP, intent,
+                PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mRemoteViews.setOnClickPendingIntent(R.id.button_remove,
+                pendingIntent);
+
+
         //Create the notification instance.
         mNotification = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(R.drawable.logo_small).setOngoing(true)

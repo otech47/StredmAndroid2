@@ -45,11 +45,19 @@
 
         <activity
             android:name="com.setmine.android.SetMineMainActivity"
+            android:launchMode="singleTop"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
-                <action android:name="com.stredm.android.OPEN_PLAYER"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.setmine.android.OPEN_PLAYER"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+            </intent-filter>
+            <intent-filter>
+                <action android:name="com.setmine.android.SEND"/>
+                <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
         </activity>
         <activity
