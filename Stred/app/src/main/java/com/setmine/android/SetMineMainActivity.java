@@ -215,17 +215,13 @@ public class SetMineMainActivity extends FragmentActivity implements
 
                 people.initPushHandling("699004373125");
 
-                JSONObject peopleProperties = new JSONObject();
-                peopleProperties.put("user_id", id);
                 SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
                 df.setTimeZone(TimeZone.getTimeZone("UTC"));
                 String nowAsISO = df.format(new Date());
-                peopleProperties.put("date_tracked", nowAsISO);
                 people.setOnce("user_id", id);
                 people.setOnce("Client", "SetMine");
                 people.setOnce("Version", "SetMine v"+APP_VERSION);
                 people.setOnce("date_tracked", nowAsISO);
-                people.setOnce(peopleProperties);
             } catch (JSONException e) {
                 e.printStackTrace();
             }

@@ -1,27 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical" android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="70dp"
     android:id="@+id/notification_background">
     <ImageView
         android:scaleType="centerCrop"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:padding="5dp"
         android:src="@drawable/logo_small"
         android:id="@+id/notification_image"
-        android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginRight="15dp" />
+        android:layout_alignParentStart="true"/>
+
+    <ImageButton
+        android:scaleType="centerCrop"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:id="@+id/button_play_pause"
+        android:src="@drawable/ic_action_pause_white"
+        android:padding="15dp"
+        android:layout_marginRight="5dp"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true" />
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text=""
+        android:text="Artist"
+        android:paddingLeft="5dp"
+        android:paddingTop="10dp"
+        android:layout_alignTop="@id/notification_image"
         android:id="@+id/text_artist"
-        android:layout_alignParentTop="true"
+        android:textSize="18dp"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit ="marquee_forever"
+        android:scrollHorizontally="true"
+        android:layout_toLeftOf="@id/button_play_pause"
         android:layout_toRightOf="@+id/notification_image"
         android:layout_toEndOf="@+id/notification_image" />
 
@@ -29,20 +48,19 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text=""
+        android:text="Event"
+        android:singleLine="true"
+        android:ellipsize="marquee"
+        android:marqueeRepeatLimit ="marquee_forever"
+        android:scrollHorizontally="true"
+        android:paddingLeft="5dp"
+        android:textSize="15dp"
         android:id="@+id/text_event"
         android:layout_below="@+id/text_artist"
+        android:layout_toLeftOf="@id/button_play_pause"
         android:layout_toRightOf="@+id/notification_image"
         android:layout_toEndOf="@+id/notification_image" />
 
-    <ImageButton
-        android:scaleType="centerCrop"
-        android:layout_width="64dp"
-        android:layout_height="64dp"
-        android:id="@+id/button_play_pause"
-        android:src="@drawable/ic_action_pause_white"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+
 
 </RelativeLayout>
