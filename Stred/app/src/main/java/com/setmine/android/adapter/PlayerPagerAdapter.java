@@ -53,8 +53,6 @@ public class PlayerPagerAdapter extends FragmentPagerAdapter{
             tracklistFragment = new TracklistFragment();
             ((SetMineMainActivity)context).tracklistFragment = tracklistFragment;
             Bundle args = new Bundle();
-            args.putInt(TracklistFragment.SONG_ARG_OBJECT, playerFragment.getCurrentSongIndex());
-            args.putBoolean(TracklistFragment.SHUFFLE_ARG_OBJECT, playerFragment.getIsShuffle());
             Log.v("args", args.toString());
             tracklistFragment.setArguments(args);
             return tracklistFragment;

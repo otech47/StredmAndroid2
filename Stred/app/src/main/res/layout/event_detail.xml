@@ -79,8 +79,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:background="@color/setmine_black"
-            android:padding="1dp">
+            android:background="@color/setmine_black">
 
             <RelativeLayout
                 android:layout_width="60dp"
@@ -117,17 +116,8 @@
                 android:textSize="14sp"
                 android:textColor="#FFFFFFFF"
                 android:id="@+id/locationText"
-                android:paddingStart="8dp"
-                android:paddingLeft="8dp"
-                android:paddingRight="5dp"
-                android:paddingEnd="5dp"
+                android:padding="5dp"
                 android:singleLine="true"/>
-            <View
-                android:layout_height="2dp"
-                android:layout_width="match_parent"
-                android:layout_alignBottom="@id/directionsButton"
-                android:id="@+id/bottomBorder"
-                android:background="@color/setmine_purple"/>
 
         </RelativeLayout>
 
@@ -143,29 +133,37 @@
             android:layout_height="wrap_content"
             android:id="@+id/dateTilesContainer" />
 
-        <TextView
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Date"
-            android:gravity="bottom|left"
-            android:id="@+id/dateText"
-            android:padding="5dp"
-            android:background="@color/setmine_black"
-            android:textColor="@color/setmine_white"
-            />
+            android:layout_height="wrap_content">
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/lineup"
-            android:id="@+id/lineupText"
-            android:gravity="bottom|left"
-            android:padding="5dp"
-            android:background="@color/setmine_black"
-            android:textColor="@color/setmine_white"
-            android:textSize="20sp"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/lineup"
+                android:id="@+id/lineupText"
+                android:gravity="bottom|left"
+                android:layout_alignParentLeft="true"
+                android:padding="5dp"
+                android:background="@color/setmine_black"
+                android:textColor="@color/setmine_white"
+                android:textSize="20sp"/>
 
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Date"
+                android:gravity="bottom|right"
+                android:id="@+id/dateText"
+                android:layout_toRightOf="@id/lineupText"
+                android:layout_alignBaseline="@id/lineupText"
+                android:layout_alignParentRight="true"
+                android:padding="5dp"
+                android:background="@color/setmine_black"
+                android:textColor="@color/setmine_white"
+                />
 
+        </RelativeLayout>
 
         <ListView
             android:orientation="vertical"

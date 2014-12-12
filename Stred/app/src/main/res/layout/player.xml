@@ -41,29 +41,6 @@
             android:src="@drawable/logo_small"
             />
 
-        <TextView
-            android:id="@+id/player_song_title"
-            android:layout_toRightOf="@+id/player_thumb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="20dp"
-            android:textSize="16sp"
-            android:text="Event Title"
-            android:textColor="#ffFFFFFF" />
-
-        <TextView
-            android:id="@+id/player_song_artist"
-            android:layout_toRightOf="@+id/player_thumb"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="left"
-            android:layout_below="@+id/player_song_title"
-            android:textSize="12sp"
-            android:text="Artist Title"
-            android:textColor="#ffFFFFFF" />
-
         <ImageButton
             android:id="@+id/player_button_play_top"
             android:layout_width="80dp"
@@ -78,6 +55,33 @@
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             android:src="@drawable/ic_action_play_white" />
+
+        <TextView
+            android:id="@+id/player_song_title"
+            android:layout_toRightOf="@+id/player_thumb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:layout_toLeftOf="@id/player_button_play_top"
+            android:layout_alignParentTop="true"
+            android:layout_marginTop="20dp"
+            android:textSize="16sp"
+            android:text="Event Title"
+            android:textColor="#ffFFFFFF" />
+
+        <TextView
+            android:id="@+id/player_song_artist"
+            android:layout_toRightOf="@+id/player_thumb"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="left"
+            android:layout_toLeftOf="@id/player_button_play_top"
+            android:layout_below="@+id/player_song_title"
+            android:textSize="12sp"
+            android:text="Artist Title"
+            android:textColor="#ffFFFFFF" />
+
+
 
     </RelativeLayout>
 

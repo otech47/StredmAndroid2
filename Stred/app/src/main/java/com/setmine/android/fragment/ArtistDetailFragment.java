@@ -218,8 +218,7 @@ public class ArtistDetailFragment extends Fragment implements LineupsSetsApiCall
         });
         titlePageIndicator.setViewPager(artistViewPager);
 
-        activity.setsManager.setPlaylist(activity.modelsCP.getDetailSets(artistName));
-        activity.playlistFragment.updatePlaylist();
+
     }
 }
 

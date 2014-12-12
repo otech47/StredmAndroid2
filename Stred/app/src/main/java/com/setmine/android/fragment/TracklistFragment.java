@@ -49,8 +49,6 @@ public class TracklistFragment extends Fragment {
     public void onAttach(Activity activity) {
         super.onAttach(activity);
         Bundle args = getArguments();
-        setNum = args.getInt(SONG_ARG_OBJECT);
-        shuffle = args.getBoolean(SHUFFLE_ARG_OBJECT);
     }
 
     @Override

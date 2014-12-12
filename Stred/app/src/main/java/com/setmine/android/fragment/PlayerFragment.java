@@ -6,11 +6,9 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -21,7 +19,6 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
@@ -44,7 +41,6 @@ import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListene
 import com.setmine.android.ImageCache;
 import com.setmine.android.PlayerService;
 import com.setmine.android.R;
-import com.setmine.android.SetMineApplication;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.SetsManager;
 import com.setmine.android.object.Set;
@@ -56,7 +52,6 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
 		SeekBar.OnSeekBarChangeListener {
@@ -87,7 +82,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	// Handler to update UI timer, progress bar etc,.
 	private final Handler mHandler = new Handler();
 	private TimeUtils utils;
-	private int currentSongIndex = 0;
 	private Set song;
 	private boolean isShuffle = false;
 	private View rootView;
@@ -111,8 +105,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         super.onCreate(savedInstanceState);
         activity = ((SetMineMainActivity)getActivity());
         context = getActivity().getApplicationContext();
-        playerService = activity.playerService;
-        mp = playerService.mMediaPlayer;
     }
 
     @Override
@@ -150,6 +142,12 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
         utils = new TimeUtils();
 
+        if(mp == null) {
+            playerService = activity.playerService;
+            mp = playerService.mMediaPlayer;
+        }
+
+
 		// Listeners
 		mProgressBar.setOnSeekBarChangeListener(this);
 		mp.setOnCompletionListener(this);
@@ -169,8 +167,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
                 .considerExifParams(true)
                 .build();
 
-		// By default play first song
-//		this.currentSongIndex = ((SetMineMainActivity) getActivity()).getCurrentSongIndex();
 
 //		mTrackLabel.setSelected(true);
 
@@ -396,10 +392,10 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
                 isShuffle = !isShuffle;
                 if (isShuffle) {
                     mButtonShuffle.setImageResource(R.drawable.btn_shuffle_on);
-                    currentSongIndex = setsManager.getPlaylistShuffled().indexOf(song);
+                    setsManager.selectedSetIndex = setsManager.getPlaylistShuffled().indexOf(song);
                 } else {
                     mButtonShuffle.setImageResource(R.drawable.btn_shuffle);
-                    currentSongIndex = setsManager.getPlaylist().indexOf(song);
+                    setsManager.selectedSetIndex = setsManager.getPlaylist().indexOf(song);
                 }
             }
         });
@@ -533,16 +529,19 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             mp.reset();
             mp.setDataSource(song.getSongURL());
 //            mp.setOnPreparedListener(this);
-            mp.prepare(); // prepare async to not block main thread
+            mp.prepare();
 
+            Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
+            notificationIntent.setAction("NOTIFICATION_ON");
+            notificationIntent.putExtra("ARTIST", song.getArtist());
+            notificationIntent.putExtra("EVENT", song.getEvent());
+            notificationIntent.putExtra("IMAGE", activity.S3_ROOT_URL + song.getArtistImage());
+            sendIntentToService(notificationIntent);
 
-            mp.start();
             Intent playIntent = new Intent(getActivity(), PlayerService.class);
-            playIntent.setAction("NOTIFICATION_ON");
-            playIntent.putExtra("ARTIST", song.getArtist());
-            playIntent.putExtra("EVENT", song.getEvent());
-            playIntent.putExtra("IMAGE", activity.S3_ROOT_URL + song.getArtistImage());
+            playIntent.setAction("PLAY_PAUSE");
             sendIntentToService(playIntent);
+
             CountPlaysTask cpTask = new CountPlaysTask(activity);
             cpTask.execute(song.getId());
 
@@ -610,21 +609,21 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     }
 
     private void playNext() {
-		currentSongIndex++;
-		if (currentSongIndex >= setsManager
+        setsManager.selectedSetIndex++;
+		if (setsManager.selectedSetIndex >= setsManager
 				.getPlaylistLength()) {
-			currentSongIndex = 0;
+            setsManager.selectedSetIndex = 0;
 		}
-		playSong(currentSongIndex);
+		playSong(setsManager.selectedSetIndex);
 	}
 
 	private void playPrevious() {
-		currentSongIndex--;
-		if (currentSongIndex < 0) {
-			currentSongIndex = ((SetMineApplication) context)
+        setsManager.selectedSetIndex--;
+		if (setsManager.selectedSetIndex < 0) {
+            setsManager.selectedSetIndex = setsManager
 					.getPlaylistLength() - 1;
 		}
-		playSong(currentSongIndex);
+		playSong(setsManager.selectedSetIndex);
 	}
 
 	/**
@@ -634,9 +633,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		mHandler.postDelayed(mUpdateTimeTask, 100);
 	}
 
-	/**
-	 * Background Runnable thread
-	 * */
+
+//	Background Runnable thread
 	private final Runnable mUpdateTimeTask = new Runnable() {
 		@Override
 		public void run() {
@@ -650,7 +648,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 			// set track name
 			mTrackLabel.setText(song.getCurrentTrack(time));
-//			mTrackLabel.setSelected(true);
 
 			// Updating progress bar
 			int progress = (utils.getProgressPercentage(time, duration));
@@ -775,7 +772,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     }
 
     public int getCurrentSongIndex() {
-        return currentSongIndex;
+        return setsManager.selectedSetIndex;
     }
 
     public boolean getIsShuffle() {

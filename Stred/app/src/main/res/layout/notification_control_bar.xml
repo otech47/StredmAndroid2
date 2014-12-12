@@ -15,6 +15,26 @@
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"/>
 
+    <ImageView
+        android:scaleType="centerCrop"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:padding="8dp"
+        android:src="@drawable/logo_small"
+        android:id="@+id/logo_image"
+        android:layout_alignParentBottom="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
+
+    <ImageButton
+        android:scaleType="centerCrop"
+        android:layout_width="35dp"
+        android:layout_height="35dp"
+        android:src="@drawable/button_close"
+        android:id="@+id/button_close"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"/>
+
     <ImageButton
         android:scaleType="centerCrop"
         android:layout_width="70dp"
@@ -22,9 +42,7 @@
         android:id="@+id/button_play_pause"
         android:src="@drawable/ic_action_pause_white"
         android:padding="15dp"
-        android:layout_marginRight="5dp"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true" />
+        android:layout_toLeftOf="@id/button_close"/>
 
     <TextView
         android:layout_width="wrap_content"

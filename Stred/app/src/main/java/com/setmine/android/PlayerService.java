@@ -5,29 +5,18 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.BitmapDrawable;
 import android.media.MediaPlayer;
-import android.net.Uri;
 import android.os.Binder;
 import android.os.IBinder;
-import android.provider.MediaStore;
 import android.support.v4.app.NotificationCompat;
 import android.view.View;
-import android.widget.ImageView;
 import android.widget.RemoteViews;
 
-import com.google.android.gms.common.api.Api;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.setmine.android.R;
-import com.setmine.android.fragment.PlayerFragment;
-
-import java.io.FileNotFoundException;
-import java.io.IOException;
 
 public class PlayerService extends Service {
     private static final String SERVICE_COMMAND = "SERVICE_COMMAND";
@@ -59,18 +48,21 @@ public class PlayerService extends Service {
     private void playPause() {
         if(mMediaPlayer != null) {
             if (mMediaPlayer.isPlaying()) {
-                mMediaPlayer.pause();
+                pause();
                 mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_play_white);
             } else {
+                startForeground(NOTIFICATION_ID, mNotification);
                 mMediaPlayer.start();
                 mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
             }
         }
         m_NM.notify(NOTIFICATION_ID, mNotification);
     }
+
     private void pause() {
         if(mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
+            stopForeground(false);
         }
     }
 
@@ -99,6 +91,7 @@ public class PlayerService extends Service {
     }
 
     private void removeNotification() {
+        stopForeground(true);
         m_NM.cancel(NOTIFICATION_ID);
     }
 
@@ -161,7 +154,7 @@ public class PlayerService extends Service {
                 REQUEST_CODE_STOP, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
-        mRemoteViews.setOnClickPendingIntent(R.id.button_remove,
+        mRemoteViews.setOnClickPendingIntent(R.id.button_close,
                 pendingIntent);
 
 

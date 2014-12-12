@@ -21,7 +21,7 @@ public class ArtistPagerAdapter extends FragmentPagerAdapter {
     public DetailUpcomingEventsFragment DUEFragment;
     public DetailSetsFragment DSFragment;
     public final String[] TITLES = new String[]{
-            "Upcoming Events",
+            "Events",
             "Sets",
     };
 

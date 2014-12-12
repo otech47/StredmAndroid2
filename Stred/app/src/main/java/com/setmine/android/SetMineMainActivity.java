@@ -120,6 +120,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public ImageUtils imageUtils;
     public DateUtils dateUtils;
 
+    // Create the Service Connection to start and bind at onStart()
 
     public ServiceConnection playerServiceConnection = new ServiceConnection() {
         @Override
@@ -140,6 +141,8 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        // Get Application Version from build.gradle
 
         try {
             APP_VERSION = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
@@ -183,7 +186,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         dateUtils = new DateUtils();
         fragmentManager = getSupportFragmentManager();
         mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
-        loginFragment = new LoginFragment();
+//        loginFragment = new LoginFragment();
         modelsCP = new ModelsContentProvider();
         setsManager = new SetsManager();
         actionBar = getActionBar();
@@ -199,32 +202,30 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
         });
 
-        // Mixpanel Startup Work
+        // Mixpanel Initial Tracking
 
-        if(savedInstanceState == null) {
-            JSONObject mixpanelProperties = new JSONObject();
-            try {
-                mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
-                mixpanel.track("Application Opened", mixpanelProperties);
-                MixpanelAPI.People people = mixpanel.getPeople();
-                String id = mixpanel.getDistinctId();
-                mixpanel.identify(id);
-                people.identify(id);
+        JSONObject mixpanelProperties = new JSONObject();
+        try {
+            mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
+            mixpanel.track("Application Opened", mixpanelProperties);
+            MixpanelAPI.People people = mixpanel.getPeople();
+            String id = mixpanel.getDistinctId();
+            mixpanel.identify(id);
+            people.identify(id);
 
-                // Initialize Push Notifications with Google Sender ID
+            // Initialize Push Notifications with Google Sender ID
 
-                people.initPushHandling("699004373125");
+            people.initPushHandling("699004373125");
 
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-                df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                String nowAsISO = df.format(new Date());
-                people.setOnce("user_id", id);
-                people.setOnce("Client", "SetMine");
-                people.setOnce("Version", "SetMine v"+APP_VERSION);
-                people.setOnce("date_tracked", nowAsISO);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            df.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String nowAsISO = df.format(new Date());
+            people.setOnce("user_id", id);
+            people.setOnce("Client", "SetMine");
+            people.setOnce("Version", "SetMine v"+APP_VERSION);
+            people.setOnce("date_tracked", nowAsISO);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
 
         setContentView(R.layout.fragment_main);
@@ -263,9 +264,11 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onStart() {
         super.onStart();
-        Intent intent = new Intent(this, PlayerService.class);
-        startService(intent);
-        bindService(intent, playerServiceConnection, Context.BIND_AUTO_CREATE);
+        if(!serviceBound) {
+            Intent intent = new Intent(this, PlayerService.class);
+            startService(intent);
+            bindService(intent, playerServiceConnection, Context.BIND_AUTO_CREATE);
+        }
     }
 
 
@@ -289,15 +292,9 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         Log.d(TAG, "ONRESUME");
 
-
         // Logs 'install' and 'app activate' App Events.
 
         AppEventsLogger.activateApp(this);
-    }
-
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-//        super.onSaveInstanceState(outState);
     }
 
     @Override
@@ -331,17 +328,16 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void finishOnCreate() {
         if(!finishedOnCreate) {
             try {
-                getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
                 calculateScreenSize();
                 mainViewPagerContainerFragment = new MainViewPagerContainerFragment();
                 playerContainerFragment = new PlayerContainerFragment();
                 searchSetsFragment = new SearchSetsFragment();
-                loginFragment = new LoginFragment();
+//                loginFragment = new LoginFragment();
                 FragmentTransaction ft = fragmentManager.beginTransaction();
                 ft.add(R.id.playerPagerContainer, playerContainerFragment);
                 ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
                 ft.add(R.id.searchSetsContainer, searchSetsFragment);
-                ft.add(R.id.loginContainer, loginFragment);
+//                ft.add(R.id.loginContainer, loginFragment);
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
                 ft.commit();
@@ -372,14 +368,14 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
 
     public void homeButtonPress(View v) {
-        fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
+//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
+        fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
 
     @Override
@@ -389,7 +385,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
+//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
@@ -406,6 +402,12 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void playNavigationClick(View v) {
         if(setsManager.getPlaylist().size() > 0) {
             openPlayer();
+            if(setsManager.selectedSet == null) {
+                Random r = new Random();
+                int randomInt = r.nextInt(setsManager.getPlaylist().size() - 1);
+                Set s = setsManager.getPlaylist().get(randomInt);
+                startPlayerFragment(Integer.parseInt(s.getId()));
+            }
         }
         else {
             Random r = new Random();
@@ -430,7 +432,13 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
 
     public void openUserHomePage() {
-        // Show eventsPager set at first item
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
     }
 
     public void openLogin(View v) {
@@ -438,7 +446,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.loginContainer));
+//        transaction.show(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
     }
@@ -447,7 +455,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
+//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
@@ -457,7 +465,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
+//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commitAllowingStateLoss();

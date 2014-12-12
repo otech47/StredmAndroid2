@@ -58,6 +58,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     public String EVENT_START_DATE_UNFORMATTED;
     public String EVENT_END_DATE_UNFORMATTED;
     public String EVENT_ADDRESS;
+    public String EVENT_VENUE;
     public String EVENT_IMAGE;
     public String EVENT_TYPE;
     public String EVENT_TICKET;
@@ -81,6 +82,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         EVENT_DATE_FORMATTED = dateUtils
                 .formatDateText(EVENT_START_DATE_UNFORMATTED, EVENT_END_DATE_UNFORMATTED);
         EVENT_ADDRESS = currentEvent.getAddress();
+        EVENT_VENUE = currentEvent.getVenue();
         EVENT_IMAGE = currentEvent.getMainImageUrl();
         EVENT_PAID = currentEvent.getPaid();
         EVENT_TICKET = currentEvent.getTicketLink();
@@ -113,7 +115,8 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
         ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + EVENT_IMAGE, eventImage, options);
         ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE_FORMATTED);
-        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_ADDRESS);
+        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_VENUE + ", "
+                + dateUtils.getCityStateFromAddress(EVENT_ADDRESS));
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
         if(EVENT_IMAGE.equals(83)) {
             EVENT_IMAGE = "83";
@@ -132,7 +135,6 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
-            rootView.findViewById(R.id.bottomBorder).setBackgroundResource(R.color.setmine_purple);
             if(EVENT_PAID == 1) {
                 rootView.findViewById(R.id.socialButtons).setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
@@ -253,12 +255,12 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                     v.setPressed(true);
+                    activity.setsManager.setPlaylist(setModels);
+                    activity.playlistFragment.updatePlaylist();
                     Set s = setModels.get(position);
                     ((SetMineMainActivity)getActivity()).startPlayerFragment(Integer.parseInt(s.getId()));
                 }
             });
-            activity.setsManager.setPlaylist(setModels);
-            activity.playlistFragment.updatePlaylist();
         } else {
             selectedLineup = activity.modelsCP.getLineups(EVENT_NAME);
             currentLineupSet = selectedLineup.getLineup();
