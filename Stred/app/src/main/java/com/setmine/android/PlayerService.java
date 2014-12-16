@@ -5,11 +5,16 @@ import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
+import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.view.View;
 import android.widget.RemoteViews;
@@ -18,15 +23,20 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 
-public class PlayerService extends Service {
+public class PlayerService extends Service implements AudioManager.OnAudioFocusChangeListener {
     private static final String SERVICE_COMMAND = "SERVICE_COMMAND";
     private NotificationManager m_NM;
     public MediaPlayer mMediaPlayer = new MediaPlayer();
+    public WifiManager.WifiLock wifiLock;
     public IBinder playerBinder = new PlayerBinder();
     private int NOTIFICATION_ID = 1212;
     private RemoteViews mRemoteViews;
     private int REQUEST_CODE_STOP = 3434;
     private Notification mNotification;
+    public AudioManager am;
+    private ComponentName mReceiver = new ComponentName(RemoteControlReceiver.class.getPackage().getName(), RemoteControlReceiver.class.getName());
+    private float oldVolume = 0.0f;
+    private float LOW_VOLUME = 0.2f;
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
@@ -45,23 +55,45 @@ public class PlayerService extends Service {
         return START_STICKY;
     }
 
+    @TargetApi(5)
     private void playPause() {
         if(mMediaPlayer != null) {
+            mMediaPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
             if (mMediaPlayer.isPlaying()) {
                 pause();
-                mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_play_white);
             } else {
-                startForeground(NOTIFICATION_ID, mNotification);
-                mMediaPlayer.start();
-                mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
+                int result = am.requestAudioFocus(this,
+                        // Use the music stream.
+                        AudioManager.STREAM_MUSIC,
+                        // Request permanent focus.
+                        AudioManager.AUDIOFOCUS_GAIN);
+                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                    am.registerMediaButtonEventReceiver(mReceiver);
+                    play();
+                }
             }
         }
         m_NM.notify(NOTIFICATION_ID, mNotification);
     }
 
+    @TargetApi(5)
+    private void play() {
+        if(mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
+            mMediaPlayer.start();
+            wifiLock.acquire();
+            mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
+            m_NM.notify(NOTIFICATION_ID, mNotification);
+            startForeground(NOTIFICATION_ID, mNotification);
+        }
+    }
+
+    @TargetApi(5)
     private void pause() {
         if(mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
+            wifiLock.release();
+            mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_play_white);
+            m_NM.notify(NOTIFICATION_ID, mNotification);
             stopForeground(false);
         }
     }
@@ -77,11 +109,37 @@ public class PlayerService extends Service {
     public void onDestroy() {
         // Cancel the persistent notification.
         m_NM.cancel(NOTIFICATION_ID);
+        am.unregisterMediaButtonEventReceiver(mReceiver);
+        wifiLock.release();
     }
 
     @Override
     public IBinder onBind(Intent intent) {
         return playerBinder;
+    }
+
+    @Override
+    public void onAudioFocusChange(int focusChange) {
+    if (focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT ) {
+        // Pause playback
+        pause();
+    } else if(focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK) {
+        // lower volume
+        oldVolume = (float)am.getStreamVolume(AudioManager.STREAM_MUSIC)/am.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        mMediaPlayer.setVolume(LOW_VOLUME, LOW_VOLUME);
+    } else if (focusChange == AudioManager.AUDIOFOCUS_GAIN) {
+        // Resume playback
+        if(oldVolume != 0.0f) {
+            mMediaPlayer.setVolume(oldVolume, oldVolume);
+        }
+        play();
+    } else if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+        am.unregisterMediaButtonEventReceiver(mReceiver);
+        am.abandonAudioFocus(this);
+        pause();
+//        wifiLock.release();
+        // Stop playback
+    }
     }
 
     public class PlayerBinder extends Binder {
@@ -90,6 +148,7 @@ public class PlayerService extends Service {
         }
     }
 
+    @TargetApi(5)
     private void removeNotification() {
         stopForeground(true);
         m_NM.cancel(NOTIFICATION_ID);

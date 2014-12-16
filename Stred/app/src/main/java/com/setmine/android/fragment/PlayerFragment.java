@@ -13,13 +13,16 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
+import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.net.Uri;
+import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
+import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
@@ -78,6 +81,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 	// Media Player
 	public MediaPlayer mp;
+    public WifiManager.WifiLock wl;
 
 	// Handler to update UI timer, progress bar etc,.
 	private final Handler mHandler = new Handler();
@@ -142,9 +146,11 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
         utils = new TimeUtils();
 
-        if(mp == null) {
+        if(mp == null && wl == null) {
             playerService = activity.playerService;
             mp = playerService.mMediaPlayer;
+            wl = playerService.wifiLock;
+            playerService.am = (AudioManager)getActivity().getSystemService(Context.AUDIO_SERVICE);
         }
 
 
@@ -530,6 +536,9 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             mp.setDataSource(song.getSongURL());
 //            mp.setOnPreparedListener(this);
             mp.prepare();
+            playerService.wifiLock = ((WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE))
+                    .createWifiLock(WifiManager.WIFI_MODE_FULL, "setmine_wifilock");
+            playerService.wifiLock.acquire();
 
             Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
             notificationIntent.setAction("NOTIFICATION_ON");
