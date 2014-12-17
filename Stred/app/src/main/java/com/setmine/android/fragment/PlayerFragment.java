@@ -22,7 +22,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
-import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
@@ -35,12 +34,12 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.setmine.android.CircularSeekBar;
 import com.setmine.android.ImageCache;
 import com.setmine.android.PlayerService;
 import com.setmine.android.R;
@@ -57,7 +56,7 @@ import java.io.IOException;
 import java.util.List;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
-		SeekBar.OnSeekBarChangeListener {
+		CircularSeekBar.OnCircularSeekBarChangeListener {
 
 	public ImageButton mButtonPlay;
 	public ImageButton mButtonPlayTop;
@@ -65,7 +64,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private ImageButton mButtonFastForward;
 	private ImageButton mButtonShuffle;
 	private ImageButton mButtonDownload;
-	private SeekBar mProgressBar;
+	private CircularSeekBar mProgressBar;
 	private TextView mTitleLabel;
 	private TextView mArtistLabel;
 	private TextView mTimeLabel;
@@ -119,14 +118,14 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		// All player buttons
 		mButtonPlay = (ImageButton) rootView
 				.findViewById(R.id.player_button_play);
-		mButtonPlayTop = (ImageButton) rootView
-				.findViewById(R.id.player_button_play_top);
+//		mButtonPlayTop = (ImageButton) rootView
+//				.findViewById(R.id.player_button_play_top);
 		mButtonRewind = (ImageButton) rootView
 				.findViewById(R.id.player_button_rewind);
 		mButtonFastForward = (ImageButton) rootView
 				.findViewById(R.id.player_button_fast_forward);
-		mProgressBar = (SeekBar) rootView
-				.findViewById(R.id.player_progress_bar);
+		mProgressBar = (CircularSeekBar) rootView
+				.findViewById(R.id.circular_seek_bar);
 		mTimeLabel = (TextView) rootView.findViewById(R.id.player_song_time);
 		mDurationLabel = (TextView) rootView
 				.findViewById(R.id.player_song_duration);
@@ -206,11 +205,11 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             if (mp.isPlaying()) {
                 // Changing button image to pause button
                 mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
-                mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
+//                mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
             } else {
                 // Changing button image to play button
                 mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
-                mButtonPlayTop.setImageResource(R.drawable.ic_action_play_white);
+//                mButtonPlayTop.setImageResource(R.drawable.ic_action_play_white);
             }
         }
     }
@@ -227,7 +226,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			}
 		};
 		mButtonPlay.setOnClickListener(ocl);
-		mButtonPlayTop.setOnClickListener(ocl);
+//		mButtonPlayTop.setOnClickListener(ocl);
     }
 
 	private void setPreviousListener() {
@@ -593,7 +592,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
             // Changing Button Image to pause image
             mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
-            mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
+//            mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
 
             // set Progress bar values
             mProgressBar.setProgress(0);
@@ -671,7 +670,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	};
 
 	@Override
-	public void onProgressChanged(SeekBar seekBar, int progress,
+	public void onProgressChanged(CircularSeekBar seekBar, int progress,
 			boolean fromTouch) {
 
 	}
@@ -680,7 +679,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	 * When user starts moving the progress handler
 	 * */
 	@Override
-	public void onStartTrackingTouch(SeekBar seekBar) {
+	public void onStartTrackingTouch(CircularSeekBar seekBar) {
 		// remove message Handler from updating progress bar
 		mHandler.removeCallbacks(mUpdateTimeTask);
 	}
@@ -689,7 +688,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	 * When user stops moving the progress handler
 	 * */
 	@Override
-	public void onStopTrackingTouch(SeekBar seekBar) {
+	public void onStopTrackingTouch(CircularSeekBar seekBar) {
 		mHandler.removeCallbacks(mUpdateTimeTask);
 		int totalDuration = mp.getDuration();
 		int currentPosition = utils.progressToTimer(seekBar.getProgress(),
@@ -733,7 +732,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	public void onDestroy() {
 		super.onDestroy();
 		mp.release();
-//        mp = null;
 		mHandler.removeCallbacks(mUpdateTimeTask);
 	}
 

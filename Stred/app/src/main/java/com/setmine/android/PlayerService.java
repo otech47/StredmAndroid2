@@ -219,7 +219,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
         //Create the notification instance.
         mNotification = new NotificationCompat.Builder(getApplicationContext())
-                .setSmallIcon(R.drawable.logo_small).setOngoing(true)
+                .setSmallIcon(R.drawable.logo_small_white).setOngoing(true)
                 .setWhen(System.currentTimeMillis())
                 .setContent(mRemoteViews)
                 .build();
