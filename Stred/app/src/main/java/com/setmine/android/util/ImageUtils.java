@@ -14,7 +14,7 @@ import android.util.Log;
  */
 public class ImageUtils {
 
-    public Bitmap fastblur(Bitmap sentBitmap, int radius) {
+    public static Bitmap fastblur(Bitmap sentBitmap, int radius) {
 
         // Stack Blur v1.0 from
         // http://www.quasimondo.com/StackBlurForCanvas/StackBlurDemo.html

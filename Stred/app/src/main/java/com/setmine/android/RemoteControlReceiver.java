@@ -8,12 +8,22 @@ import android.view.KeyEvent;
 public class RemoteControlReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (Intent.ACTION_MEDIA_BUTTON.equals(intent.getAction())) {
-            KeyEvent event = (KeyEvent)intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
-            if (KeyEvent.KEYCODE_MEDIA_PLAY == event.getKeyCode()) {
-                // Handle key press.
-                Intent playIntent = new Intent(context, PlayerService.class);
-                playIntent.setAction("PLAY_PAUSE");
+        if (intent.getAction().equals(Intent.ACTION_MEDIA_BUTTON)) {
+            final KeyEvent event = (KeyEvent)intent.getParcelableExtra(Intent.EXTRA_KEY_EVENT);
+            Intent playIntent = new Intent(context, PlayerService.class);
+
+            if(event != null && event.getAction() == KeyEvent.ACTION_UP) {
+                if (KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE == event.getKeyCode()) {
+                    playIntent.setAction("PLAY_PAUSE");
+                } else if (KeyEvent.KEYCODE_MEDIA_PLAY == event.getKeyCode()) {
+                    playIntent.setAction("PLAY_PAUSE");
+                } else if (KeyEvent.KEYCODE_MEDIA_PAUSE == event.getKeyCode()) {
+                    playIntent.setAction("PLAY_PAUSE");
+                } else if (KeyEvent.KEYCODE_MEDIA_NEXT == event.getKeyCode()) {
+                    playIntent.setAction("FAST_FORWARD");
+                } else if (KeyEvent.KEYCODE_MEDIA_PREVIOUS == event.getKeyCode()) {
+                    playIntent.setAction("REWIND");
+                }
                 context.startService(playIntent);
             }
         }

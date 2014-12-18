@@ -14,8 +14,10 @@ import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.media.RemoteControlClient;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Build;
@@ -540,15 +542,11 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             playerService.wifiLock.acquire();
 
             Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
-            notificationIntent.setAction("NOTIFICATION_ON");
+            notificationIntent.setAction("START_ALL");
             notificationIntent.putExtra("ARTIST", song.getArtist());
             notificationIntent.putExtra("EVENT", song.getEvent());
-            notificationIntent.putExtra("IMAGE", activity.S3_ROOT_URL + song.getArtistImage());
+            notificationIntent.putExtra("ARTIST_IMAGE", activity.S3_ROOT_URL + song.getArtistImage());
             sendIntentToService(notificationIntent);
-
-            Intent playIntent = new Intent(getActivity(), PlayerService.class);
-            playIntent.setAction("PLAY_PAUSE");
-            sendIntentToService(playIntent);
 
             CountPlaysTask cpTask = new CountPlaysTask(activity);
             cpTask.execute(song.getId());
@@ -587,6 +585,13 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
                     Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 1000);
                     mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
                     mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
+                    if(playerService.remoteControlClient != null) {
+                        playerService.remoteControlClient.editMetadata(true)
+                                .putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, loadedImage)
+                                .putString(MediaMetadataRetriever.METADATA_KEY_TITLE, song.getEvent())
+                                .putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, song.getArtist())
+                                .apply();
+                    }
                 }
             });
 

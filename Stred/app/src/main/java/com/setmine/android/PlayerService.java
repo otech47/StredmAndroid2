@@ -6,11 +6,11 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.RemoteControlClient;
 import android.net.wifi.WifiManager;
 import android.os.Binder;
 import android.os.IBinder;
@@ -37,14 +37,20 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private ComponentName mReceiver = new ComponentName(RemoteControlReceiver.class.getPackage().getName(), RemoteControlReceiver.class.getName());
     private float oldVolume = 0.0f;
     private float LOW_VOLUME = 0.2f;
+    public RemoteControlClient remoteControlClient;
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
 //            mMediaPlayer = ... // initialize it here
             if(intent.getAction().equals("PLAY_PAUSE")) {
                 playPause();
+            } else if(intent.getAction().equals("START_ALL")) {
+                remoteControl();
+                showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"), intent.getStringExtra("ARTIST_IMAGE"));
+                play();
             } else if(intent.getAction().equals("NOTIFICATION_ON")) {
-                showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"), intent.getStringExtra("IMAGE"));
+                remoteControl();
+                showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"), intent.getStringExtra("ARTIST_IMAGE"));
             } else if(intent.getAction().equals("NOTIFICATION_OFF")) {
                 pause();
                 removeNotification();
@@ -62,15 +68,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             if (mMediaPlayer.isPlaying()) {
                 pause();
             } else {
-                int result = am.requestAudioFocus(this,
-                        // Use the music stream.
-                        AudioManager.STREAM_MUSIC,
-                        // Request permanent focus.
-                        AudioManager.AUDIOFOCUS_GAIN);
-                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                    am.registerMediaButtonEventReceiver(mReceiver);
-                    play();
-                }
+                play();
             }
         }
         m_NM.notify(NOTIFICATION_ID, mNotification);
@@ -79,11 +77,16 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     @TargetApi(5)
     private void play() {
         if(mMediaPlayer != null && !mMediaPlayer.isPlaying()) {
-            mMediaPlayer.start();
-            wifiLock.acquire();
-            mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
-            m_NM.notify(NOTIFICATION_ID, mNotification);
-            startForeground(NOTIFICATION_ID, mNotification);
+            int result = am.requestAudioFocus(this, AudioManager.STREAM_MUSIC, AudioManager.AUDIOFOCUS_GAIN);
+            if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
+                am.registerMediaButtonEventReceiver(mReceiver);
+                mMediaPlayer.start();
+                wifiLock.acquire();
+                mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
+                m_NM.notify(NOTIFICATION_ID, mNotification);
+                remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
+                startForeground(NOTIFICATION_ID, mNotification);
+            }
         }
     }
 
@@ -94,6 +97,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             wifiLock.release();
             mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_play_white);
             m_NM.notify(NOTIFICATION_ID, mNotification);
+            remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
             stopForeground(false);
         }
     }
@@ -154,11 +158,28 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         m_NM.cancel(NOTIFICATION_ID);
     }
 
+    private void remoteControl() {
+        if(remoteControlClient == null) {
+            Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
+            intent.setComponent(mReceiver);
+            // create and register the remote control client
+            PendingIntent mediaPendingIntent = PendingIntent.getBroadcast(this, 0, intent, 0);
+            remoteControlClient = new RemoteControlClient(mediaPendingIntent);
+            remoteControlClient.setTransportControlFlags(RemoteControlClient.FLAG_KEY_MEDIA_PLAY_PAUSE
+                            | RemoteControlClient.FLAG_KEY_MEDIA_NEXT
+                            | RemoteControlClient.FLAG_KEY_MEDIA_PREVIOUS
+                            | RemoteControlClient.FLAG_KEY_MEDIA_PLAY
+                            | RemoteControlClient.FLAG_KEY_MEDIA_PAUSE
+            );
+            am.registerRemoteControlClient(remoteControlClient);
+        }
+    }
+
     @TargetApi(16)
-    private void showNotification(String artist, String event, String image) {
+    private void showNotification(String artist, String event, String artistImage) {
+        // reusable variables
         PendingIntent pendingIntent = null;
         Intent intent = null;
-
 
         //Inflate a remote view with a layout which you want to display in the notification bar.
         if (mRemoteViews == null) {
@@ -178,7 +199,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         mRemoteViews.setTextViewText(R.id.text_artist, artist);
         mRemoteViews.setTextViewText(R.id.text_event, event);
 
-        ImageLoader.getInstance().loadImage(image, options, new SimpleImageLoadingListener() {
+        ImageLoader.getInstance().loadImage(artistImage, options, new SimpleImageLoadingListener() {
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 mRemoteViews.setImageViewBitmap(R.id.notification_image, loadedImage);
