@@ -21,8 +21,8 @@ public class ArtistPagerAdapter extends FragmentPagerAdapter {
     public DetailUpcomingEventsFragment DUEFragment;
     public DetailSetsFragment DSFragment;
     public final String[] TITLES = new String[]{
-            "Events",
             "Sets",
+            "Events",
     };
 
     public final int NUM_TITLES = TITLES.length;
@@ -41,10 +41,10 @@ public class ArtistPagerAdapter extends FragmentPagerAdapter {
     @Override
     public Fragment getItem(int i) {
         if (i == 0) {
-            return DUEFragment;
+            return DSFragment;
         }
         else {
-            return DSFragment;
+            return DUEFragment;
         }
     }
 

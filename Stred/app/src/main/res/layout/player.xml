@@ -108,7 +108,7 @@
 
     <RelativeLayout
         android:id="@+id/player_body"
-        android:layout_width="fill_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="20dp"
         android:layout_below="@id/player_header" >
@@ -141,7 +141,7 @@
     <RelativeLayout
 	    android:id="@+id/player_tracklist"
         android:layout_below="@+id/player_body"
-	    android:layout_width="fill_parent"
+	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
 	    android:layout_above="@+id/player_footer"
 	    android:gravity="center"
@@ -161,7 +161,6 @@
 		    android:layout_alignParentTop="true"
             android:paddingLeft="@dimen/small_text_padding"
             android:paddingRight="@dimen/small_text_padding"
-		    android:layout_marginTop="10dp"
 		    android:lines="1"
 		    android:singleLine="true"
 		    android:textSize="16sp" />

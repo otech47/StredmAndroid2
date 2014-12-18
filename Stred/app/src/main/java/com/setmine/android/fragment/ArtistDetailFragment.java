@@ -207,9 +207,9 @@ public class ArtistDetailFragment extends Fragment implements LineupsSetsApiCall
             @Override
             public void onPageSelected(int i) {
                 if(i == 0) {
-                    titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_purple));
-                } else {
                     titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_blue));
+                } else {
+                    titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_purple));
                 }
             }
 

@@ -95,6 +95,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         setsManager = ((SetMineMainActivity)getActivity()).setsManager;
         context = getActivity().getApplicationContext();
         activity = (SetMineMainActivity)getActivity();
+        dateUtils = new DateUtils();
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
@@ -115,6 +116,8 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
         ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + EVENT_IMAGE, eventImage, options);
         ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE_FORMATTED);
+        Log.d("EVENT_ADDRESS", dateUtils.toString());
+        Log.d("EVENT_ADDRESS", EVENT_ADDRESS);
         ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_VENUE + ", "
                 + dateUtils.getCityStateFromAddress(EVENT_ADDRESS));
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);

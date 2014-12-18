@@ -91,6 +91,7 @@ public class DetailUpcomingEventsFragment extends Fragment {
                     eventDetailFragment.EVENT_TYPE = "upcoming";
                     eventDetailFragment.EVENT_PAID = currentEvent.getPaid();
                     eventDetailFragment.EVENT_TICKET = currentEvent.getTicketLink();
+                    eventDetailFragment.EVENT_VENUE = currentEvent.getVenue();
                     SetMineMainActivity activity = (SetMineMainActivity) getActivity();
                     FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
                     transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
