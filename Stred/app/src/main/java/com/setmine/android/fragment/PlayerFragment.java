@@ -546,6 +546,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             notificationIntent.putExtra("ARTIST", song.getArtist());
             notificationIntent.putExtra("EVENT", song.getEvent());
             notificationIntent.putExtra("ARTIST_IMAGE", activity.S3_ROOT_URL + song.getArtistImage());
+            notificationIntent.putExtra("EVENT_IMAGE", activity.S3_ROOT_URL + song.getEventImage());
             sendIntentToService(notificationIntent);
 
             CountPlaysTask cpTask = new CountPlaysTask(activity);
@@ -585,13 +586,14 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
                     Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 1000);
                     mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
                     mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
-                    if(playerService.remoteControlClient != null) {
-                        playerService.remoteControlClient.editMetadata(true)
-                                .putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, loadedImage)
-                                .putString(MediaMetadataRetriever.METADATA_KEY_TITLE, song.getEvent())
-                                .putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, song.getArtist())
-                                .apply();
-                    }
+
+                    playerService.lockscreenImage = loadedImage;
+
+                    Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
+                    notificationIntent.setAction("UPDATE_REMOTE");
+                    notificationIntent.putExtra("ARTIST", song.getArtist());
+                    notificationIntent.putExtra("EVENT", song.getEvent());
+                    sendIntentToService(notificationIntent);
                 }
             });
 

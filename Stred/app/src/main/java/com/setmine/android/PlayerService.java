@@ -8,7 +8,9 @@ import android.app.Service;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
+import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.RemoteControlClient;
 import android.net.wifi.WifiManager;
@@ -38,6 +40,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private float oldVolume = 0.0f;
     private float LOW_VOLUME = 0.2f;
     public RemoteControlClient remoteControlClient;
+    public Bitmap lockscreenImage;
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
@@ -45,12 +48,11 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             if(intent.getAction().equals("PLAY_PAUSE")) {
                 playPause();
             } else if(intent.getAction().equals("START_ALL")) {
-                remoteControl();
+                remoteControl(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"));
                 showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"), intent.getStringExtra("ARTIST_IMAGE"));
                 play();
-            } else if(intent.getAction().equals("NOTIFICATION_ON")) {
-                remoteControl();
-                showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"), intent.getStringExtra("ARTIST_IMAGE"));
+            } else if(intent.getAction().equals("UPDATE_REMOTE")) {
+                remoteControl(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"));
             } else if(intent.getAction().equals("NOTIFICATION_OFF")) {
                 pause();
                 removeNotification();
@@ -158,7 +160,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         m_NM.cancel(NOTIFICATION_ID);
     }
 
-    private void remoteControl() {
+    private void remoteControl(String artist, String event) {
         if(remoteControlClient == null) {
             Intent intent = new Intent(Intent.ACTION_MEDIA_BUTTON);
             intent.setComponent(mReceiver);
@@ -173,6 +175,13 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             );
             remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
             am.registerRemoteControlClient(remoteControlClient);
+        }
+        if(artist != null && event != null && lockscreenImage != null) {
+            remoteControlClient.editMetadata(true)
+                    .putBitmap(RemoteControlClient.MetadataEditor.BITMAP_KEY_ARTWORK, lockscreenImage)
+                    .putString(MediaMetadataRetriever.METADATA_KEY_TITLE, event)
+                    .putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, artist)
+                    .apply();
         }
     }
 
