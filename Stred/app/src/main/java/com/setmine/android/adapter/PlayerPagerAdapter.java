@@ -28,6 +28,13 @@ public class PlayerPagerAdapter extends FragmentPagerAdapter{
     public int currentFragmentPosition;
     public FragmentManager fm;
     public Context context;
+    public final String[] TITLES = new String[] {
+            "Playlist",
+            "Player",
+            "Tracklist"
+    };
+    public final int NUM_TITLES = TITLES.length;
+
 
     public PlayerPagerAdapter(FragmentManager fm) {
         super(fm);
@@ -63,5 +70,11 @@ public class PlayerPagerAdapter extends FragmentPagerAdapter{
     public int getCount() {
         return 3;
     }
+
+    @Override
+    public CharSequence getPageTitle(int position) {
+        return TITLES[position % NUM_TITLES];
+    }
+
 
 }
