@@ -14,7 +14,18 @@
     <string name="upcoming">upcoming</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="venue_map">Venue Map</string>
-    <string name="facebook_app_id">648288801959503</string>
+    <string name="facebook_app_id">674390762682640</string>
     <string name="facebook_login">Facebook Login</string>
+    <string name="must_attend">My Must Attend Event</string>
+    <string name="must_attend_description">Your next recommended show based on what you listen to most</string>
+    <string name="activities">Activities</string>
+    <string name="activities_description">Recommended sets to fit your current mood or activity</string>
+    <string name="my_sets">My Sets</string>
+    <string name="my_sets_description">Favorite the Sets you want to listen to later</string>
+    <string name="recent_sets">Recent Sets</string>
+    <string name="recent_sets_description">Be the first to hear new sets</string>
+    <string name="login_header_2">Access Exclusive SetMine Premium Features</string>
+    <string name="login_header_1">Create Account (One Time Login)</string>
+
 
 </resources>

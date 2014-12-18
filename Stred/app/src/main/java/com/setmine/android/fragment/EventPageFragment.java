@@ -85,13 +85,13 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         super.onAttach(activity);
         Bundle args = getArguments();
         page = args.getInt(ARG_OBJECT);
-        if(page == 1) {
+        if(page == 2) {
             currentEvents = ((SetMineMainActivity)getActivity()).modelsCP.upcomingEvents;
         }
-        else if(page == 2) {
+        else if(page == 3) {
             currentEvents = ((SetMineMainActivity)getActivity()).modelsCP.recentEvents;
         }
-        else if(page == 3) {
+        else if(page == 4) {
             currentEvents = ((SetMineMainActivity)getActivity()).modelsCP.searchEvents;
         }
         else
@@ -129,7 +129,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         ListView listView = null;
         eventType = "";
         this.eventViewPager = activity.eventViewPager;
-        if(page == 1) {
+        if(page == 2) {
             eventType = "upcoming";
             rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsList);
@@ -141,7 +141,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 }
             });
         }
-        else if(page == 2) {
+        else if(page == 3) {
             eventType = "recent";
             rootView = inflater.inflate(R.layout.events_scroll_view_recent, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsListRecent);
@@ -159,7 +159,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 }
             });
         }
-        else if(page == 3) {
+        else if(page == 4) {
             eventType = "search";
             rootView = inflater.inflate(R.layout.events_finder, container, false);
             listView = (ListView) rootView.findViewById(R.id.searchResults);

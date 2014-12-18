@@ -63,6 +63,14 @@
                 <action android:name="com.setmine.android.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Accepts URIs that begin with "http://www.example.com/gizmos” -->
+                <data android:scheme="http"
+                    android:host="setmine.com"/>
+            </intent-filter>
         </activity>
         <activity
             android:name="com.mixpanel.android.surveys.SurveyActivity" />

@@ -38,7 +38,6 @@ import com.setmine.android.adapter.EventPagerAdapter;
 import com.setmine.android.adapter.PlayerPagerAdapter;
 import com.setmine.android.fragment.ArtistDetailFragment;
 import com.setmine.android.fragment.EventDetailFragment;
-import com.setmine.android.fragment.LoginFragment;
 import com.setmine.android.fragment.MainViewPagerContainerFragment;
 import com.setmine.android.fragment.PlayerContainerFragment;
 import com.setmine.android.fragment.PlayerFragment;
@@ -79,7 +78,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
     public static String APP_VERSION;
-    public static final String API_VERSION = "2";
+    public static final String API_VERSION = "3";
     public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
     public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
     public static final String S3_ROOT_URL = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
@@ -97,12 +96,12 @@ public class SetMineMainActivity extends FragmentActivity implements
     public TracklistFragment tracklistFragment;
     public SearchSetsFragment searchSetsFragment;
     public MainViewPagerContainerFragment mainViewPagerContainerFragment;
-    public LoginFragment loginFragment;
 
     public ModelsContentProvider modelsCP;
     public SetsManager setsManager;
     public PlayerService playerService;
     public boolean serviceBound = false;
+    public boolean userIsRegistered = false;
 
     public Integer screenHeight;
     public Integer screenWidth;
@@ -186,7 +185,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         dateUtils = new DateUtils();
         fragmentManager = getSupportFragmentManager();
         mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
-//        loginFragment = new LoginFragment();
         modelsCP = new ModelsContentProvider();
         setsManager = new SetsManager();
         actionBar = getActionBar();
@@ -221,8 +219,9 @@ public class SetMineMainActivity extends FragmentActivity implements
             df.setTimeZone(TimeZone.getTimeZone("UTC"));
             String nowAsISO = df.format(new Date());
             people.setOnce("user_id", id);
-            people.setOnce("Client", "SetMine");
-            people.setOnce("Version", "SetMine v"+APP_VERSION);
+            people.set("SetMine Upgrade: ", "Yes");
+            people.set("Client", "SetMine");
+            people.set("Version", "SetMine v"+APP_VERSION);
             people.setOnce("date_tracked", nowAsISO);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -332,12 +331,10 @@ public class SetMineMainActivity extends FragmentActivity implements
                 mainViewPagerContainerFragment = new MainViewPagerContainerFragment();
                 playerContainerFragment = new PlayerContainerFragment();
                 searchSetsFragment = new SearchSetsFragment();
-//                loginFragment = new LoginFragment();
                 FragmentTransaction ft = fragmentManager.beginTransaction();
                 ft.add(R.id.playerPagerContainer, playerContainerFragment);
                 ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
                 ft.add(R.id.searchSetsContainer, searchSetsFragment);
-//                ft.add(R.id.loginContainer, loginFragment);
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                 getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
                 ft.commit();
@@ -433,7 +430,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void openUserHomePage() {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
@@ -446,7 +442,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-//        transaction.show(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
     }
@@ -455,7 +450,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
@@ -465,7 +459,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commitAllowingStateLoss();
@@ -501,6 +494,9 @@ public class SetMineMainActivity extends FragmentActivity implements
         if(intent != null && intent.getAction() != null) {
             if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
                 openPlayer();
+            } else if(intent.getAction().equals("com.setmine.android.VIEW")) {
+                String command = intent.getDataString();
+                Log.d(TAG, command);
             }
         }
     }
@@ -536,14 +532,13 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+        Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
         switch (requestCode) {
             case CONNECTION_FAILURE_RESOLUTION_REQUEST :
                 switch (resultCode) {
                     case Activity.RESULT_OK :
                         break;
                 }
-            case FACEBOOK_LOGIN :
-                Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
         }
     }
 

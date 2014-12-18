@@ -48,6 +48,7 @@ public class PlayerPagerAdapter extends FragmentPagerAdapter{
     @Override
     public Fragment getItem(int i) {
         if(i == 0) {
+            Log.d("getItem", "playlist");
             playListFragment = new PlaylistFragment();
             ((SetMineMainActivity)context).playlistFragment = playListFragment;
             return playListFragment;
