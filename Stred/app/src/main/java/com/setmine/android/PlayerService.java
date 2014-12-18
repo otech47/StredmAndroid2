@@ -171,6 +171,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                             | RemoteControlClient.FLAG_KEY_MEDIA_PLAY
                             | RemoteControlClient.FLAG_KEY_MEDIA_PAUSE
             );
+            remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
             am.registerRemoteControlClient(remoteControlClient);
         }
     }
