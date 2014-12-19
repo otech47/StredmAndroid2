@@ -13,13 +13,9 @@ import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
-import android.media.AudioManager;
-import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
-import android.media.RemoteControlClient;
 import android.net.Uri;
-import android.net.wifi.WifiManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -42,7 +38,6 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.CircularSeekBar;
-import com.setmine.android.ImageCache;
 import com.setmine.android.PlayerService;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
@@ -55,7 +50,6 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
-import java.util.List;
 
 public class PlayerFragment extends Fragment implements OnCompletionListener,
 		CircularSeekBar.OnCircularSeekBarChangeListener {
@@ -82,7 +76,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 	// Media Player
 	public MediaPlayer mp;
-    public WifiManager.WifiLock wl;
 
 	// Handler to update UI timer, progress bar etc,.
 	private final Handler mHandler = new Handler();
@@ -96,14 +89,11 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     public PlayerService playerService;
 
     public SetsManager setsManager;
-    private List<Set> songsList;
 	private DownloadManager manager;
 	private long enqueue;
 	private Set downloadedSet;
 	private String downloadedSetTitle;
 	private Context context;
-    public ImageCache imageCache;
-    private Intent playIntent = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -147,23 +137,25 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
         utils = new TimeUtils();
 
-        if(mp == null && wl == null) {
+        if(mp == null) {
             playerService = activity.playerService;
             mp = playerService.mMediaPlayer;
-            wl = playerService.wifiLock;
-            playerService.am = (AudioManager)getActivity().getSystemService(Context.AUDIO_SERVICE);
         }
 
 
 		// Listeners
 		mProgressBar.setOnSeekBarChangeListener(this);
-		mp.setOnCompletionListener(this);
+        mProgressBar.setProgress(0);
+        mProgressBar.setMax(100);
+
+        mp.setOnCompletionListener(this);
         mp.setWakeMode(context, PowerManager.PARTIAL_WAKE_LOCK);
 
         setsManager = activity.setsManager;
 
-		// Getting all songs list
-		songsList = setsManager.getPlaylist();
+        if(playerService != null) {
+            playerService.serviceSM = setsManager;
+        }
 
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
@@ -207,11 +199,9 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             if (mp.isPlaying()) {
                 // Changing button image to pause button
                 mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
-//                mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
             } else {
                 // Changing button image to play button
                 mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
-//                mButtonPlayTop.setImageResource(R.drawable.ic_action_play_white);
             }
         }
     }
@@ -358,39 +348,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         });
 	}
 
-	private void setPlayingNotification() {
-		Intent intent = new Intent(getActivity(), SetMineMainActivity.class);
-		PendingIntent pIntent = PendingIntent.getActivity(getActivity(), 0,
-				intent, 0);
-
-		Bitmap bm = Bitmap.createScaledBitmap(
-				BitmapFactory.decodeResource(getResources(), R.drawable.logo),
-				getResources().getDimensionPixelSize(
-						android.R.dimen.notification_large_icon_width),
-				getResources().getDimensionPixelSize(
-						android.R.dimen.notification_large_icon_height), true);
-
-		// build notification
-		// the addAction re-use the same intent to keep the example short
-		Notification n = new NotificationCompat.Builder(getActivity())
-				.setContentTitle("EDC Chicago")
-				.setContentText("Hardwell")
-				.setSmallIcon(R.drawable.logo)
-				.setContentIntent(pIntent)
-				.setLargeIcon(bm)
-				.setAutoCancel(true)
-				.addAction(R.drawable.ic_action_rewind_white, "", pIntent)
-				.addAction(R.drawable.ic_action_play_white, "", pIntent)
-				.addAction(R.drawable.ic_action_fast_forward_white, "", pIntent)
-				.setOngoing(true).build();
-
-		NotificationManager notificationManager = (NotificationManager) getActivity()
-				.getSystemService(Context.NOTIFICATION_SERVICE);
-
-		notificationManager.notify(0, n);
-
-	}
-
 	private void setShuffleListener() {
 		mButtonShuffle.setOnClickListener(new OnClickListener() {
 
@@ -523,23 +480,14 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	 *            - index of song
 	 * */
 	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
-    public void playSong(int position) {
+    public void playSong() {
 		// Play song
-        if (isShuffle) {
-            song = setsManager.getPlaylistShuffled().get(position);
-        } else {
-            song = setsManager.getPlaylist().get(position);
-        }
+        song = setsManager.getSelectedSet();
 
         try {
-            // get datasource from intent
             mp.reset();
             mp.setDataSource(song.getSongURL());
-//            mp.setOnPreparedListener(this);
             mp.prepare();
-            playerService.wifiLock = ((WifiManager) getActivity().getApplicationContext().getSystemService(Context.WIFI_SERVICE))
-                    .createWifiLock(WifiManager.WIFI_MODE_FULL, "setmine_wifilock");
-            playerService.wifiLock.acquire();
 
             Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
             notificationIntent.setAction("START_ALL");
@@ -549,9 +497,23 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             notificationIntent.putExtra("EVENT_IMAGE", activity.S3_ROOT_URL + song.getEventImage());
             sendIntentToService(notificationIntent);
 
-            CountPlaysTask cpTask = new CountPlaysTask(activity);
-            cpTask.execute(song.getId());
+            // Updating progress bar
+            // WILL UPDATE VIEW LATER
+            updateProgressBar();
 
+            updateViewToNewSet();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void updateViewToNewSet() {
+        song = setsManager.getSelectedSet();
+
+        CountPlaysTask cpTask = new CountPlaysTask(activity.getApplicationContext());
+        cpTask.execute(song.getId());
+
+        try{
             JSONObject mixpanelProperties = new JSONObject();
             mixpanelProperties.put("id", song.getId());
             mixpanelProperties.put("artist", song.getArtist());
@@ -568,77 +530,45 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             activity.mixpanel.getPeople().append("sets_played_artists", song.getArtist());
             activity.mixpanel.getPeople().append("sets_played_events", song.getEvent());
             activity.mixpanel.getPeople().append("sets_played_genres", song.getGenre());
-
-            // Displaying Song title
-            mTitleLabel.setText(song.getEvent());
-            mArtistLabel.setText(song.getArtist());
-            mTrackLabel.setText(song.getCurrentTrack(0));
-//			mTrackLabel.setSelected(true);
-
-            updateTracklist(song);
-            // Display song image
-
-            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getArtistImage(), mImageThumb, options);
-            ImageLoader.getInstance().loadImage(activity.S3_ROOT_URL + song.getEventImage(), options, new SimpleImageLoadingListener() {
-                @Override
-                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                    Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).imageUtils.fastblur(loadedImage, 4);
-                    Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 1000);
-                    mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
-                    mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
-
-                    playerService.lockscreenImage = loadedImage;
-
-                    Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
-                    notificationIntent.setAction("UPDATE_REMOTE");
-                    notificationIntent.putExtra("ARTIST", song.getArtist());
-                    notificationIntent.putExtra("EVENT", song.getEvent());
-                    sendIntentToService(notificationIntent);
-                }
-            });
-
-            // Changing Button Image to pause image
-            mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
-//            mButtonPlayTop.setImageResource(R.drawable.ic_action_pause_white);
-
-            // set Progress bar values
-            mProgressBar.setProgress(0);
-            mProgressBar.setMax(100);
-
-            if (song.isDownloaded()) {
-                mButtonDownload.setVisibility(View.GONE);
-            } else {
-//				mButtonDownload.setVisibility(View.VISIBLE);
-            }
-            // Updating progress bar
-            updateProgressBar();
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (IllegalStateException e) {
-            e.printStackTrace();
         } catch (JSONException e) {
             e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
+
+        ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getArtistImage(), mImageThumb, options);
+        ImageLoader.getInstance().loadImage(activity.S3_ROOT_URL + song.getEventImage(), options, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).imageUtils.fastblur(loadedImage, 4);
+                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 1000);
+                mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
+                mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
+
+                playerService.lockscreenImage = loadedImage;
+
+                Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
+                notificationIntent.setAction("UPDATE_REMOTE");
+                notificationIntent.putExtra("ARTIST", song.getArtist());
+                notificationIntent.putExtra("EVENT", song.getEvent());
+                sendIntentToService(notificationIntent);
+            }
+        });
+
+        // Displaying Song title
+        mTitleLabel.setText(song.getEvent());
+        mArtistLabel.setText(song.getArtist());
+        mTrackLabel.setText(song.getCurrentTrack(0));
+        updateTracklist(song);
+        // Display song image
     }
 
     private void playNext() {
-        setsManager.selectedSetIndex++;
-		if (setsManager.selectedSetIndex >= setsManager
-				.getPlaylistLength()) {
-            setsManager.selectedSetIndex = 0;
-		}
-		playSong(setsManager.selectedSetIndex);
+        setsManager.selectSetByIndex((setsManager.selectedSetIndex >= setsManager.getPlaylistLength())? 0 : setsManager.selectedSetIndex + 1);
+        playSong();
 	}
 
 	private void playPrevious() {
-        setsManager.selectedSetIndex--;
-		if (setsManager.selectedSetIndex < 0) {
-            setsManager.selectedSetIndex = setsManager
-					.getPlaylistLength() - 1;
-		}
-		playSong(setsManager.selectedSetIndex);
+        setsManager.selectSetByIndex((setsManager.selectedSetIndex < 0)? setsManager.getPlaylistLength() - 1 : setsManager.selectedSetIndex - 1);
+        playSong();
 	}
 
 	/**
@@ -670,6 +600,11 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 			mProgressBar.setProgress(progress);
 
             updatePlayPauseButton();
+
+            if(playerService.newSong) {
+                updateViewToNewSet();
+                playerService.newSong = false;
+            }
 
 			// Running this thread after 100 milliseconds
 			mHandler.postDelayed(this, 100);

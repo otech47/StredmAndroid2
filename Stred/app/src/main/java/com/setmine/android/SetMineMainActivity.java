@@ -425,7 +425,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         playlistFragment.updatePlaylist();
         setsManager.selectSetById(Integer.toString(setId));
         playerContainerFragment.mViewPager.setCurrentItem(1);
-        playerFragment.playSong(setsManager.selectedSetIndex);
+        playerFragment.playSong();
     }
 
     public void openUserHomePage() {
