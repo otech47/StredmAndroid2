@@ -219,7 +219,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             df.setTimeZone(TimeZone.getTimeZone("UTC"));
             String nowAsISO = df.format(new Date());
             people.setOnce("user_id", id);
-            people.set("SetMine Upgrade: ", "Yes");
+            people.set("SetMine Upgrade", "Yes");
             people.set("Client", "SetMine");
             people.set("Version", "SetMine v"+APP_VERSION);
             people.setOnce("date_tracked", nowAsISO);
