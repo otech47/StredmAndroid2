@@ -66,7 +66,8 @@ public class PlaylistFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                activity.playerFragment.playSong(Integer.parseInt(setlist.get(position).getId()));
+                activity.setsManager.selectSetByIndex(position);
+                activity.playerFragment.playSong();
                 activity.playerContainerFragment.mViewPager.setCurrentItem(1);
             }
         });

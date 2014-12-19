@@ -6,9 +6,9 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
-import android.graphics.drawable.Drawable;
 import android.media.AudioManager;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -24,12 +24,17 @@ import android.widget.RemoteViews;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.setmine.android.object.Set;
+import com.setmine.android.task.CountPlaysTask;
+
+import java.io.IOException;
 
 public class PlayerService extends Service implements AudioManager.OnAudioFocusChangeListener {
     private static final String SERVICE_COMMAND = "SERVICE_COMMAND";
     private NotificationManager m_NM;
     public MediaPlayer mMediaPlayer = new MediaPlayer();
-    public WifiManager.WifiLock wifiLock;
+    private WifiManager.WifiLock wifiLock;
+    private PowerManager.WakeLock wakeLock;
     public IBinder playerBinder = new PlayerBinder();
     private int NOTIFICATION_ID = 1212;
     private RemoteViews mRemoteViews;
@@ -41,6 +46,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private float LOW_VOLUME = 0.2f;
     public RemoteControlClient remoteControlClient;
     public Bitmap lockscreenImage;
+    public SetsManager serviceSM;
+    public boolean newSong = false;
 
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && intent.getAction() != null) {
@@ -49,15 +56,19 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 playPause();
             } else if(intent.getAction().equals("START_ALL")) {
                 remoteControl(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"));
-                showNotification(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"), intent.getStringExtra("ARTIST_IMAGE"));
+                showNotification();
                 play();
             } else if(intent.getAction().equals("UPDATE_REMOTE")) {
                 remoteControl(intent.getStringExtra("ARTIST"), intent.getStringExtra("EVENT"));
             } else if(intent.getAction().equals("NOTIFICATION_OFF")) {
                 pause();
                 removeNotification();
-            } else if(intent.getAction().equals("FAST_FORWARD")) {
-                // do fast forward
+            } else if(intent.getAction().equals("NEXT")) {
+                playNext();
+                showNotification();
+            } else if(intent.getAction().equals("PREVIOUS")) {
+                playPrevious();
+                showNotification();
             }
         }
         return START_STICKY;
@@ -66,7 +77,6 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     @TargetApi(5)
     private void playPause() {
         if(mMediaPlayer != null) {
-            mMediaPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
             if (mMediaPlayer.isPlaying()) {
                 pause();
             } else {
@@ -83,7 +93,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
                 am.registerMediaButtonEventReceiver(mReceiver);
                 mMediaPlayer.start();
-                wifiLock.acquire();
+                acquireLocks();
                 mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
                 m_NM.notify(NOTIFICATION_ID, mNotification);
                 remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
@@ -98,15 +108,68 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             mMediaPlayer.pause();
             wifiLock.release();
             mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_play_white);
+            releaseLocks();
             m_NM.notify(NOTIFICATION_ID, mNotification);
             remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PAUSED);
             stopForeground(false);
         }
     }
 
+    private void playNext() {
+        serviceSM.selectSetByIndex((serviceSM.selectedSetIndex >= serviceSM.getPlaylistLength())? 0 : serviceSM.selectedSetIndex + 1);
+        playSong();
+    }
+
+    private void playPrevious() {
+        serviceSM.selectSetByIndex((serviceSM.selectedSetIndex < 0)? serviceSM.getPlaylistLength() - 1 : serviceSM.selectedSetIndex - 1);
+        playSong();
+    }
+
+    private void playSong() {
+        try {
+            Set song = serviceSM.getSelectedSet();
+            mMediaPlayer.reset();
+            mMediaPlayer.setDataSource(song.getSongURL());
+            //            mp.setOnPreparedListener(this);
+            mMediaPlayer.prepare();
+            CountPlaysTask cpTask = new CountPlaysTask(this);
+            cpTask.execute(song.getId());
+
+            this.newSong = true;
+            play();
+        } catch (IOException ioe) {
+
+        }
+    }
+
+    private void acquireLocks() {
+        PowerManager pm = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+        wakeLock = pm.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "setmine_wakelock");
+        mMediaPlayer.setWakeMode(this, PowerManager.PARTIAL_WAKE_LOCK);
+        if(!wakeLock.isHeld()) {
+            wakeLock.acquire();
+        }
+        WifiManager wm = (WifiManager) this.getSystemService(Context.WIFI_SERVICE);
+        wifiLock = wm.createWifiLock(WifiManager.WIFI_MODE_FULL, "setmine_wifilock");
+        if(!wifiLock.isHeld()) {
+            wifiLock.acquire();
+        }
+    }
+
+    private void releaseLocks() {
+        if (wakeLock != null && wakeLock.isHeld()) {
+                wakeLock.release();
+        }
+        if (wifiLock != null && wifiLock.isHeld()) {
+                wifiLock.release();
+        }
+    }
+
     @Override
     public void onCreate() {
         m_NM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
+        acquireLocks();
+        am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
 //        showNotification();
         //show notification here?
     }
@@ -116,7 +179,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         // Cancel the persistent notification.
         m_NM.cancel(NOTIFICATION_ID);
         am.unregisterMediaButtonEventReceiver(mReceiver);
-        wifiLock.release();
+        releaseLocks();
     }
 
     @Override
@@ -187,10 +250,11 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     }
 
     @TargetApi(16)
-    private void showNotification(String artist, String event, String artistImage) {
+    private void showNotification() {
         // reusable variables
         PendingIntent pendingIntent = null;
         Intent intent = null;
+        Set song = serviceSM.getSelectedSet();
 
         //Inflate a remote view with a layout which you want to display in the notification bar.
         if (mRemoteViews == null) {
@@ -207,10 +271,10 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 .considerExifParams(true)
                 .build();
 
-        mRemoteViews.setTextViewText(R.id.text_artist, artist);
-        mRemoteViews.setTextViewText(R.id.text_event, event);
+        mRemoteViews.setTextViewText(R.id.text_artist, song.getArtist());
+        mRemoteViews.setTextViewText(R.id.text_event, song.getEvent());
 
-        ImageLoader.getInstance().loadImage(artistImage, options, new SimpleImageLoadingListener() {
+        ImageLoader.getInstance().loadImage(SetMineMainActivity.S3_ROOT_URL + song.getArtistImage(), options, new SimpleImageLoadingListener() {
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 mRemoteViews.setImageViewBitmap(R.id.notification_image, loadedImage);
@@ -229,10 +293,10 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 pendingIntent);
 
         // Open player intent
-        intent = new Intent(getApplicationContext(), SetMineMainActivity.class)
+        intent = new Intent(this, SetMineMainActivity.class)
                 .setAction("com.setmine.android.OPEN_PLAYER")
                 .setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        pendingIntent = PendingIntent.getActivity(getApplicationContext(),
+        pendingIntent = PendingIntent.getActivity(this,
                 REQUEST_CODE_STOP, intent,
                 PendingIntent.FLAG_UPDATE_CURRENT);
 
@@ -247,7 +311,6 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
         mRemoteViews.setOnClickPendingIntent(R.id.button_close,
                 pendingIntent);
-
 
         //Create the notification instance.
         mNotification = new NotificationCompat.Builder(getApplicationContext())

@@ -56,6 +56,15 @@ public class SetsManager {
         }
     }
 
+    public void selectSetByIndex(int index) {
+        this.selectedSetIndex = index;
+        this.selectedSet = this.playlist.get(this.selectedSetIndex);
+    }
+
+    public Set getSelectedSet() {
+        return this.selectedSet;
+    }
+
     public void playSelectedSet() {
 
     }

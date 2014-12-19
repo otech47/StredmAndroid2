@@ -1,5 +1,6 @@
 package com.setmine.android.task;
 
+import android.content.Context;
 import android.os.AsyncTask;
 
 import com.setmine.android.SetMineMainActivity;
@@ -13,9 +14,9 @@ public class CountPlaysTask extends AsyncTask<String, Integer, String> {
     HttpUtils http;
     String serverUrl;
 
-    public CountPlaysTask(SetMineMainActivity activity) {
-        this.serverUrl = activity.PUBLIC_ROOT_URL;
-        http = new HttpUtils(activity.getApplicationContext(), serverUrl);
+    public CountPlaysTask(Context c) {
+        this.serverUrl = SetMineMainActivity.PUBLIC_ROOT_URL;
+        http = new HttpUtils(c, serverUrl);
     }
 
     @Override

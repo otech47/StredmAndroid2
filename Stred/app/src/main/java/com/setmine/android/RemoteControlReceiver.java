@@ -20,9 +20,9 @@ public class RemoteControlReceiver extends BroadcastReceiver {
                 } else if (KeyEvent.KEYCODE_MEDIA_PAUSE == event.getKeyCode()) {
                     playIntent.setAction("PLAY_PAUSE");
                 } else if (KeyEvent.KEYCODE_MEDIA_NEXT == event.getKeyCode()) {
-                    playIntent.setAction("FAST_FORWARD");
+                    playIntent.setAction("NEXT");
                 } else if (KeyEvent.KEYCODE_MEDIA_PREVIOUS == event.getKeyCode()) {
-                    playIntent.setAction("REWIND");
+                    playIntent.setAction("PREVIOUS");
                 }
                 context.startService(playIntent);
             }
