@@ -418,10 +418,10 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
 
     public void startPlayerFragment(int setId) {
+        openPlayer();
         if(playerFragment == null) {
             playerFragment = new PlayerFragment();
         }
-        openPlayer();
         playlistFragment.updatePlaylist();
         setsManager.selectSetById(Integer.toString(setId));
         playerContainerFragment.mViewPager.setCurrentItem(1);

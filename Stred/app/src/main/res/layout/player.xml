@@ -10,60 +10,58 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/background_overlay"
-        android:scaleType="centerCrop"
-        android:paddingTop="?android:attr/actionBarSize"></ImageView>
+        android:scaleType="centerCrop"></ImageView>
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/background_color_overlay"
-        android:background="#CC000000"
-        android:paddingTop="?android:attr/actionBarSize"></ImageView>
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:id="@+id/buffer"></FrameLayout>
+        android:background="#CC000000"></ImageView>
 
     <RelativeLayout
         android:id="@+id/player_header"
         android:layout_width="fill_parent"
-        android:layout_height="80dp"
-        android:paddingLeft="20dp"
-        android:layout_below="@id/buffer" >
+        android:layout_height="wrap_content"
+        android:paddingTop="10dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_alignParentTop="true">
 
         <ImageView
             android:id="@+id/player_thumb"
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:layout_marginRight="10dp"
-            android:layout_marginTop="20dp"
             android:scaleType="centerCrop"
             android:src="@drawable/logo_small"
             />
 
         <TextView
-            android:id="@+id/player_song_title"
+            android:id="@+id/player_event_name"
             android:layout_toRightOf="@+id/player_thumb"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="left"
-            android:layout_alignParentTop="true"
-            android:layout_marginTop="20dp"
+            android:layout_alignTop="@id/player_thumb"
             android:textSize="16sp"
-            android:text="Event Title"
-            android:textColor="#ffFFFFFF" />
+            android:paddingLeft="10dp"
+            android:paddingTop="5dp"
+            android:text="Event Name"
+            android:textColor="@color/setmine_white" />
 
         <TextView
-            android:id="@+id/player_song_artist"
+            android:id="@+id/player_artist_name"
             android:layout_toRightOf="@+id/player_thumb"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="left"
-            android:layout_below="@+id/player_song_title"
+            android:paddingLeft="10dp"
+            android:paddingTop="5dp"
+            android:layout_below="@id/player_event_name"
             android:textSize="12sp"
-            android:text="Artist Title"
+            android:text="Artist Name"
             android:textColor="#ffFFFFFF" />
+
+
 
 
 
@@ -110,27 +108,23 @@
         android:id="@+id/player_body"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="20dp"
-        android:layout_below="@id/player_header" >
+        android:layout_below="@id/player_timer" >
 
         <ImageView
             android:id="@+id/player_image"
-            android:padding="10dp"
             android:layout_width="270dp"
             android:layout_height="270dp"
             android:layout_centerHorizontal="true"
             android:scaleType="centerCrop"
+            android:padding="25dp"
             android:src="@drawable/logo"
-            android:layout_margin="20dp"
-            android:layout_alignParentTop="true"
-            android:paddingTop="40dp" />
+            android:layout_alignParentTop="true" />
 
         <com.setmine.android.CircularSeekBar
             android:id="@+id/circular_seek_bar"
-            android:layout_width="300dp"
-            android:layout_height="300dp"
+            android:layout_width="270dp"
+            android:layout_height="270dp"
             android:layout_centerHorizontal="true"
-            android:layout_margin="5dp"
             android:layout_alignParentTop="true"
             />
 
@@ -145,25 +139,45 @@
 	    android:layout_height="wrap_content"
 	    android:layout_above="@+id/player_footer"
 	    android:gravity="center"
-        android:visibility="visible">
+        android:visibility="visible" >
 
-		  <TextView
-		    android:id="@+id/player_track_title"
-		    android:layout_width="wrap_content"
-		    android:layout_height="wrap_content"
-		    android:scrollHorizontally="true"
-		    android:ellipsize="marquee"
-			android:marqueeRepeatLimit="marquee_forever"
-			android:focusable="true"
-			android:focusableInTouchMode="true"
+        <TextView
+            android:id="@+id/player_tracklist_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Current Song"
+            android:textColor="#FFFFFFFF"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true"
+            android:paddingBottom="3dp"
+            android:textSize="13sp" />
+
+        <View
+            android:layout_width="150dp"
+            android:layout_height="1dp"
+            android:layout_below="@id/player_tracklist_title"
+            android:layout_centerHorizontal="true"
+            android:background="@color/setmine_blue" />
+
+        <TextView
+            android:id="@+id/player_track_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingTop="@dimen/small_text_padding"
+            android:scrollHorizontally="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:focusable="true"
+            android:focusableInTouchMode="true"
             android:text="Track Name"
             android:textColor="#FFFFFFFF"
-		    android:layout_alignParentTop="true"
             android:paddingLeft="@dimen/small_text_padding"
             android:paddingRight="@dimen/small_text_padding"
-		    android:lines="1"
-		    android:singleLine="true"
-		    android:textSize="16sp" />
+            android:layout_below="@id/player_tracklist_title"
+            android:lines="1"
+            android:singleLine="true"
+            android:textSize="17sp" />
 
 	</RelativeLayout>
 
@@ -176,11 +190,11 @@
 
         <ImageButton
             android:id="@+id/player_button_playlist"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:padding="10dp"
             android:background="@null"
             android:scaleType="centerInside"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
             android:src="@drawable/playlist_icon"/>
@@ -188,7 +202,7 @@
         <ImageButton
 	        android:id="@+id/player_button_rewind"
 	        android:layout_width="50dp"
-	        android:layout_height="wrap_content"
+	        android:layout_height="50dp"
 	        android:padding="10dp"
 	        android:adjustViewBounds="false"
             android:layout_toLeftOf="@+id/player_button_play"
@@ -199,7 +213,7 @@
 	    <ImageButton
 	        android:id="@+id/player_button_play"
 	        android:layout_width="50dp"
-	        android:layout_height="wrap_content"
+	        android:layout_height="50dp"
 	        android:padding="10dp"
 	        android:adjustViewBounds="false"
 	        android:background="@null"
@@ -210,7 +224,7 @@
 		<ImageButton
 	        android:id="@+id/player_button_fast_forward"
 	        android:layout_width="50dp"
-	        android:layout_height="wrap_content"
+	        android:layout_height="50dp"
 	        android:padding="10dp"
             android:layout_toRightOf="@+id/player_button_play"
 	        android:adjustViewBounds="false"
@@ -220,13 +234,12 @@
 
         <ImageButton
             android:id="@+id/player_button_tracklist"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:padding="10dp"
             android:background="@null"
             android:scaleType="centerInside"
-            android:padding="20dp"
             android:src="@drawable/btn_tracklist"
-            android:layout_alignParentBottom="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true" />
     </RelativeLayout>

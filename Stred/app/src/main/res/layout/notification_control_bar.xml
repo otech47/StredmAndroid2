@@ -3,13 +3,13 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:orientation="vertical"
     android:layout_width="match_parent"
-    android:layout_height="70dp"
+    android:layout_height="wrap_content"
     android:id="@+id/notification_background">
     <ImageView
         android:scaleType="centerCrop"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
-        android:padding="5dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:padding="7dp"
         android:src="@drawable/logo_small"
         android:id="@+id/notification_image"
         android:layout_alignParentLeft="true"
@@ -17,19 +17,8 @@
 
     <ImageView
         android:scaleType="centerCrop"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
-        android:padding="8dp"
-        android:src="@drawable/logo_small"
-        android:id="@+id/logo_image"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
-
-    <ImageView
-        android:scaleType="centerCrop"
-        android:layout_width="35dp"
-        android:layout_height="35dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:src="@drawable/button_close"
         android:id="@+id/button_close"
         android:layout_alignParentRight="true"
@@ -37,12 +26,37 @@
 
     <ImageView
         android:scaleType="centerCrop"
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_width="50dp"
+        android:layout_height="50dp"
         android:id="@+id/button_play_pause"
         android:src="@drawable/ic_action_pause_white"
-        android:padding="15dp"
+        android:padding="7dp"
         android:layout_toLeftOf="@id/button_close"/>
+
+
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="14dp"
+        android:text="SetMine"
+        android:paddingLeft="1dp"
+        android:paddingBottom="2dp"
+        android:gravity="bottom"
+        android:id="@+id/setmine_text"
+        android:textSize="7sp"
+        android:layout_below="@id/button_play_pause"
+        android:layout_alignParentRight="true"
+        />
+
+    <ImageView
+        android:scaleType="centerCrop"
+        android:layout_width="14dp"
+        android:layout_height="14dp"
+        android:padding="2dp"
+        android:src="@drawable/logo_small"
+        android:id="@+id/logo_image"
+        android:layout_below="@id/button_play_pause"
+        android:layout_toLeftOf="@id/setmine_text"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -50,10 +64,10 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Event"
         android:paddingLeft="5dp"
-        android:paddingTop="10dp"
+        android:paddingTop="7dp"
         android:layout_alignTop="@id/notification_image"
         android:id="@+id/text_event"
-        android:textSize="18dp"
+        android:textSize="16dp"
         android:singleLine="true"
         android:ellipsize="marquee"
         android:marqueeRepeatLimit ="marquee_forever"
@@ -72,7 +86,7 @@
         android:marqueeRepeatLimit ="marquee_forever"
         android:scrollHorizontally="true"
         android:paddingLeft="5dp"
-        android:textSize="15dp"
+        android:textSize="13dp"
         android:id="@+id/text_artist"
         android:layout_below="@+id/text_event"
         android:layout_toLeftOf="@id/button_play_pause"

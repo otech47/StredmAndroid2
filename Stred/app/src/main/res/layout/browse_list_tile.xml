@@ -22,7 +22,7 @@
         android:layout_height="wrap_content"
         android:text="Browse Item"
         android:paddingBottom="9dp"
-        android:textSize="22sp"
+        android:textSize="18sp"
         android:gravity="center_vertical"
         android:id="@+id/browseItemText"
         android:textColor="@color/setmine_black"/>

@@ -107,6 +107,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         if(mMediaPlayer != null && mMediaPlayer.isPlaying()) {
             mMediaPlayer.pause();
             wifiLock.release();
+            am.abandonAudioFocus(this);
             mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_play_white);
             releaseLocks();
             m_NM.notify(NOTIFICATION_ID, mNotification);

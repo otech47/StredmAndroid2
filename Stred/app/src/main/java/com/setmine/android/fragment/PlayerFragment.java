@@ -2,7 +2,6 @@ package com.setmine.android.fragment;
 
 import android.annotation.TargetApi;
 import android.app.DownloadManager;
-import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
@@ -21,7 +20,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.PowerManager;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationCompat.Builder;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
@@ -121,9 +119,9 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		mTimeLabel = (TextView) rootView.findViewById(R.id.player_song_time);
 		mDurationLabel = (TextView) rootView
 				.findViewById(R.id.player_song_duration);
-		mTitleLabel = (TextView) rootView.findViewById(R.id.player_song_title);
+		mTitleLabel = (TextView) rootView.findViewById(R.id.player_event_name);
 		mArtistLabel = (TextView) rootView
-				.findViewById(R.id.player_song_artist);
+				.findViewById(R.id.player_artist_name);
 		mTrackLabel = (TextView) rootView.findViewById(R.id.player_track_title);
 		mImageView = (ImageView) rootView.findViewById(R.id.player_image);
 		mImageThumb = (ImageView) rootView.findViewById(R.id.player_thumb);
