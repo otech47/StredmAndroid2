@@ -42,9 +42,9 @@ public class MainViewPagerContainerFragment extends Fragment {
 
             @Override
             public void onPageSelected(int i) {
-                if(i == 0) {
+                if(i == 1) {
                     titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_purple));
-                } else if(i == 1) {
+                } else if(i == 2) {
                     titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_blue));
                 } else {
                     titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_gray));
@@ -55,7 +55,7 @@ public class MainViewPagerContainerFragment extends Fragment {
         titlePageIndicator.setViewPager(mViewPager);
         ((SetMineMainActivity) getActivity()).eventViewPager = mViewPager;
         mViewPager.setOffscreenPageLimit(3);
-        mViewPager.setCurrentItem(0);
+        mViewPager.setCurrentItem(1);
         ((SetMineMainActivity)getActivity()).eventViewPager = mViewPager;
         ((SetMineMainActivity)getActivity()).actionBar.getCustomView().setVisibility(View.VISIBLE);
         return root;

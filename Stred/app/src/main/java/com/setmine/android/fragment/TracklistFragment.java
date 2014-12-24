@@ -56,7 +56,9 @@ public class TracklistFragment extends Fragment {
         super.onCreate(savedInstanceState);
         SetMineMainActivity rootActivity = (SetMineMainActivity) getActivity();
         this.context = rootActivity.getApplicationContext();
-        this.set = ((SetMineMainActivity) getActivity()).setsManager.selectedSet;
+        if(rootActivity.setsManager.selectedSet != null) {
+            this.set = rootActivity.setsManager.selectedSet;
+        }
 
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
