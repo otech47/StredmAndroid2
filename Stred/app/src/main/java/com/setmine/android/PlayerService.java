@@ -94,7 +94,9 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 am.registerMediaButtonEventReceiver(mReceiver);
                 mMediaPlayer.start();
                 acquireLocks();
-                mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
+                if(mRemoteViews != null) {
+                    mRemoteViews.setImageViewResource(R.id.button_play_pause, R.drawable.ic_action_pause_white);
+                }
                 m_NM.notify(NOTIFICATION_ID, mNotification);
                 remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
                 startForeground(NOTIFICATION_ID, mNotification);

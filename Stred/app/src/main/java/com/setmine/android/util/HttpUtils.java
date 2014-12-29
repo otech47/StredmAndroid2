@@ -1,10 +1,13 @@
 package com.setmine.android.util;
 
 import android.content.Context;
+import android.util.Log;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.HeaderGroup;
 import org.apache.http.params.BasicHttpParams;
@@ -99,6 +102,44 @@ public class HttpUtils {
 
             HttpGet request = new HttpGet(url);
             request.setHeaders(headers.getAllHeaders());
+            ConnectionUtils cd = new ConnectionUtils(context);
+            if (cd.isConnectingToInternet()) {
+                response = httpclient.execute(request);
+                InputStream in = response.getEntity().getContent();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+                String inputString;
+                while((inputString = reader.readLine()) != null) {
+                    builder.append(inputString);
+                }
+                reader.close();
+                jsonString = builder.toString();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return jsonString;
+    }
+
+    public String postApiRequest(String route, String jsonPostData) {
+        String url = apiUrl + route;
+        String jsonString = "";
+        try {
+            HttpResponse response = null;
+            HttpParams httpParameters = new BasicHttpParams();
+            HeaderGroup headers = new HeaderGroup();
+
+            HttpConnectionParams.setConnectionTimeout(httpParameters,
+                    TIMEOUT_CONNECTION);
+            HttpConnectionParams.setSoTimeout(httpParameters, TIMEOUT_SOCKET);
+
+            HttpClient httpclient = new DefaultHttpClient(httpParameters);
+
+            HttpPost request = new HttpPost(url);
+            request.setHeaders(headers.getAllHeaders());
+            request.setEntity(new StringEntity(jsonPostData));
+            request.setHeader("Accept", "application/json");
+            request.setHeader("Content-type", "application/json");
+            Log.d("HttpUtils", route + " : " + jsonPostData);
             ConnectionUtils cd = new ConnectionUtils(context);
             if (cd.isConnectingToInternet()) {
                 response = httpclient.execute(request);

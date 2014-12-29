@@ -34,7 +34,6 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
 
     @Override
     public Fragment getItem(int i) {
-
         if(i == 0) {
             UserFragment userFragment = new UserFragment();
             Bundle args = new Bundle();

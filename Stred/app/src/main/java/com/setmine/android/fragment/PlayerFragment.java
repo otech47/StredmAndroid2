@@ -565,7 +565,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	}
 
 	private void playPrevious() {
-        setsManager.selectSetByIndex((setsManager.selectedSetIndex < 0)? setsManager.getPlaylistLength() - 1 : setsManager.selectedSetIndex - 1);
+        setsManager.selectSetByIndex((setsManager.selectedSetIndex <= 0)? setsManager.getPlaylistLength() - 1 : setsManager.selectedSetIndex - 1);
         playSong();
 	}
 

@@ -23,10 +23,9 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.widget.TextView;
 
-import com.facebook.AppEventsLogger;
-import com.facebook.Session;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -44,6 +43,7 @@ import com.setmine.android.fragment.PlayerFragment;
 import com.setmine.android.fragment.PlaylistFragment;
 import com.setmine.android.fragment.SearchSetsFragment;
 import com.setmine.android.fragment.TracklistFragment;
+import com.setmine.android.fragment.UserFragment;
 import com.setmine.android.object.Artist;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
@@ -74,7 +74,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     private final static int
             CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static int
-            FACEBOOK_LOGIN = 326350;
+            FACEBOOK_LOGIN = 195278;
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
     public static String APP_VERSION;
@@ -96,6 +96,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public TracklistFragment tracklistFragment;
     public SearchSetsFragment searchSetsFragment;
     public MainViewPagerContainerFragment mainViewPagerContainerFragment;
+    public UserFragment userFragment;
 
     public ModelsContentProvider modelsCP;
     public SetsManager setsManager;
@@ -148,6 +149,10 @@ public class SetMineMainActivity extends FragmentActivity implements
         } catch (PackageManager.NameNotFoundException e) {
             e.printStackTrace();
         }
+
+        // Only allow keyboard pop up on EditText click
+
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
         // Check for Google Play Services for Location
         // Use Gainesville, FL if not found, and don't use soonestEventsAroundMe
@@ -280,9 +285,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         Log.d(TAG, "ONPAUSE");
 
-        // Logs 'app deactivate' App Event.
-
-        AppEventsLogger.deactivateApp(this);
     }
 
     @Override
@@ -291,9 +293,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         Log.d(TAG, "ONRESUME");
 
-        // Logs 'install' and 'app activate' App Events.
-
-        AppEventsLogger.activateApp(this);
     }
 
     @Override
@@ -336,8 +335,8 @@ public class SetMineMainActivity extends FragmentActivity implements
                 ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
                 ft.add(R.id.searchSetsContainer, searchSetsFragment);
                 ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
                 ft.commit();
+                getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
             } catch (RejectedExecutionException r) {
                     r.printStackTrace();
             }
@@ -532,7 +531,8 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        Session.getActiveSession().onActivityResult(this, requestCode, resultCode, data);
+        userFragment.onActivityResult(requestCode, resultCode, data);
+        Log.d(TAG, "onActivityResult");
         switch (requestCode) {
             case CONNECTION_FAILURE_RESOLUTION_REQUEST :
                 switch (resultCode) {

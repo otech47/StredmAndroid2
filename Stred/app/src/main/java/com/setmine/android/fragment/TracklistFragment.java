@@ -56,7 +56,7 @@ public class TracklistFragment extends Fragment {
         super.onCreate(savedInstanceState);
         SetMineMainActivity rootActivity = (SetMineMainActivity) getActivity();
         this.context = rootActivity.getApplicationContext();
-        if(rootActivity.setsManager.selectedSet != null) {
+        if(rootActivity.setsManager != null) {
             this.set = rootActivity.setsManager.selectedSet;
         }
 
