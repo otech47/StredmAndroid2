@@ -139,7 +139,6 @@ public class HttpUtils {
             request.setEntity(new StringEntity(jsonPostData));
             request.setHeader("Accept", "application/json");
             request.setHeader("Content-type", "application/json");
-            Log.d("HttpUtils", route + " : " + jsonPostData);
             ConnectionUtils cd = new ConnectionUtils(context);
             if (cd.isConnectingToInternet()) {
                 response = httpclient.execute(request);

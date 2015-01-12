@@ -18,6 +18,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
+import android.util.Log;
 import android.view.View;
 import android.widget.RemoteViews;
 
@@ -30,6 +31,8 @@ import com.setmine.android.task.CountPlaysTask;
 import java.io.IOException;
 
 public class PlayerService extends Service implements AudioManager.OnAudioFocusChangeListener {
+
+    private final String TAG = "PlayerService";
     private static final String SERVICE_COMMAND = "SERVICE_COMMAND";
     private NotificationManager m_NM;
     public MediaPlayer mMediaPlayer = new MediaPlayer();
@@ -170,6 +173,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
     @Override
     public void onCreate() {
+        Log.d(TAG, "onCreate");
         m_NM = (NotificationManager)getSystemService(NOTIFICATION_SERVICE);
         acquireLocks();
         am = (AudioManager) this.getSystemService(Context.AUDIO_SERVICE);
@@ -254,6 +258,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
     @TargetApi(16)
     private void showNotification() {
+
         // reusable variables
         PendingIntent pendingIntent = null;
         Intent intent = null;
@@ -277,13 +282,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         mRemoteViews.setTextViewText(R.id.text_artist, song.getArtist());
         mRemoteViews.setTextViewText(R.id.text_event, song.getEvent());
 
-        ImageLoader.getInstance().loadImage(SetMineMainActivity.S3_ROOT_URL + song.getArtistImage(), options, new SimpleImageLoadingListener() {
-            @Override
-            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                mRemoteViews.setImageViewBitmap(R.id.notification_image, loadedImage);
-                m_NM.notify(NOTIFICATION_ID, mNotification);
-            }
-        });
+
 
         // Play/pause intent
         intent = new Intent(getApplicationContext(), PlayerService.class)
@@ -322,7 +321,16 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 .setContent(mRemoteViews)
                 .build();
 
-        //Show the notification in the notification bar.
+        ImageLoader.getInstance().loadImage(SetMineMainActivity.S3_ROOT_URL + song.getArtistImage(), options, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                mRemoteViews.setImageViewBitmap(R.id.notification_image, loadedImage);
+                m_NM.notify(NOTIFICATION_ID, mNotification);
+            }
+        });
+
+        // Show the notification in the notification bar.
+
         m_NM.notify(NOTIFICATION_ID, mNotification);
     }
 }

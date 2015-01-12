@@ -41,7 +41,17 @@
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
+                    android:background="@color/setmine_white"
                     android:id="@+id/activityTilesContainer">
+
+                    <ProgressBar
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/activitiesLoading"
+                        android:layout_margin="@dimen/progress_padding"
+                        android:layout_alignParentBottom="true"
+                        android:gravity="center|bottom"
+                        android:indeterminate="true" />
 
                 </LinearLayout>
 
@@ -65,7 +75,17 @@
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:id="@+id/mySetTilesContainer">
+                    android:id="@+id/mySetTilesContainer"
+                    android:background="@color/setmine_white" >
+
+                    <ProgressBar
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:id="@+id/mySetsLoading"
+                        android:layout_margin="@dimen/progress_padding"
+                        android:layout_alignParentBottom="true"
+                        android:gravity="center|bottom"
+                        android:indeterminate="true" />
 
                 </LinearLayout>
 

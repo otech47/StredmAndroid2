@@ -73,7 +73,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     public EventPageFragment() {}
 
     @Override
-    public void onResponseReceived(JSONObject jsonObject, String identifier) {
+    public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
         modelsCP.setModel(jsonObject, identifier);
         currentEvents = modelsCP.searchEvents;
         dynamicAdapter.newData();
@@ -272,7 +272,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 public void onItemClick(AdapterView <?> parent, View v,
                 int position, long id) {
                     Event currentEvent = currentEvents.get(position);
-                    activity.openEventPage(currentEvent, eventType);
+                    activity.openEventDetailPage(currentEvent, eventType);
                 }
             });
         }
@@ -369,7 +369,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             holder.event.setText(event.event);
             holder.date.setText(dateUtils.formatDateText(event.startDate, event.endDate));
 
-            ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + event.mainImageUrl, holder.image, options, animateFirstListener);
+            ImageLoader.getInstance()
+                    .displayImage(SetMineMainActivity.S3_ROOT_URL + event.mainImageUrl,
+                            holder.image, options, animateFirstListener);
 
 
             return view;

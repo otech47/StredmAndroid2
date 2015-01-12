@@ -53,6 +53,6 @@ public class ApiCallAsyncTask extends AsyncTask<String, Integer, JSONObject> {
     protected void onPostExecute(JSONObject jsonObject) {
         activity.asyncTasksInProgress--;
         Log.v("Task complete. Still in queue: ", ((Integer)activity.asyncTasksInProgress).toString());
-        taskCaller.onResponseReceived(jsonObject, modelType);
+        taskCaller.onApiResponseReceived(jsonObject, modelType);
     }
 }

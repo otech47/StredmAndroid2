@@ -10,9 +10,8 @@ import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.fragment.EventPageFragment;
 import com.setmine.android.fragment.UserFragment;
 
-//        Incomplete User Login Feature code is commented out
 
-public class EventPagerAdapter extends FragmentPagerAdapter {
+public class MainPagerAdapter extends FragmentPagerAdapter {
 
     public Fragment currentFragment;
     public int currentFragmentPosition;
@@ -27,13 +26,20 @@ public class EventPagerAdapter extends FragmentPagerAdapter {
 
     public int NUM_TITLES = TITLES.length;
 
-    public EventPagerAdapter(FragmentManager fm) {
+    public MainPagerAdapter(FragmentManager fm) {
         super(fm);
         this.fm = fm;
     }
 
+    // The View Pager calls this method when loading the pages in the pager
+
     @Override
     public Fragment getItem(int i) {
+
+        // First page is the UserFragment
+        // Next three pages are EventPageFragments
+        // See respective classes for documentation
+
         if(i == 0) {
             UserFragment userFragment = new UserFragment();
             Bundle args = new Bundle();

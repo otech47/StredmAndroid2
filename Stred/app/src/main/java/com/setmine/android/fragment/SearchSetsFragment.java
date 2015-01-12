@@ -127,7 +127,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
                         Artist a = activity.modelsCP.getArtists().get(position);
-                        activity.openArtistPage(a);
+                        activity.openArtistDetailPage(a);
                     }
                 });
             }
@@ -147,7 +147,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
                         Event e = activity.modelsCP.getEvents().get(position);
-                        activity.openEventPage(e, "recent");
+                        activity.openEventDetailPage(e, "recent");
                     }
                 });
             }

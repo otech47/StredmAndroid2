@@ -33,7 +33,7 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.setmine.android.adapter.EventPagerAdapter;
+import com.setmine.android.adapter.MainPagerAdapter;
 import com.setmine.android.adapter.PlayerPagerAdapter;
 import com.setmine.android.fragment.ArtistDetailFragment;
 import com.setmine.android.fragment.EventDetailFragment;
@@ -67,7 +67,6 @@ import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class SetMineMainActivity extends FragmentActivity implements
         InitialApiCaller,
-        LineupsSetsApiCaller,
         GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener {
 
@@ -85,7 +84,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     private static final String TAG = "SetMineMainActivity";
 
-    public EventPagerAdapter mEventPagerAdapter;
+    public MainPagerAdapter mMainPagerAdapter;
     public ViewPager eventViewPager;
     public PlayerPagerAdapter mPlayerPagerAdapter;
 
@@ -177,7 +176,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                             "upcomingEvents");
         }
 
-        // Create utilities, get instances, and save common variables
+        // Image utilities for smoothly loading and cachine images
 
         imageUtils = new ImageUtils();
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
@@ -187,11 +186,26 @@ public class SetMineMainActivity extends FragmentActivity implements
                 .build();
         ImageLoader.getInstance().init(config);
 
+        // See utils/DateUtils.java for documentation
+
         dateUtils = new DateUtils();
+
+        // Fragment Manager handles all fragments and the navigation between them
+
         fragmentManager = getSupportFragmentManager();
-        mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
+
+        // A Content Provider for storing models returned from the SetMine API
+        // It is not implemented as a traditional Android Content Provider (pending project)
+
         modelsCP = new ModelsContentProvider();
+
+        // SetsManager handles updating the playlist and keeping track of set results
+
         setsManager = new SetsManager();
+
+        // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
+        // button depending on if the user is at the top level
+
         actionBar = getActionBar();
 
         fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
@@ -205,7 +219,9 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
         });
 
-        // Mixpanel Initial Tracking
+        // Mixpanel Instance for sending data to Mixpanel to analyze metrics
+
+        mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
 
         JSONObject mixpanelProperties = new JSONObject();
         try {
@@ -232,13 +248,16 @@ public class SetMineMainActivity extends FragmentActivity implements
             e.printStackTrace();
         }
 
+        // Sets the Activity view where all fragment view containers are held
+
         setContentView(R.layout.fragment_main);
 
-        handleIntent(getIntent());
+        // See each method for documentation
 
+        handleIntent(getIntent());
         applyCustomViewStyles();
 
-        // Get All initial Data Models from SetMine API and store
+        // Get All initial Data Models from SetMine API and store it in the content provider
 
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
@@ -256,6 +275,8 @@ public class SetMineMainActivity extends FragmentActivity implements
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "recent", "recentSets");
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist?all=true", "allArtists");
+
+        // See finishOnCreate method which is called after these tasks are finished executing
     }
 
     @Override
@@ -268,6 +289,9 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onStart() {
         super.onStart();
+
+        // Start and Bind the PlayerService
+
         if(!serviceBound) {
             Intent intent = new Intent(this, PlayerService.class);
             startService(intent);
@@ -275,77 +299,83 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
     }
 
-
-
-    // For Facebook SDK
-
     @Override
     protected void onPause() {
         super.onPause();
-
         Log.d(TAG, "ONPAUSE");
-
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-
         Log.d(TAG, "ONRESUME");
-
     }
 
     @Override
     protected void onDestroy() {
+
+        // Flush all data to the Mixpanel Server
+
         mixpanel.flush();
+
+        // Stop and Unbind the PlayerService
+
         if(serviceBound) {
             unbindService(playerServiceConnection);
             serviceBound = false;
         }
         playerService.stopSelf();
+
         super.onDestroy();
     }
 
-    // Implementing InitialApiCaller Interface
+    // Implement InitialApiCaller Interface
 
     @Override
     public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
-        this.modelsCP.setModel(jsonObject, modelType);
+        modelsCP.setModel(jsonObject, modelType);
         if(modelsCP.initialModelsReady) {
             finishOnCreate();
         }
     }
 
-    // Implementing LineupSetsApiCaller Interface
-
-    @Override
-    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
-        this.modelsCP.setModel(jsonObject, identifier);
-    }
+    // Executed after all initial models are loaded
 
     public void finishOnCreate() {
-        if(!finishedOnCreate) {
-            try {
-                calculateScreenSize();
-                mainViewPagerContainerFragment = new MainViewPagerContainerFragment();
-                playerContainerFragment = new PlayerContainerFragment();
-                searchSetsFragment = new SearchSetsFragment();
-                FragmentTransaction ft = fragmentManager.beginTransaction();
-                ft.add(R.id.playerPagerContainer, playerContainerFragment);
-                ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
-                ft.add(R.id.searchSetsContainer, searchSetsFragment);
-                ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                ft.commit();
-                getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
-            } catch (RejectedExecutionException r) {
-                    r.printStackTrace();
-            }
-            finishedOnCreate = true;
+        try {
+            calculateScreenSize();
+
+            // Create the 2nd Level Fragments
+
+            mainViewPagerContainerFragment = new MainViewPagerContainerFragment();
+            playerContainerFragment = new PlayerContainerFragment();
+            searchSetsFragment = new SearchSetsFragment();
+
+            // Add them to the activity's container fragment
+
+            FragmentTransaction ft = fragmentManager.beginTransaction();
+            ft.add(R.id.playerPagerContainer, playerContainerFragment);
+            ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
+            ft.add(R.id.searchSetsContainer, searchSetsFragment);
+            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+            ft.commit();
+
+            // Remove the splash loader
+
+            getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
+
+        } catch (RejectedExecutionException r) {
+            r.printStackTrace();
         }
     }
 
+    // Add any initial view changes here
+
     public void applyCustomViewStyles() {
         LayoutInflater inflater = LayoutInflater.from(this);
+
+        // Use a custom action bar view
+
         View customView = inflater.inflate(R.layout.custom_action_bar, null);
         actionBar.setCustomView(customView);
         actionBar.setDisplayShowCustomEnabled(true);
@@ -358,21 +388,33 @@ public class SetMineMainActivity extends FragmentActivity implements
         screenWidth = size.x;
     }
 
+    // Required for applying a global custom font style
+
     @Override
     protected void attachBaseContext(Context newBase) {
         super.attachBaseContext(new CalligraphyContextWrapper(newBase));
     }
 
+    // Click Function for the Home button on the Action Bar
+
     public void homeButtonPress(View v) {
+
+        // Hide Player and Search Sets
+        // Show Main View Pager (Home, Events, Sets, Find)
+
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
+
+        // Add it to the Fragment Back Stack (see Android Dev for Documentation)
+
         fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
     }
+
+    // Click Function for the Back button on the Action Bar
 
     @Override
     public void onBackPressed() {
@@ -381,19 +423,25 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-//        transaction.hide(fragmentManager.findFragmentById(R.id.loginContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
     }
 
+    // Click function for Venue Map Button in Event Detail Pages
+
     public void googleMapsAddressLookup(View v) {
         String address = ((TextView)((ViewGroup)v.getParent()).findViewById(R.id.locationText))
                 .getText().toString();
+
+        // Use an Intent to launch the Google Maps activity
+
         String url = "http://maps.google.com/maps?daddr="+address;
         Intent intent = new Intent(android.content.Intent.ACTION_VIEW,  Uri.parse(url));
         startActivity(intent);
     }
+
+    // Click Function for the Play button on the Action Bar
 
     public void playNavigationClick(View v) {
         if(setsManager.getPlaylist().size() > 0) {
@@ -416,6 +464,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
     }
 
+    // Start the Player Fragment from anywhere in the App given the set ID
+
     public void startPlayerFragment(int setId) {
         openPlayer();
         if(playerFragment == null) {
@@ -427,23 +477,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         playerFragment.playSong();
     }
 
-    public void openUserHomePage() {
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
-    }
-
-    public void openLogin(View v) {
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
-    }
+    // Open Search Fragment from anywhere in the app
 
     public void openSearch(View v) {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -454,16 +488,20 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.commit();
     }
 
+    // Open Player Fragment from anywhere in the app
+
     public void openPlayer() {
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
+        transaction.commit();
     }
 
-    public void openArtistPage(Artist artist) {
+    // Open Artist Detail Fragment from anywhere in the app given a valid Artist object
+
+    public void openArtistDetailPage(Artist artist) {
         ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
         artistDetailFragment.selectedArtist = artist;
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -473,7 +511,9 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.commit();
     }
 
-    public void openEventPage(Event event, String eventType) {
+    // Open Event Detail Fragment from anywhere in the app given a valid Event object
+
+    public void openEventDetailPage(Event event, String eventType) {
         EventDetailFragment eventDetailFragment = new EventDetailFragment();
         eventDetailFragment.currentEvent = event;
         eventDetailFragment.EVENT_TYPE = (eventType.equals("search")?"upcoming":eventType);
@@ -485,25 +525,33 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.commit();
     }
 
-    public void closePlayer() {
-        Log.v("Close ", "player");
+
+    // Required to intercept intents for handling
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        handleIntent(intent);
     }
+
+    // Handles incoming intents for opening parts of the app
 
     public void handleIntent(Intent intent) {
         if(intent != null && intent.getAction() != null) {
+
+            // Remote Controls and the Notification player send in this intent
+
             if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
                 openPlayer();
             } else if(intent.getAction().equals("com.setmine.android.VIEW")) {
+
+                // Intent for deep linking
+
                 String command = intent.getDataString();
                 Log.d(TAG, command);
             }
         }
     }
 
-    @Override
-    public void onNewIntent(Intent intent) {
-        handleIntent(intent);
-    }
     // Location Services
 
     public static class ErrorDialogFragment extends DialogFragment {
@@ -569,10 +617,15 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
     }
 
-    // Implementing ConnectionCallbacks for Google Play Services
+    // Google Play Services listeners
+
+    // Google Play Services successfully connected
 
     @Override
     public void onConnected(Bundle bundle) {
+
+        // Default to Gainesville coordinates if location not available and disconnect
+
         if(locationClient.getLastLocation() != null) {
             currentLocation = locationClient.getLastLocation();
         }
@@ -582,6 +635,9 @@ public class SetMineMainActivity extends FragmentActivity implements
             currentLocation.setLongitude(-82.325856);
         }
         locationClient.disconnect();
+
+        // Get upcoming events from API based on location
+
         String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
                 +currentLocation.getLongitude();
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
@@ -597,10 +653,13 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void onDisconnected() {
     }
 
-    // Implementing Failed Connection Listeners for Google Play Services
+    // Google Play Services connection failed
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        // Use Gainesville as location
+
         locationClient.disconnect();
         currentLocation = new Location("default");
         currentLocation.setLatitude(29.652175);
@@ -616,8 +675,5 @@ public class SetMineMainActivity extends FragmentActivity implements
                         "upcoming",
                         "upcomingEvents");
     }
-
-    // Blurring images for player, called by PlayerFragment
-
 
 }

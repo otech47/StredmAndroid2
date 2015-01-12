@@ -1,5 +1,6 @@
 package com.setmine.android;
 
+import com.setmine.android.object.Activity;
 import com.setmine.android.object.Artist;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Genre;
@@ -32,6 +33,7 @@ public class ModelsContentProvider {
     public List<Event> upcomingEvents;
     public List<Event> recentEvents;
     public List<Event> searchEvents;
+    public List<Activity> activities;
     public HashMap<String, List<Set>> detailSets;
     public HashMap<String, List<Event>> detailEvents;
     public boolean initialModelsReady = false;
@@ -52,6 +54,7 @@ public class ModelsContentProvider {
         recentSets = new ArrayList<Set>();
         detailSets = new HashMap<String, List<Set>>();
         detailEvents = new HashMap<String, List<Event>>();
+        activities = new ArrayList<Activity>();
     }
 
     public void setModel(JSONObject model, String modelName) {
@@ -153,6 +156,12 @@ public class ModelsContentProvider {
                         allArtists.add(new Artist(allArtistsArray.getJSONObject(i)));
                     }
                 }
+                else if(modelName.equals("activities")) {
+                    JSONArray activitiesArray = payload.getJSONArray("activity");
+                    for(int i = 0 ; i < activitiesArray.length() ; i++) {
+                        activities.add(new Activity(activitiesArray.getJSONObject(i)));
+                    }
+                }
             }
             else {
                 return;
@@ -164,13 +173,17 @@ public class ModelsContentProvider {
     }
 
     public void onModelsChange() {
+
         if(upcomingEvents.size() > 0 &&
                 recentEvents.size() > 0 &&
                 searchEvents.size() > 0 &&
                 artists.size() > 0 &&
                 events.size() > 0 &&
                 mixes.size() > 0 &&
-                genres.size() > 0) {
+                genres.size() > 0 &&
+                allArtists.size() > 0 &&
+                popularSets.size() > 0 &&
+                recentSets.size() > 0 ) {
             initialModelsReady = true;
         }
     }
@@ -219,6 +232,10 @@ public class ModelsContentProvider {
 
     public List<Event> getDetailEvents(String key) {
         return detailEvents.get(key);
+    }
+
+    public List<Activity> getActivities() {
+        return activities;
     }
 
     public void setLineups(JSONObject response) {

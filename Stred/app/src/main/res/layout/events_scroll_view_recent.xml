@@ -17,7 +17,7 @@
     <ImageView
         android:layout_width="2dp"
         android:layout_height="match_parent"
-        android:src="@drawable/white_border"
+        android:src="@drawable/border_white"
         android:layout_alignParentLeft="true"/>
 
     <ImageView

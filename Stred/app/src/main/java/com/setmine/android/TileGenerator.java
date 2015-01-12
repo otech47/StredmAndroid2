@@ -215,7 +215,7 @@ public class TileGenerator {
 //    public String formatLocationFromLatLong(String address) {
 //        String cityState = "";
 //        String apiCall = "place/textsearch/json?query=" + Uri.encode(address) + "&key=" + mapsApiKey;
-//        JsonApiCallTask jsonTask = new JsonApiCallTask(context, googleMapsApiRoot, this);
+//        JsonApiCallAsyncTask jsonTask = new JsonApiCallAsyncTask(context, googleMapsApiRoot, this);
 //        jsonTask.execute(apiCall);
 //        try {
 //            JSONObject jsonResponse = jsonTask.get();
@@ -242,7 +242,7 @@ public class TileGenerator {
 //                JSONObject result = results.getJSONObject(0);
 //                String reference = result.getString("place_id");
 //                String apiCall = "place/details/json?placeid=" + reference + "&key=" + mapsApiKey;
-//                JsonApiCallTask jsonTask = new JsonApiCallTask(context, googleMapsApiRoot, this);
+//                JsonApiCallAsyncTask jsonTask = new JsonApiCallAsyncTask(context, googleMapsApiRoot, this);
 //                jsonTask.execute(apiCall, "detail");
 //            } catch (JSONException e) {
 //                e.printStackTrace();

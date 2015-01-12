@@ -59,14 +59,4 @@
         android:layout_marginStart="10dp"
         android:onClick="openSearch"/>
 
-    <ImageView
-        android:layout_width="?android:actionBarSize"
-        android:layout_height="?android:actionBarSize"
-        android:id="@+id/login_nav"
-        android:src="@drawable/com_facebook_logo"
-        android:background="@drawable/pressable_actionbar_button"
-        android:layout_toLeftOf="@id/search_nav"
-        android:visibility="gone"
-        android:onClick="openLogin"/>
-
 </RelativeLayout>

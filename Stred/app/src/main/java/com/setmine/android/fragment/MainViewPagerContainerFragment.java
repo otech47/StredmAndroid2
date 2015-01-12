@@ -11,7 +11,7 @@ import android.view.ViewGroup;
 
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.adapter.EventPagerAdapter;
+import com.setmine.android.adapter.MainPagerAdapter;
 import com.viewpagerindicator.TitlePageIndicator;
 
 /**
@@ -20,7 +20,7 @@ import com.viewpagerindicator.TitlePageIndicator;
 public class MainViewPagerContainerFragment extends Fragment {
 
     public ViewPager mViewPager;
-    public EventPagerAdapter mEventPagerAdapter;
+    public MainPagerAdapter mMainPagerAdapter;
     public FragmentManager fragmentManager;
 
 
@@ -29,16 +29,30 @@ public class MainViewPagerContainerFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         View root = inflater.inflate(R.layout.event_pager_container, container, false);
+
+        // Child Fragment Managers are required when dealing with View Pagers
+
         fragmentManager = getChildFragmentManager();
+
         mViewPager = (ViewPager)root.findViewById(R.id.eventpager);
-        mEventPagerAdapter = new EventPagerAdapter(fragmentManager);
-        mEventPagerAdapter.activity = (SetMineMainActivity) getActivity();
-        mViewPager.setAdapter(mEventPagerAdapter);
+        mMainPagerAdapter = new MainPagerAdapter(fragmentManager);
+
+        // Store a reference to the Pager Adapter in the top level activity
+
+        mMainPagerAdapter.activity = (SetMineMainActivity) getActivity();
+
+        mViewPager.setAdapter(mMainPagerAdapter);
+
+        // Set the title tabs at the top of the View Pager
+
         final TitlePageIndicator titlePageIndicator = (TitlePageIndicator)root.findViewById(R.id.titleTabs);
         titlePageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             public void onPageScrolled(int i, float v, int i2) {}
             public void onPageScrollStateChanged(int i) {}
+
+            // Change the footer color of the title tabs
 
             @Override
             public void onPageSelected(int i) {
@@ -52,12 +66,30 @@ public class MainViewPagerContainerFragment extends Fragment {
 
             }
         });
+
+        // Bind title tabs to View Pager
+
         titlePageIndicator.setViewPager(mViewPager);
+
+        // Store a reference to the View Pager in the top level activity
+
         ((SetMineMainActivity) getActivity()).eventViewPager = mViewPager;
+
+        // Makes sure all offscreen pages of the pager are loaded right away
+
         mViewPager.setOffscreenPageLimit(3);
+
         mViewPager.setCurrentItem(1);
-        ((SetMineMainActivity)getActivity()).eventViewPager = mViewPager;
-        ((SetMineMainActivity)getActivity()).actionBar.getCustomView().setVisibility(View.VISIBLE);
+
         return root;
+    }
+
+    @Override
+    public void onViewCreated(View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Show the action bar after View has been created
+
+        ((SetMineMainActivity)getActivity()).actionBar.getCustomView().setVisibility(View.VISIBLE);
     }
 }

@@ -263,7 +263,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 							} else if ((e2.getY() - e1.getY()) > SWIPE_MAX_OFF_PATH) {
 								// Toast.makeText(getActivity(),
 								// "onfling off path DOWN", 500).show();
-								((SetMineMainActivity) getActivity()).closePlayer();
+//								((SetMineMainActivity) getActivity()).closePlayer();
 								return false;
 							}
 
@@ -532,13 +532,26 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             e.printStackTrace();
         }
 
-        ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + song.getArtistImage(), mImageThumb, options);
+        ImageLoader.getInstance().loadImage(activity.S3_ROOT_URL + song.getArtistImage(), options, new SimpleImageLoadingListener() {
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 2000);
+                mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
+
+                playerService.lockscreenImage = loadedImage;
+
+                Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
+                notificationIntent.setAction("UPDATE_REMOTE");
+                notificationIntent.putExtra("ARTIST", song.getArtist());
+                notificationIntent.putExtra("EVENT", song.getEvent());
+                sendIntentToService(notificationIntent);
+            }
+        });
         ImageLoader.getInstance().loadImage(activity.S3_ROOT_URL + song.getEventImage(), options, new SimpleImageLoadingListener() {
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).imageUtils.fastblur(loadedImage, 4);
-                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 1000);
-                mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
+                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 2000);
                 mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
 
                 playerService.lockscreenImage = loadedImage;
@@ -560,12 +573,12 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     }
 
     private void playNext() {
-        setsManager.selectSetByIndex((setsManager.selectedSetIndex >= setsManager.getPlaylistLength())? 0 : setsManager.selectedSetIndex + 1);
+        setsManager.selectSetByIndex(((setsManager.selectedSetIndex + 1) >= setsManager.getPlaylistLength())? 0 : setsManager.selectedSetIndex + 1);
         playSong();
 	}
 
 	private void playPrevious() {
-        setsManager.selectSetByIndex((setsManager.selectedSetIndex <= 0)? setsManager.getPlaylistLength() - 1 : setsManager.selectedSetIndex - 1);
+        setsManager.selectSetByIndex((setsManager.selectedSetIndex == 0)? setsManager.getPlaylistLength() - 1 : setsManager.selectedSetIndex - 1);
         playSong();
 	}
 
