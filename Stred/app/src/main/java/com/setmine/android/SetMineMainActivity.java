@@ -576,6 +576,7 @@ public class SetMineMainActivity extends FragmentActivity implements
      * Handle results returned to the FragmentActivity
      * by Google Play services
      */
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);

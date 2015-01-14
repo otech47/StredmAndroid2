@@ -73,6 +73,9 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     DisplayImageOptions options;
     Lineup selectedLineup = null;
 
+    // This method is called after the currentEvent variable is stored with a new value.
+    // Refreshes all event properties. Might not be necessary, potential re-factoring to be done here
+
     public void onEventAssigned() {
         dateUtils = new DateUtils();
         EVENT_ID = currentEvent.getId();
@@ -92,9 +95,15 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.v("Event Detail Fragment Created", "");
+
+        // Storing global variables for frequent re-use and readability
+
         setsManager = ((SetMineMainActivity)getActivity()).setsManager;
         context = getActivity().getApplicationContext();
         activity = (SetMineMainActivity)getActivity();
+
+        // DateUtils is created in two methods due to some fragment lifecycle issues
+
         dateUtils = new DateUtils();
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
@@ -107,28 +116,41 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
 
     }
 
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.event_detail, container, false);
         lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
+
+        // Load the top event image
+
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
         ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + EVENT_IMAGE, eventImage, options);
+
+        // Set text for event details
+
         ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE_FORMATTED);
-        Log.d("EVENT_ADDRESS", dateUtils.toString());
-        Log.d("EVENT_ADDRESS", EVENT_ADDRESS);
         ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_VENUE + ", "
                 + dateUtils.getCityStateFromAddress(EVENT_ADDRESS));
-        lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
+        ((TextView)rootView.findViewById(R.id.eventText)).setText(EVENT_NAME);
+
+
+        // This logic is to fix a server side inconsistency with the default SetMine image
+
         if(EVENT_IMAGE.equals(83)) {
             EVENT_IMAGE = "83";
         }
-        ((TextView)rootView.findViewById(R.id.eventText)).setText(EVENT_NAME);
+
+        // Customize detail page based on recent or upcoming
+
         if(EVENT_TYPE == "recent") {
             rootView.findViewById(R.id.directionsButton).setVisibility(View.GONE);
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_blue);
             ((TextView)rootView.findViewById(R.id.lineupText)).setText("Sets");
+
+            // If the sets have already been stored as a model, finish creating the view
+            // Else, make the API call to retrieve those sets
+
             if(activity.modelsCP.detailSets.containsKey(EVENT_NAME)) {
                 finishCreateView();
             } else {
@@ -138,6 +160,9 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
+
+            // Set Social and Ticket Click Listeners and functions if it is a paid promoted event
+
             if(EVENT_PAID == 1) {
                 rootView.findViewById(R.id.socialButtons).setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
@@ -207,6 +232,10 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                     }
                 });
             }
+
+            // If the event lineup has already been stored as a model, finish creating the view
+            // Else, make the API call to retrieve that lineup
+
             if(activity.modelsCP.lineups.containsKey(EVENT_NAME)) {
                 finishCreateView();
             } else {
@@ -234,7 +263,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         super.onDestroyView();
     }
 
-    // Implement Lineup/Sets API Response Callback
+    // Implement Lineup/Sets API Response Callback, executed at the end of a LineupSetsApiCallTask
 
     @Override
     public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
@@ -248,7 +277,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         finishCreateView();
     }
 
-    // Models must be valid before executing this method
+    // Detail Models must be valid before executing this method
 
     public void finishCreateView() {
         if(EVENT_TYPE == "recent") {
