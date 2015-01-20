@@ -83,8 +83,8 @@ public class PlaylistFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                activity.startPlayerFragment(Integer.parseInt(activity.playerFragment.
-                        setsManager.getPlaylist().get(position).getId()));
+                activity.startPlayerFragment(activity.playerFragment
+                        .setsManager.getPlaylist().get(position).getId());
                 activity.playerContainerFragment.mViewPager.setCurrentItem(1);
             }
         });

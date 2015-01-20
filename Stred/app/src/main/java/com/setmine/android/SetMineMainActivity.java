@@ -47,6 +47,7 @@ import com.setmine.android.fragment.UserFragment;
 import com.setmine.android.object.Artist;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
+import com.setmine.android.object.User;
 import com.setmine.android.task.InitialApiCallAsyncTask;
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.ImageUtils;
@@ -73,7 +74,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     private final static int
             CONNECTION_FAILURE_RESOLUTION_REQUEST = 9000;
     private final static int
-            FACEBOOK_LOGIN = 195278;
+            FACEBOOK_LOGIN = 64206;
 
     public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
     public static String APP_VERSION;
@@ -101,6 +102,8 @@ public class SetMineMainActivity extends FragmentActivity implements
     public SetsManager setsManager;
     public PlayerService playerService;
     public boolean serviceBound = false;
+
+    public User registeredUser;
     public boolean userIsRegistered = false;
 
     public Integer screenHeight;
@@ -118,6 +121,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public ImageUtils imageUtils;
     public DateUtils dateUtils;
+
 
     // Create the Service Connection to start and bind at onStart()
 
@@ -141,140 +145,147 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Get Application Version from build.gradle
+        if(savedInstanceState == null) {
+            // Get Application Version from build.gradle
 
-        try {
-            APP_VERSION = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-        } catch (PackageManager.NameNotFoundException e) {
-            e.printStackTrace();
-        }
-
-        // Only allow keyboard pop up on EditText click
-
-        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
-
-        // Check for Google Play Services for Location
-        // Use Gainesville, FL if not found, and don't use soonestEventsAroundMe
-
-        if (servicesConnected()) {
-            locationClient = new LocationClient(this, this, this);
-            locationClient.connect();
-        }
-        else {
-            currentLocation = new Location("default");
-            currentLocation.setLatitude(29.652175);
-            currentLocation.setLongitude(-82.325856);
-            String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
-                    +currentLocation.getLongitude();
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
-                            eventSearchUrl,
-                            "searchEvents");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
-                            "upcoming",
-                            "upcomingEvents");
-        }
-
-        // Image utilities for smoothly loading and cachine images
-
-        imageUtils = new ImageUtils();
-        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
-                .diskCacheExtraOptions(480, 800, null)
-                .diskCacheSize(50 * 1024 * 1024)
-                .diskCacheFileCount(100)
-                .build();
-        ImageLoader.getInstance().init(config);
-
-        // See utils/DateUtils.java for documentation
-
-        dateUtils = new DateUtils();
-
-        // Fragment Manager handles all fragments and the navigation between them
-
-        fragmentManager = getSupportFragmentManager();
-
-        // A Content Provider for storing models returned from the SetMine API
-        // It is not implemented as a traditional Android Content Provider (pending project)
-
-        modelsCP = new ModelsContentProvider();
-
-        // SetsManager handles updating the playlist and keeping track of set results
-
-        setsManager = new SetsManager();
-
-        // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
-        // button depending on if the user is at the top level
-
-        actionBar = getActionBar();
-
-        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-            @Override
-            public void onBackStackChanged() {
-                if (fragmentManager.getBackStackEntryCount() > 0) {
-                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
-                } else {
-                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
-                }
+            try {
+                APP_VERSION = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+            } catch (PackageManager.NameNotFoundException e) {
+                e.printStackTrace();
             }
-        });
 
-        // Mixpanel Instance for sending data to Mixpanel to analyze metrics
+            // Only allow keyboard pop up on EditText click
 
-        mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
+            this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
 
-        JSONObject mixpanelProperties = new JSONObject();
-        try {
-            mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
-            mixpanel.track("Application Opened", mixpanelProperties);
-            MixpanelAPI.People people = mixpanel.getPeople();
-            String id = mixpanel.getDistinctId();
-            mixpanel.identify(id);
-            people.identify(id);
+            // Check for Google Play Services for Location
+            // Use Gainesville, FL if not found, and don't use soonestEventsAroundMe
 
-            // Initialize Push Notifications with Google Sender ID
+            if (servicesConnected()) {
+                Log.d(TAG, "servicesConnected");
+                locationClient = new LocationClient(this, this, this);
+                locationClient.connect();
+            }
+            else {
+                Log.d(TAG, "services NOT Connected");
+                currentLocation = new Location("default");
+                currentLocation.setLatitude(29.652175);
+                currentLocation.setLongitude(-82.325856);
+                String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
+                        +currentLocation.getLongitude();
+                new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                        .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                                eventSearchUrl,
+                                "searchEvents");
+                new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                        .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                                "upcoming",
+                                "upcomingEvents");
+            }
 
-            people.initPushHandling("699004373125");
+            // Image utilities for smoothly loading and caching images
 
-            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-            df.setTimeZone(TimeZone.getTimeZone("UTC"));
-            String nowAsISO = df.format(new Date());
-            people.setOnce("user_id", id);
-            people.set("SetMine Upgrade", "Yes");
-            people.set("Client", "SetMine");
-            people.set("Version", "SetMine v"+APP_VERSION);
-            people.setOnce("date_tracked", nowAsISO);
-        } catch (JSONException e) {
-            e.printStackTrace();
+            imageUtils = new ImageUtils();
+            ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
+                    .diskCacheExtraOptions(480, 800, null)
+                    .diskCacheSize(50 * 1024 * 1024)
+                    .diskCacheFileCount(100)
+                    .build();
+            ImageLoader.getInstance().init(config);
+
+            // See utils/DateUtils.java for documentation
+
+            dateUtils = new DateUtils();
+
+            // Fragment Manager handles all fragments and the navigation between them
+
+            fragmentManager = getSupportFragmentManager();
+
+            // A Content Provider for storing models returned from the SetMine API
+            // It is not implemented as a traditional Android Content Provider (pending project)
+
+            modelsCP = new ModelsContentProvider();
+
+            // SetsManager handles updating the playlist and keeping track of set results
+
+            setsManager = new SetsManager();
+
+            // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
+            // button depending on if the user is at the top level
+
+            actionBar = getActionBar();
+
+            // Handles showing or hiding the back button in the action bar
+
+            fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+                @Override
+                public void onBackStackChanged() {
+                    if (fragmentManager.getBackStackEntryCount() > 0) {
+                        actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
+                    } else {
+                        actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
+
+            // Mixpanel Instance for sending data to Mixpanel to analyze metrics
+
+            mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
+
+            JSONObject mixpanelProperties = new JSONObject();
+            try {
+                mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
+                mixpanel.track("Application Opened", mixpanelProperties);
+                MixpanelAPI.People people = mixpanel.getPeople();
+                String id = mixpanel.getDistinctId();
+                mixpanel.identify(id);
+                people.identify(id);
+
+                // Initialize Push Notifications with Google Sender ID
+
+                people.initPushHandling("699004373125");
+
+                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+                df.setTimeZone(TimeZone.getTimeZone("UTC"));
+                String nowAsISO = df.format(new Date());
+                people.setOnce("user_id", id);
+                people.set("SetMine Upgrade", "Yes");
+                people.set("Client", "SetMine");
+                people.set("Version", "SetMine v"+APP_VERSION);
+                people.setOnce("date_tracked", nowAsISO);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            // Sets the Activity view where all fragment view containers are held
+
+            setContentView(R.layout.fragment_main);
+
+            // See each method for documentation
+
+            handleIntent(getIntent());
+            applyCustomViewStyles();
+
+            // Get All initial Data Models from SetMine API and store it in the content provider
+
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist", "artists");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "festival", "festivals");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "mix", "mixes");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "genre", "genres");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "popular", "popularSets");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "recent", "recentSets");
+            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
+                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist?all=true", "allArtists");
         }
 
-        // Sets the Activity view where all fragment view containers are held
-
-        setContentView(R.layout.fragment_main);
-
-        // See each method for documentation
-
-        handleIntent(getIntent());
-        applyCustomViewStyles();
-
-        // Get All initial Data Models from SetMine API and store it in the content provider
-
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist", "artists");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "festival", "festivals");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "mix", "mixes");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "genre", "genres");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "popular", "popularSets");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "recent", "recentSets");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist?all=true", "allArtists");
 
         // See finishOnCreate method which is called after these tasks are finished executing
     }
@@ -285,6 +296,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         this.menu = menu;
         return true;
     }
+
+
 
     @Override
     protected void onStart() {
@@ -313,6 +326,8 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     protected void onDestroy() {
+
+        Log.d(TAG, "onDestroy");
 
         // Flush all data to the Mixpanel Server
 
@@ -450,7 +465,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                 Random r = new Random();
                 int randomInt = r.nextInt(setsManager.getPlaylist().size() - 1);
                 Set s = setsManager.getPlaylist().get(randomInt);
-                startPlayerFragment(Integer.parseInt(s.getId()));
+                startPlayerFragment(s.getId());
             }
         }
         else {
@@ -460,21 +475,36 @@ public class SetMineMainActivity extends FragmentActivity implements
             List<Set> oneSetList = new ArrayList<Set>();
             oneSetList.add(s);
             setsManager.setPlaylist(oneSetList);
-            startPlayerFragment(Integer.parseInt(s.getId()));
+            startPlayerFragment(s.getId());
         }
     }
 
     // Start the Player Fragment from anywhere in the App given the set ID
 
-    public void startPlayerFragment(int setId) {
+    public void startPlayerFragment(String setId) {
         openPlayer();
         if(playerFragment == null) {
             playerFragment = new PlayerFragment();
         }
+        if(setId == "random") {
+            Random r = new Random();
+            int randomInt = r.nextInt(setsManager.getPlaylist().size() - 1);
+            Set s = setsManager.getPlaylist().get(randomInt);
+            setId = s.getId();
+        }
         playlistFragment.updatePlaylist();
-        setsManager.selectSetById(Integer.toString(setId));
+        setsManager.selectSetById(setId);
         playerContainerFragment.mViewPager.setCurrentItem(1);
         playerFragment.playSong();
+    }
+
+    public void openMainViewPager() {
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
+        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commitAllowingStateLoss();
     }
 
     // Open Search Fragment from anywhere in the app
@@ -485,7 +515,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     // Open Player Fragment from anywhere in the app
@@ -496,7 +526,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
         transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
+
     }
 
     // Open Artist Detail Fragment from anywhere in the app given a valid Artist object
@@ -508,7 +539,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.replace(R.id.eventPagerContainer, artistDetailFragment, "artistDetailFragment");
         transaction.addToBackStack(null);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     // Open Event Detail Fragment from anywhere in the app given a valid Event object
@@ -522,7 +553,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
         transaction.addToBackStack(null);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
 
@@ -581,7 +612,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         userFragment.onActivityResult(requestCode, resultCode, data);
-        Log.d(TAG, "onActivityResult");
+        Log.d(TAG, "onActivityResult: " + Integer.toString(requestCode) + " " + Integer.toString(requestCode) + " " + data.toString());
         switch (requestCode) {
             case CONNECTION_FAILURE_RESOLUTION_REQUEST :
                 switch (resultCode) {
@@ -643,10 +674,10 @@ public class SetMineMainActivity extends FragmentActivity implements
                 +currentLocation.getLongitude();
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl,
-                        "searchEvents");
+                        eventSearchUrl, "searchEvents");
         new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, eventSearchUrl, "upcomingEventsAroundMe");
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl, "upcomingEventsAroundMe");
 
     }
 

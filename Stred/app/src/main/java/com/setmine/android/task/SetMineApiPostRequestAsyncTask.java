@@ -12,20 +12,25 @@ import org.json.JSONObject;
 /**
  * Created by oscarlafarga on 9/21/14.
  */
-public class JsonApiCallAsyncTask extends AsyncTask<String, Integer, JSONObject> {
+
+public class SetMineApiPostRequestAsyncTask extends AsyncTask<String, Integer, JSONObject> {
 
     SetMineMainActivity activity = null;
     HttpUtils httpUtil;
-    String modelType;
+    String identifier;
     ApiCaller apiCaller;
 
-    final String TAG = "JsonApiCallAsyncTask";
+    final String TAG = "SetMineApiPostRequestAsyncTask";
 
-    public JsonApiCallAsyncTask(SetMineMainActivity activity, ApiCaller apiCaller) {
+    // Create the Task by passing in the activity and the ApiCaller that is creating the task
+
+    public SetMineApiPostRequestAsyncTask(SetMineMainActivity activity, ApiCaller apiCaller) {
         this.activity = activity;
         this.httpUtil = new HttpUtils(activity.getApplicationContext(), activity.API_ROOT_URL);
         this.apiCaller = apiCaller;
     }
+
+    // Count the async tasks for debugging and logging purposes. Executed on main thread.
 
     @Override
     protected void onPreExecute() {
@@ -33,15 +38,26 @@ public class JsonApiCallAsyncTask extends AsyncTask<String, Integer, JSONObject>
         Log.d(TAG, "Task started. Still in queue: "+ ((Integer)activity.asyncTasksInProgress).toString());
     }
 
+    // Pass in the api route needed with SetMineApiGetRequestAsyncTask.executeOnExecutor(apiRoute)
+    // First parameter: API route
+    // Second parameter: POST Data as JSON String
+    // Third Parameter: Identifier for the response data
+
     @Override
     protected JSONObject doInBackground(String... params) {
-        if(params[1] != null) {
-            modelType = params[1];
+
+        // If there is a third parameter, then we are retrieving a model that needs to be stored
+
+        if(params[2] != null) {
+            identifier = params[2];
         }
-        String apiRequest = params[0];
+        String route = params[0];
+        String jsonPostDataString = params[1];
         JSONObject jsonResponse = null;
+
+        // Use the HttpUtil to retrieve a JSON string from the SetMine API
         try {
-            String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
+            String jsonString = httpUtil.postApiRequest(route, jsonPostDataString);
             jsonResponse = new JSONObject(jsonString);
         }
         catch (Exception e) {
@@ -55,9 +71,8 @@ public class JsonApiCallAsyncTask extends AsyncTask<String, Integer, JSONObject>
         activity.asyncTasksInProgress--;
         Log.d(TAG, "Task complete. Still in queue: "+ ((Integer)activity.asyncTasksInProgress).toString());
         if(response != null) {
-            apiCaller.onApiResponseReceived(response, modelType);
+            apiCaller.onApiResponseReceived(response, identifier);
         } else {
-//            Toast.makeText(activity.getApplicationContext(), "Check your Internet Connection", Toast.LENGTH_SHORT).show();
         }
 
     }

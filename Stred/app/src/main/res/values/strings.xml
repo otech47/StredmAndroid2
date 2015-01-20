@@ -16,8 +16,8 @@
     <string name="venue_map">Venue Map</string>
     <string name="facebook_app_id">648288801959503</string>
     <string name="facebook_login">Facebook Login</string>
-    <string name="must_attend">My Must Attend Event</string>
-    <string name="must_attend_description">Your next recommended show based on what you listen to most</string>
+    <string name="my_next_event">My Next Event</string>
+    <string name="my_next_event_description">Your next recommended show based on what you listen to most</string>
     <string name="activities">Activities</string>
     <string name="activities_description">Recommended sets to fit your current mood or activity</string>
     <string name="my_sets">My Sets</string>
@@ -26,6 +26,7 @@
     <string name="recent_sets_description">Be the first to hear new sets</string>
     <string name="login_header_2">Access Exclusive SetMine Premium Features</string>
     <string name="login_header_1">Create Account (One Time Login)</string>
+    <string name="google_maps_api_key">AIzaSyDNioSTZynd_bvoF7fsBVo_2KwUfZ9B1SA</string>
 
 
 </resources>

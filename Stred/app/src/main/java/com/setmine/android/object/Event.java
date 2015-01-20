@@ -4,6 +4,8 @@ package com.setmine.android.object;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.setmine.android.SetMineMainActivity;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -121,7 +123,7 @@ public class Event implements Parcelable {
             setTwitterLink(json.getString("twitter_link"));
             setIconImageUrl(json.getString("imageURL"));
             setWebLink(json.getString("web_link"));
-            setMainImageUrl(json.getString("main_imageURL"));
+            setMainImageUrl(SetMineMainActivity.S3_ROOT_URL + json.getString("main_imageURL"));
             setStartDate(json.getString("start_date"));
             setEndDate(json.getString("end_date"));
             setDays(json.getInt("days"));

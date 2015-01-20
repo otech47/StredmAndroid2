@@ -118,7 +118,7 @@ public class DetailSetsFragment extends Fragment {
                 public void onClick(View v) {
                     activity.setsManager.setPlaylist(detailSets);
                     activity.playlistFragment.updatePlaylist();
-                    activity.startPlayerFragment(Integer.parseInt(set.getId()));
+                    activity.startPlayerFragment(set.getId());
                 }
             });
             ((ViewGroup)detailListContainer).addView(setTile);

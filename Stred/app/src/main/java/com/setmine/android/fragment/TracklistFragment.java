@@ -44,6 +44,7 @@ public class TracklistFragment extends Fragment {
     public DisplayImageOptions options;
     public TrackAdapter trackAdapter;
     public Bundle savedInstanceState;
+    public SetMineMainActivity activity;
 
     @Override
     public void onAttach(Activity activity) {
@@ -54,10 +55,10 @@ public class TracklistFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        SetMineMainActivity rootActivity = (SetMineMainActivity) getActivity();
-        this.context = rootActivity.getApplicationContext();
-        if(rootActivity.setsManager != null) {
-            this.set = rootActivity.setsManager.selectedSet;
+        activity = (SetMineMainActivity) getActivity();
+        this.context = activity.getApplicationContext();
+        if(activity.setsManager != null) {
+            this.set = activity.setsManager.getSelectedSet();
         }
 
         options = new DisplayImageOptions.Builder()

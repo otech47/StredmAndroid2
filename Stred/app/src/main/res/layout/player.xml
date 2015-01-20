@@ -22,47 +22,60 @@
         android:id="@+id/player_header"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="10dp"
         android:paddingLeft="10dp"
+        android:background="@drawable/border_blue"
         android:paddingRight="10dp"
         android:layout_alignParentTop="true">
 
         <ImageView
             android:id="@+id/player_thumb"
             android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:scaleType="centerCrop"
+            android:layout_height="80dp"
+            android:paddingRight="10dp"
+            android:scaleType="centerInside"
             android:src="@drawable/logo_small"
+            />
+
+        <ImageView
+            android:layout_width="50dp"
+            android:layout_height="80dp"
+            android:scaleType="centerInside"
+            android:id="@+id/favorite_set_icon"
+            android:src="@drawable/favorite_button_white"
+            android:background="@drawable/pressable_button_transparent_to_blue"
+            android:padding="3dp"
+            android:layout_alignParentRight="true"
             />
 
         <TextView
             android:id="@+id/player_event_name"
             android:layout_toRightOf="@+id/player_thumb"
+            android:layout_toLeftOf="@id/favorite_set_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="@drawable/pressable_button_blue_to_transparent"
             android:gravity="left"
             android:layout_alignTop="@id/player_thumb"
             android:textSize="16sp"
-            android:paddingLeft="10dp"
-            android:paddingTop="5dp"
+            android:padding="10dp"
             android:text="Event Name"
+            android:lines="1"
+            android:singleLine="true"
             android:textColor="@color/setmine_white" />
 
         <TextView
             android:id="@+id/player_artist_name"
             android:layout_toRightOf="@+id/player_thumb"
+            android:layout_toLeftOf="@id/favorite_set_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="left"
-            android:paddingLeft="10dp"
-            android:paddingTop="5dp"
+            android:padding="10dp"
             android:layout_below="@id/player_event_name"
-            android:textSize="12sp"
+            android:textSize="16sp"
+            android:background="@drawable/pressable_button_blue_to_transparent"
             android:text="Artist Name"
             android:textColor="#ffFFFFFF" />
-
-
-
 
 
     </RelativeLayout>
@@ -112,8 +125,8 @@
 
         <ImageView
             android:id="@+id/player_image"
-            android:layout_width="270dp"
-            android:layout_height="270dp"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
             android:layout_centerHorizontal="true"
             android:scaleType="centerCrop"
             android:padding="25dp"
@@ -122,8 +135,8 @@
 
         <com.setmine.android.CircularSeekBar
             android:id="@+id/circular_seek_bar"
-            android:layout_width="270dp"
-            android:layout_height="270dp"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
             android:layout_centerHorizontal="true"
             android:layout_alignParentTop="true"
             />
@@ -138,7 +151,7 @@
 	    android:layout_width="match_parent"
 	    android:layout_height="wrap_content"
 	    android:layout_above="@+id/player_footer"
-	    android:gravity="center"
+	    android:gravity="bottom"
         android:visibility="visible" >
 
         <TextView
@@ -214,9 +227,8 @@
 	        android:id="@+id/player_button_play"
 	        android:layout_width="50dp"
 	        android:layout_height="50dp"
-	        android:padding="10dp"
-	        android:adjustViewBounds="false"
-	        android:background="@null"
+            android:padding="5dp"
+	        android:background="@drawable/pressable_button_transparent_to_blue"
 	        android:scaleType="centerInside"
             android:layout_centerHorizontal="true"
 	        android:src="@drawable/ic_action_play_white" />

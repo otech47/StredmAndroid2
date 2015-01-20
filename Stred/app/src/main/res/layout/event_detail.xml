@@ -35,7 +35,6 @@
             android:layout_height="wrap_content"
             android:orientation="horizontal"
             android:id="@+id/socialButtons"
-            android:visibility="gone"
             android:paddingTop="1dp">
 
             <Button
@@ -44,6 +43,7 @@
                 android:layout_weight="1"
                 android:id="@+id/facebookButton"
                 android:background="@color/facebook_blue"
+                android:visibility="gone"
                 android:text="facebook"/>
 
             <Button
@@ -79,6 +79,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
+            android:layout_marginTop="1dp"
             android:background="@color/setmine_black">
 
             <RelativeLayout

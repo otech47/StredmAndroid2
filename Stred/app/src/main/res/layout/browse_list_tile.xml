@@ -3,19 +3,12 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@drawable/pressable_button_blue"
+    android:background="@drawable/pressable_button_white_to_blue"
     android:paddingStart="12dp"
     android:paddingLeft="12dp"
     android:paddingEnd="12dp"
     android:paddingRight="12dp"
     android:paddingTop="9dp">
-
-    <!--<ImageView-->
-        <!--android:layout_width="75dp"-->
-        <!--android:layout_height="75dp"-->
-        <!--android:id="@+id/browse" -->
-        <!--android:padding="5dp"-->
-        <!--android:src="@drawable/logo_small"/>-->
 
     <TextView
         android:layout_width="match_parent"

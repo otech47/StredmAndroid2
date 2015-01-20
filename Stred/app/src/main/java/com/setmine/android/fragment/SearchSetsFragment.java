@@ -212,7 +212,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Set s = searchResultSetAdapter.sets.get(position);
-                        activity.startPlayerFragment(Integer.parseInt(s.getId()));
+                        activity.startPlayerFragment(s.getId());
                     }
                 });
             }
@@ -237,7 +237,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Set s = searchResultSetAdapter.sets.get(position);
-                        activity.startPlayerFragment(Integer.parseInt(s.getId()));
+                        activity.startPlayerFragment(s.getId());
                     }
                 });
             }
@@ -296,7 +296,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Set s = searchResultSetAdapter.sets.get(position);
-                    activity.startPlayerFragment(Integer.parseInt(s.getId()));
+                    activity.startPlayerFragment(s.getId());
                 }
             });
         }
@@ -566,7 +566,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 @Override
                 public void onClick(View v) {
                     Set s = sets.get(position);
-                    activity.startPlayerFragment(Integer.parseInt(s.getId()));
+                    activity.startPlayerFragment(s.getId());
                 }
             });
 

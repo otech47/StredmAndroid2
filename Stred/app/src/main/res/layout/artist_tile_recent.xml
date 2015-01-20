@@ -7,7 +7,7 @@
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
     android:paddingBottom="15dp"
-    android:background="@drawable/pressable_button_blue"
+    android:background="@drawable/pressable_button_white_to_blue"
     android:id="@+id/artist_tile_recent">
 
     <ImageView

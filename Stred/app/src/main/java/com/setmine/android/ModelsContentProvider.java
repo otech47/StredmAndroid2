@@ -90,9 +90,15 @@ public class ModelsContentProvider {
                 }
                 else if(modelName.equals("searchEvents")) {
                     JSONObject upcoming = payload.getJSONObject("upcoming");
-                    JSONArray closest = upcoming.getJSONArray("soonestEventsAroundMe");
-                    for(int i = 0 ; i < closest.length() ; i++) {
-                        searchEvents.add(new Event(closest.getJSONObject(i)));
+                    JSONArray around = upcoming.getJSONArray("soonestEventsAroundMe");
+                    for(int i = 0 ; i < around.length() ; i++) {
+                        searchEvents.add(new Event(around.getJSONObject(i)));
+                    }
+                    if(around.length() == 0) {
+                        JSONArray soonest = upcoming.getJSONArray("soonestEvents");
+                        for(int i = 0 ; i < soonest.length() ; i++) {
+                            searchEvents.add(new Event(soonest.getJSONObject(i)));
+                        }
                     }
                 }
                 else if(modelName.equals("sets")) {
@@ -293,4 +299,27 @@ public class ModelsContentProvider {
         }
     }
 
+    public List<Event> getUpcomingEvents() {
+        return upcomingEvents;
+    }
+
+    public void setUpcomingEvents(List<Event> upcomingEvents) {
+        this.upcomingEvents = upcomingEvents;
+    }
+
+    public List<Event> getRecentEvents() {
+        return recentEvents;
+    }
+
+    public void setRecentEvents(List<Event> recentEvents) {
+        this.recentEvents = recentEvents;
+    }
+
+    public List<Event> getSearchEvents() {
+        return searchEvents;
+    }
+
+    public void setSearchEvents(List<Event> searchEvents) {
+        this.searchEvents = searchEvents;
+    }
 }

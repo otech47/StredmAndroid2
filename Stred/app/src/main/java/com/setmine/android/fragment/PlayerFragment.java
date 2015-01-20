@@ -21,6 +21,7 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.NotificationCompat.Builder;
+import android.util.Log;
 import android.view.GestureDetector;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -31,6 +32,7 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -52,6 +54,8 @@ import java.io.IOException;
 public class PlayerFragment extends Fragment implements OnCompletionListener,
 		CircularSeekBar.OnCircularSeekBarChangeListener {
 
+    private final String TAG = "PlayerFragment";
+
 	public ImageButton mButtonPlay;
 	public ImageButton mButtonPlayTop;
 	private ImageButton mButtonRewind;
@@ -70,6 +74,8 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private ImageButton mPlaylistButton;
 	private ImageButton mTracklistButton;
     private ImageView mBackgroundOverlay;
+    public ImageView favoriteSetButton;
+
     private DisplayImageOptions options;
 
 	// Media Player
@@ -93,9 +99,13 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 	private String downloadedSetTitle;
 	private Context context;
 
+
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
+
         activity = ((SetMineMainActivity)getActivity());
         context = getActivity().getApplicationContext();
     }
@@ -103,13 +113,15 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
     @Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
 			Bundle savedInstanceState) {
-		this.rootView = inflater.inflate(R.layout.player, container, false);
+
+        Log.d(TAG, "onCreateView");
+
+        this.rootView = inflater.inflate(R.layout.player, container, false);
 
 		// All player buttons
+
 		mButtonPlay = (ImageButton) rootView
 				.findViewById(R.id.player_button_play);
-//		mButtonPlayTop = (ImageButton) rootView
-//				.findViewById(R.id.player_button_play_top);
 		mButtonRewind = (ImageButton) rootView
 				.findViewById(R.id.player_button_rewind);
 		mButtonFastForward = (ImageButton) rootView
@@ -130,14 +142,14 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 				.findViewById(R.id.player_button_tracklist);
         mPlaylistButton = (ImageButton)rootView.findViewById(R.id.player_button_playlist);
         mBackgroundOverlay = (ImageView) rootView.findViewById(R.id.background_overlay);
-//		setClosed(true);
+        favoriteSetButton = (ImageView) rootView.findViewById(R.id.favorite_set_icon);
 
 
         utils = new TimeUtils();
 
         if(mp == null) {
             playerService = activity.playerService;
-            mp = playerService.mMediaPlayer;
+            mp = playerService.mediaPlayer;
         }
 
 
@@ -152,7 +164,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         setsManager = activity.setsManager;
 
         if(playerService != null) {
-            playerService.serviceSM = setsManager;
+            playerService.serviceSetsManager = setsManager;
         }
 
         options = new DisplayImageOptions.Builder()
@@ -178,6 +190,7 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		setBackgroundNoTouch();
 
 		setPagerListeners();
+
 //
 //		setShuffleListener();
 //
@@ -192,300 +205,165 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
 	}
 
-    private void updatePlayPauseButton() {
-        if(mp != null) {
-            if (mp.isPlaying()) {
-                // Changing button image to pause button
-                mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
+    @Override
+    public void onPause() {
+        super.onPause();
+        ((SetMineMainActivity)getActivity()).playerFragment = this;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        mp.release();
+        mHandler.removeCallbacks(mUpdateTimeTask);
+    }
+
+    private final Runnable mUpdateTimeTask = new Runnable() {
+        @Override
+        public void run() {
+            long duration = mp.getDuration();
+            long time = mp.getCurrentPosition();
+
+            // Displaying Total Duration time
+            mDurationLabel.setText("" + utils.milliSecondsToTimer(duration));
+            // Displaying time completed playing
+            mTimeLabel.setText("" + utils.milliSecondsToTimer(time));
+
+            // set track name
+            mTrackLabel.setText(song.getCurrentTrack(time));
+
+            // Updating progress bar
+            int progress = (utils.getProgressPercentage(time, duration));
+            // Log.d("Progress", ""+progress);
+            mProgressBar.setProgress(progress);
+
+            updatePlayPauseButton();
+
+            if(playerService.newSong) {
+                updateViewToNewSet();
+                playerService.newSong = false;
+            }
+
+            // Running this thread after 100 milliseconds
+            mHandler.postDelayed(this, 100);
+        }
+    };
+
+    private int dpToPx(int dp)
+    {
+        float density = getActivity().getResources().getDisplayMetrics().density;
+        return Math.round((float)dp * density);
+    }
+
+
+    public void handleFavoriteSets(boolean favoriteSetsUpdated) {
+
+        // If set is already favorited change the Favorite Set icon
+
+        favoriteSetButton.setImageResource(R.drawable.favorite_button_white);
+
+        if(favoriteSetsUpdated) {
+            if(activity.userFragment.registeredUser.isSetFavorited(song)) {
+                Toast.makeText(activity.getApplicationContext(),
+                        "Added to My Sets", Toast.LENGTH_SHORT).show();
             } else {
-                // Changing button image to play button
-                mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
+                Toast.makeText(activity.getApplicationContext(),
+                        "Removed from My Sets", Toast.LENGTH_SHORT).show();
             }
         }
-    }
 
-	public void setPlayListeners() {
-		OnClickListener ocl = new OnClickListener() {
-
-			@Override
-			public void onClick(View arg0) {
-            // check for already playing
-            sendIntentToService("PLAY_PAUSE");
-
-                updatePlayPauseButton();
-			}
-		};
-		mButtonPlay.setOnClickListener(ocl);
-//		mButtonPlayTop.setOnClickListener(ocl);
-    }
-
-	private void setPreviousListener() {
-		mButtonRewind.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View arg0) {
-                playPrevious();
+        if(activity.userIsRegistered) {
+            if(activity.userFragment.registeredUser.isSetFavorited(song)) {
+                favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
             }
-        });
-	}
+        }
 
-	private void setNextListener() {
-		mButtonFastForward.setOnClickListener(new OnClickListener() {
+        // Set Click Listener for Favorite Set Button
 
-            @Override
-            public void onClick(View arg0) {
-                playNext();
-            }
-        });
-	}
-
-	private void setSlideTouchGestures() {
-		final GestureDetector gesture = new GestureDetector(getActivity(),
-				new GestureDetector.SimpleOnGestureListener() {
-
-					@Override
-					public boolean onDown(MotionEvent e) {
-						return true;
-					}
-
-					@Override
-					public boolean onFling(MotionEvent e1, MotionEvent e2,
-							float velocityX, float velocityY) {
-						final int SWIPE_MIN_DISTANCE = 120;
-						final int SWIPE_MAX_OFF_PATH = 250;
-						final int SWIPE_THRESHOLD_VELOCITY = 200;
-						try {
-							if ((e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
-								// Toast.makeText(getActivity(),
-								// "onfling off path UP", 500).show();
-								((SetMineMainActivity) getActivity()).openPlayer();
-								return false;
-							} else if ((e2.getY() - e1.getY()) > SWIPE_MAX_OFF_PATH) {
-								// Toast.makeText(getActivity(),
-								// "onfling off path DOWN", 500).show();
-//								((SetMineMainActivity) getActivity()).closePlayer();
-								return false;
-							}
-
-							if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
-									&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-								// Toast.makeText(getActivity(), "onfling left",
-								// 500).show();
-							} else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
-									&& Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-								// Toast.makeText(getActivity(),
-								// "onfling right", 500).show();
-							} else if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE
-									&& Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
-								// Toast.makeText(getActivity(), "onfling up",
-								// 500).show();
-							} else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE
-									&& Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
-								// Toast.makeText(getActivity(), "onfling down",
-								// 500).show();
-							}
-
-						} catch (Exception e) {
-							// nothing
-						}
-						return super.onFling(e1, e2, velocityX, velocityY);
-					}
-
-					@Override
-					public boolean onSingleTapUp(MotionEvent e) {
-//						((SetMineMainActivity) getActivity()).togglePlayerClosed();
-						return false;
-					}
-
-				});
-
-		mHeader.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                return gesture.onTouchEvent(event);
-            }
-        });
-	}
-
-	private void setBackgroundNoTouch() {
-		final GestureDetector gesture = new GestureDetector(getActivity(),
-				new GestureDetector.SimpleOnGestureListener() {
-
-					@Override
-					public boolean onDown(MotionEvent e) {
-						return true;
-					}
-
-				});
-		rootView.setOnTouchListener(new View.OnTouchListener() {
-			@Override
-			public boolean onTouch(View v, MotionEvent event) {
-				return gesture.onTouchEvent(event);
-			}
-		});
-	}
-
-
-    private void updateTracklist(Set song) {
-        ((SetMineMainActivity) getActivity()).tracklistFragment.updateTracklist(song.getTracklist());
-    }
-
-	private void setPagerListeners() {
-		mTracklistButton.setOnClickListener(new OnClickListener() {
-
-			@Override
-			public void onClick(View v) {
-                activity.playerContainerFragment.mViewPager.setCurrentItem(2, true);
-			}
-		});
-        mPlaylistButton.setOnClickListener(new OnClickListener() {
+        favoriteSetButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.playerContainerFragment.mViewPager.setCurrentItem(0, true);
-            }
-        });
-	}
-
-	private void setShuffleListener() {
-		mButtonShuffle.setOnClickListener(new OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-                isShuffle = !isShuffle;
-                if (isShuffle) {
-                    mButtonShuffle.setImageResource(R.drawable.btn_shuffle_on);
-                    setsManager.selectedSetIndex = setsManager.getPlaylistShuffled().indexOf(song);
+                if (activity.userIsRegistered) {
+                    activity.userFragment.updateFavoriteSets(song.getId());
                 } else {
-                    mButtonShuffle.setImageResource(R.drawable.btn_shuffle);
-                    setsManager.selectedSetIndex = setsManager.getPlaylist().indexOf(song);
+                    activity.openMainViewPager();
+                    activity.eventViewPager.setCurrentItem(0);
                 }
             }
         });
+    }
+
+
+	public void updateProgressBar() {
+		mHandler.postDelayed(mUpdateTimeTask, 100);
 	}
 
-	private void setDownloadListener() {
+    public int getCurrentSongIndex() {
+        return setsManager.selectedSetIndex;
+    }
 
-		mButtonDownload.setOnClickListener(new OnClickListener() {
+    public boolean getIsShuffle() {
+        return isShuffle;
+    }
 
-			@Override
-			public void onClick(View v) {
-				String[] songurlparts = song.getSongURL().split("/");
-				String[] imageurlparts = song.getArtistImage().split("/");
+	@Override
+	public void onProgressChanged(CircularSeekBar seekBar, int progress,
+			boolean fromTouch) {}
 
-				String dir = context.getExternalFilesDir(null).toString();
-				String bareImageURL = dir + "/" + imageurlparts[4];
-
-				downloadedSet = new Set(song);
-				downloadedSet.setArtistImage(bareImageURL);
-
-				downloadedSet.setSongURL(dir + "/" + songurlparts[4]);
-
-				// execute this when the downloader must be fired
-				downloadedSetTitle = song.getArtist() + " - " + song.getEvent();
-				// final DownloadSetTask downloadTask = new DownloadSetTask(
-				// getActivity().getApplicationContext(), mNotifyManager,
-				// mBuilder, title, bareSongURL, song2, dbh);
-				// downloadTask.execute(song.getSongURL());
-
-				String url = song.getSongURL();
-				DownloadManager.Request request = new DownloadManager.Request(
-						Uri.parse(url));
-				request.setDescription("Adding to My Sets");
-				request.setTitle(downloadedSetTitle);
-				if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-					request.allowScanningByMediaScanner();
-					request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
-				}
-				request.setDestinationInExternalFilesDir(context, null,
-						songurlparts[4]);
-
-				// get download service and enqueue file
-				manager = (DownloadManager) getActivity().getSystemService(
-						Context.DOWNLOAD_SERVICE);
-				enqueue = manager.enqueue(request);
-
-//				((SetMineMainAct) getActivity()).sendEvent(
-//						"Set Added to My Sets", "set", downloadedSetTitle);
-
-//				final DownloadImageTask downloadImageTask = new DownloadImageTask(
-//						bareImageURL);
-//				downloadImageTask.execute(song.getArtistImage());
-			}
-		});
-
-	}
-
-	private void setDownloadBroadcastReceiver() {
-
-		BroadcastReceiver receiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
-				long reference = intent.getLongExtra(
-						DownloadManager.EXTRA_DOWNLOAD_ID, -1);
-				if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)
-						&& reference == enqueue) {
-
-					Intent resultIntent = context
-							.getPackageManager()
-							.getLaunchIntentForPackage(context.getPackageName());
-					resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-							| Intent.FLAG_ACTIVITY_SINGLE_TOP);
-					resultIntent.setAction("MY_SETS_PAGE");
-					PendingIntent resultPendingIntent = PendingIntent
-							.getActivity(context, 0, resultIntent,
-									PendingIntent.FLAG_UPDATE_CURRENT);
-					NotificationManager mNotifyManager = (NotificationManager) getActivity()
-							.getSystemService(Context.NOTIFICATION_SERVICE);
-
-					Builder mBuilder = new Builder(getActivity());
-					mBuilder.setContentIntent(resultPendingIntent);
-
-					mBuilder.setContentTitle(downloadedSetTitle)
-							.setContentText("Added to My Sets")
-							.setSmallIcon(R.drawable.logo).setOngoing(false);
-
-					Resources res = context.getResources();
-					Bitmap pic = BitmapFactory.decodeResource(res,
-							R.drawable.logo);
-					int height = (int) res
-							.getDimension(android.R.dimen.notification_large_icon_height);
-					int width = (int) res
-							.getDimension(android.R.dimen.notification_large_icon_width);
-					pic = Bitmap.createScaledBitmap(pic, width, height, false);
-
-					mBuilder.setLargeIcon(pic);
-
-					int mNotificationId = 001;
-					mNotifyManager.notify(mNotificationId, mBuilder.build());
-
-//					DatabaseHandler db = ((SetMineMainAct) getActivity()).db;
-//					db.updateSet(db.getSet("1"), "2");
-//					db.updateSet(downloadedSet, "1");
-//					db.cleanupFiles();
-				}
-			}
-		};
-
-		getActivity().registerReceiver(receiver,
-                new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
+	/**
+	 * When user starts moving the progress handler
+	 * */
+	@Override
+	public void onStartTrackingTouch(CircularSeekBar seekBar) {
+		// remove message Handler from updating progress bar
+		mHandler.removeCallbacks(mUpdateTimeTask);
 	}
 
 	/**
-	 * Function to play a song
-	 *
-//	 * @param songIndex
-	 *            - index of song
+	 * When user stops moving the progress handler
 	 * */
-	@TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+	@Override
+	public void onStopTrackingTouch(CircularSeekBar seekBar) {
+		mHandler.removeCallbacks(mUpdateTimeTask);
+		int totalDuration = mp.getDuration();
+		int currentPosition = utils.progressToTimer(seekBar.getProgress(),
+				totalDuration);
+
+		// forward or backward to certain seconds
+		mp.seekTo(currentPosition);
+
+		// update timer progress again
+		updateProgressBar();
+	}
+
+	/**
+	 * On Song Playing completed if repeat is ON play same song again if shuffle
+	 * is ON play random song
+	 * */
+	@Override
+	public void onCompletion(MediaPlayer arg0) {
+		playNext();
+	}
+
+    @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
+
     public void playSong() {
-		// Play song
+        Log.d(TAG, "playSong");
+
+        // Play song
         song = setsManager.getSelectedSet();
 
         try {
+            updateViewToNewSet();
+
+            Log.d(TAG, "viewUpdated");
+
             mp.reset();
             mp.setDataSource(song.getSongURL());
             mp.prepare();
+
+            Log.d(TAG, "mp prepared");
+
 
             Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
             notificationIntent.setAction("START_ALL");
@@ -495,11 +373,12 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
             notificationIntent.putExtra("EVENT_IMAGE", activity.S3_ROOT_URL + song.getEventImage());
             sendIntentToService(notificationIntent);
 
-            // Updating progress bar
-            // WILL UPDATE VIEW LATER
             updateProgressBar();
+            handleFavoriteSets(false);
 
-            updateViewToNewSet();
+            CountPlaysTask cpTask = new CountPlaysTask(activity.getApplicationContext());
+            cpTask.execute(song.getId());
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -507,9 +386,6 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 
     private void updateViewToNewSet() {
         song = setsManager.getSelectedSet();
-
-        CountPlaysTask cpTask = new CountPlaysTask(activity.getApplicationContext());
-        cpTask.execute(song.getId());
 
         try{
             JSONObject mixpanelProperties = new JSONObject();
@@ -569,128 +445,28 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
         mArtistLabel.setText(song.getArtist());
         mTrackLabel.setText(song.getCurrentTrack(0));
         updateTracklist(song);
-        // Display song image
     }
 
     private void playNext() {
         setsManager.selectSetByIndex(((setsManager.selectedSetIndex + 1) >= setsManager.getPlaylistLength())? 0 : setsManager.selectedSetIndex + 1);
         playSong();
-	}
-
-	private void playPrevious() {
-        setsManager.selectSetByIndex((setsManager.selectedSetIndex == 0)? setsManager.getPlaylistLength() - 1 : setsManager.selectedSetIndex - 1);
-        playSong();
-	}
-
-	/**
-	 * Update timer on seekbar
-	 * */
-	public void updateProgressBar() {
-		mHandler.postDelayed(mUpdateTimeTask, 100);
-	}
-
-
-//	Background Runnable thread
-	private final Runnable mUpdateTimeTask = new Runnable() {
-		@Override
-		public void run() {
-			long duration = mp.getDuration();
-			long time = mp.getCurrentPosition();
-
-			// Displaying Total Duration time
-			mDurationLabel.setText("" + utils.milliSecondsToTimer(duration));
-			// Displaying time completed playing
-			mTimeLabel.setText("" + utils.milliSecondsToTimer(time));
-
-			// set track name
-			mTrackLabel.setText(song.getCurrentTrack(time));
-
-			// Updating progress bar
-			int progress = (utils.getProgressPercentage(time, duration));
-			// Log.d("Progress", ""+progress);
-			mProgressBar.setProgress(progress);
-
-            updatePlayPauseButton();
-
-            if(playerService.newSong) {
-                updateViewToNewSet();
-                playerService.newSong = false;
-            }
-
-			// Running this thread after 100 milliseconds
-			mHandler.postDelayed(this, 100);
-		}
-	};
-
-	@Override
-	public void onProgressChanged(CircularSeekBar seekBar, int progress,
-			boolean fromTouch) {
-
-	}
-
-	/**
-	 * When user starts moving the progress handler
-	 * */
-	@Override
-	public void onStartTrackingTouch(CircularSeekBar seekBar) {
-		// remove message Handler from updating progress bar
-		mHandler.removeCallbacks(mUpdateTimeTask);
-	}
-
-	/**
-	 * When user stops moving the progress handler
-	 * */
-	@Override
-	public void onStopTrackingTouch(CircularSeekBar seekBar) {
-		mHandler.removeCallbacks(mUpdateTimeTask);
-		int totalDuration = mp.getDuration();
-		int currentPosition = utils.progressToTimer(seekBar.getProgress(),
-				totalDuration);
-
-		// forward or backward to certain seconds
-		mp.seekTo(currentPosition);
-
-		// update timer progress again
-		updateProgressBar();
-	}
-
-	public void skipToTrack(int trackNo) {
-		mHandler.removeCallbacks(mUpdateTimeTask);
-
-		int currentPosition = utils.timerToMilliSeconds(song.getTracklist()
-				.get(trackNo).getStartTime());
-
-		// forward or backward to certain seconds
-		mp.seekTo(currentPosition);
-
-		updateProgressBar();
-	}
-
-	/**
-	 * On Song Playing completed if repeat is ON play same song again if shuffle
-	 * is ON play random song
-	 * */
-	@Override
-	public void onCompletion(MediaPlayer arg0) {
-		playNext();
-	}
-
-    @Override
-    public void onPause() {
-        super.onPause();
-        ((SetMineMainActivity)getActivity()).playerFragment = this;
     }
 
-    @Override
-	public void onDestroy() {
-		super.onDestroy();
-		mp.release();
-		mHandler.removeCallbacks(mUpdateTimeTask);
-	}
+    private void playPrevious() {
+        setsManager.selectSetByIndex((setsManager.selectedSetIndex == 0)? setsManager.getPlaylistLength() - 1 : setsManager.selectedSetIndex - 1);
+        playSong();
+    }
 
-	public boolean isClosed() {
-		return isClosed;
-	}
+    private void sendIntentToService(String intentAction) {
+        Intent playIntent = new Intent(getActivity(), PlayerService.class);
+        playIntent.setAction(intentAction);
+        playIntent.putExtra(intentAction, true);
+        sendIntentToService(playIntent);
+    }
+
+    private void sendIntentToService(Intent intent) {
+        getActivity().startService(intent);
+    }
 
 	public void setClosed(boolean isClosed) {
 		if (mButtonPlayTop != null) {
@@ -705,38 +481,303 @@ public class PlayerFragment extends Fragment implements OnCompletionListener,
 		this.isClosed = isClosed;
 	}
 
-	public void shuffle(boolean shuffle) {
-		isShuffle = shuffle;
-		if (isShuffle) {
-			mButtonShuffle.setImageResource(R.drawable.btn_shuffle_on);
-		} else {
-			mButtonShuffle.setImageResource(R.drawable.btn_shuffle);
-		}
-	}
+    private void setPagerListeners() {
+        mTracklistButton.setOnClickListener(new OnClickListener() {
 
-    private int dpToPx(int dp)
-    {
-        float density = getActivity().getResources().getDisplayMetrics().density;
-        return Math.round((float)dp * density);
+            @Override
+            public void onClick(View v) {
+                activity.playerContainerFragment.mViewPager.setCurrentItem(2, true);
+            }
+        });
+        mPlaylistButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activity.playerContainerFragment.mViewPager.setCurrentItem(0, true);
+            }
+        });
     }
 
-    private void sendIntentToService(String intentAction) {
-        Intent playIntent = new Intent(getActivity(), PlayerService.class);
-        playIntent.setAction(intentAction);
-        playIntent.putExtra(intentAction, true);
-        sendIntentToService(playIntent);
+    private void setShuffleListener() {
+        mButtonShuffle.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                isShuffle = !isShuffle;
+                if (isShuffle) {
+                    mButtonShuffle.setImageResource(R.drawable.btn_shuffle_on);
+                    setsManager.selectedSetIndex = setsManager.getPlaylistShuffled().indexOf(song);
+                } else {
+                    mButtonShuffle.setImageResource(R.drawable.btn_shuffle);
+                    setsManager.selectedSetIndex = setsManager.getPlaylist().indexOf(song);
+                }
+            }
+        });
     }
 
-    private void sendIntentToService(Intent intent) {
-        getActivity().startService(intent);
+    private void setDownloadListener() {
+
+        mButtonDownload.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                String[] songurlparts = song.getSongURL().split("/");
+                String[] imageurlparts = song.getArtistImage().split("/");
+
+                String dir = context.getExternalFilesDir(null).toString();
+                String bareImageURL = dir + "/" + imageurlparts[4];
+
+                downloadedSet = new Set(song);
+                downloadedSet.setArtistImage(bareImageURL);
+
+                downloadedSet.setSongURL(dir + "/" + songurlparts[4]);
+
+                // execute this when the downloader must be fired
+                downloadedSetTitle = song.getArtist() + " - " + song.getEvent();
+                // final DownloadSetTask downloadTask = new DownloadSetTask(
+                // getActivity().getApplicationContext(), mNotifyManager,
+                // mBuilder, title, bareSongURL, song2, dbh);
+                // downloadTask.execute(song.getSongURL());
+
+                String url = song.getSongURL();
+                DownloadManager.Request request = new DownloadManager.Request(
+                        Uri.parse(url));
+                request.setDescription("Adding to My Sets");
+                request.setTitle(downloadedSetTitle);
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    request.allowScanningByMediaScanner();
+                    request.setNotificationVisibility(DownloadManager.Request.VISIBILITY_VISIBLE);
+                }
+                request.setDestinationInExternalFilesDir(context, null,
+                        songurlparts[4]);
+
+                // get download service and enqueue file
+                manager = (DownloadManager) getActivity().getSystemService(
+                        Context.DOWNLOAD_SERVICE);
+                enqueue = manager.enqueue(request);
+
+//				((SetMineMainAct) getActivity()).sendEvent(
+//						"Set Added to My Sets", "set", downloadedSetTitle);
+
+//				final DownloadImageTask downloadImageTask = new DownloadImageTask(
+//						bareImageURL);
+//				downloadImageTask.execute(song.getArtistImage());
+            }
+        });
+
     }
 
-    public int getCurrentSongIndex() {
-        return setsManager.selectedSetIndex;
+    private void setDownloadBroadcastReceiver() {
+
+        BroadcastReceiver receiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                long reference = intent.getLongExtra(
+                        DownloadManager.EXTRA_DOWNLOAD_ID, -1);
+                if (DownloadManager.ACTION_DOWNLOAD_COMPLETE.equals(action)
+                        && reference == enqueue) {
+
+                    Intent resultIntent = context
+                            .getPackageManager()
+                            .getLaunchIntentForPackage(context.getPackageName());
+                    resultIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
+                            | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+                    resultIntent.setAction("MY_SETS_PAGE");
+                    PendingIntent resultPendingIntent = PendingIntent
+                            .getActivity(context, 0, resultIntent,
+                                    PendingIntent.FLAG_UPDATE_CURRENT);
+                    NotificationManager mNotifyManager = (NotificationManager) getActivity()
+                            .getSystemService(Context.NOTIFICATION_SERVICE);
+
+                    Builder mBuilder = new Builder(getActivity());
+                    mBuilder.setContentIntent(resultPendingIntent);
+
+                    mBuilder.setContentTitle(downloadedSetTitle)
+                            .setContentText("Added to My Sets")
+                            .setSmallIcon(R.drawable.logo).setOngoing(false);
+
+                    Resources res = context.getResources();
+                    Bitmap pic = BitmapFactory.decodeResource(res,
+                            R.drawable.logo);
+                    int height = (int) res
+                            .getDimension(android.R.dimen.notification_large_icon_height);
+                    int width = (int) res
+                            .getDimension(android.R.dimen.notification_large_icon_width);
+                    pic = Bitmap.createScaledBitmap(pic, width, height, false);
+
+                    mBuilder.setLargeIcon(pic);
+
+                    int mNotificationId = 001;
+                    mNotifyManager.notify(mNotificationId, mBuilder.build());
+
+//					DatabaseHandler db = ((SetMineMainAct) getActivity()).db;
+//					db.updateSet(db.getSet("1"), "2");
+//					db.updateSet(downloadedSet, "1");
+//					db.cleanupFiles();
+                }
+            }
+        };
+
+        getActivity().registerReceiver(receiver,
+                new IntentFilter(DownloadManager.ACTION_DOWNLOAD_COMPLETE));
     }
 
-    public boolean getIsShuffle() {
-        return isShuffle;
+    public void setPlayListeners() {
+        OnClickListener ocl = new OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                // check for already playing
+                sendIntentToService("PLAY_PAUSE");
+
+                updatePlayPauseButton();
+            }
+        };
+        mButtonPlay.setOnClickListener(ocl);
+//		mButtonPlayTop.setOnClickListener(ocl);
+    }
+
+    private void setPreviousListener() {
+        mButtonRewind.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                playPrevious();
+            }
+        });
+    }
+
+    private void setNextListener() {
+        mButtonFastForward.setOnClickListener(new OnClickListener() {
+
+            @Override
+            public void onClick(View arg0) {
+                playNext();
+            }
+        });
+    }
+
+    private void setSlideTouchGestures() {
+        final GestureDetector gesture = new GestureDetector(getActivity(),
+                new GestureDetector.SimpleOnGestureListener() {
+
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        return true;
+                    }
+
+                    @Override
+                    public boolean onFling(MotionEvent e1, MotionEvent e2,
+                                           float velocityX, float velocityY) {
+                        final int SWIPE_MIN_DISTANCE = 120;
+                        final int SWIPE_MAX_OFF_PATH = 250;
+                        final int SWIPE_THRESHOLD_VELOCITY = 200;
+                        try {
+                            if ((e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
+                                // Toast.makeText(getActivity(),
+                                // "onfling off path UP", 500).show();
+                                ((SetMineMainActivity) getActivity()).openPlayer();
+                                return false;
+                            } else if ((e2.getY() - e1.getY()) > SWIPE_MAX_OFF_PATH) {
+                                // Toast.makeText(getActivity(),
+                                // "onfling off path DOWN", 500).show();
+//								((SetMineMainActivity) getActivity()).closePlayer();
+                                return false;
+                            }
+
+                            if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
+                                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                                // Toast.makeText(getActivity(), "onfling left",
+                                // 500).show();
+                            } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
+                                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
+                                // Toast.makeText(getActivity(),
+                                // "onfling right", 500).show();
+                            } else if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE
+                                    && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+                                // Toast.makeText(getActivity(), "onfling up",
+                                // 500).show();
+                            } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE
+                                    && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
+                                // Toast.makeText(getActivity(), "onfling down",
+                                // 500).show();
+                            }
+
+                        } catch (Exception e) {
+                            // nothing
+                        }
+                        return super.onFling(e1, e2, velocityX, velocityY);
+                    }
+
+                    @Override
+                    public boolean onSingleTapUp(MotionEvent e) {
+//						((SetMineMainActivity) getActivity()).togglePlayerClosed();
+                        return false;
+                    }
+
+                });
+
+        mHeader.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return gesture.onTouchEvent(event);
+            }
+        });
+    }
+
+    private void setBackgroundNoTouch() {
+        final GestureDetector gesture = new GestureDetector(getActivity(),
+                new GestureDetector.SimpleOnGestureListener() {
+
+                    @Override
+                    public boolean onDown(MotionEvent e) {
+                        return true;
+                    }
+
+                });
+        rootView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return gesture.onTouchEvent(event);
+            }
+        });
+    }
+
+    public void shuffle(boolean shuffle) {
+        isShuffle = shuffle;
+        if (isShuffle) {
+            mButtonShuffle.setImageResource(R.drawable.btn_shuffle_on);
+        } else {
+            mButtonShuffle.setImageResource(R.drawable.btn_shuffle);
+        }
+    }
+
+    public void skipToTrack(int trackNo) {
+        mHandler.removeCallbacks(mUpdateTimeTask);
+
+        int currentPosition = utils.timerToMilliSeconds(song.getTracklist()
+                .get(trackNo).getStartTime());
+
+        // forward or backward to certain seconds
+        mp.seekTo(currentPosition);
+
+        updateProgressBar();
+    }
+
+    private void updatePlayPauseButton() {
+        if(mp != null) {
+            if (mp.isPlaying()) {
+                // Changing button image to pause button
+                mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
+            } else {
+                // Changing button image to play button
+                mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
+            }
+        }
+    }
+
+    private void updateTracklist(Set song) {
+        ((SetMineMainActivity) getActivity()).tracklistFragment.updateTracklist(song.getTracklist());
     }
 
 }

@@ -6,12 +6,24 @@
     android:background="@color/setmine_gray"
     android:id="@+id/events_finder">
 
+    <ImageView
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_marginTop="5dp"
+        android:id="@+id/sets_nav_icon"
+        android:src="@drawable/sets_nav_icon"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:layout_marginStart="5dp"
+        android:layout_marginLeft="5dp"/>
+
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentTop="true"
-        android:layout_marginTop="50dp"
+        android:layout_toRightOf="@id/sets_nav_icon"
         android:id="@+id/locationContainer">
 
         <ImageView
@@ -33,6 +45,8 @@
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="50dp"
+        android:layout_toRightOf="@id/sets_nav_icon"
+
         android:id="@+id/dateContainer"
         android:layout_below="@id/locationContainer">
 
@@ -49,7 +63,6 @@
             android:gravity="center|left"
             android:textSize="20sp"
             android:paddingLeft="13dp"
-            android:paddingStart="13dp"
             android:id="@+id/dateText" />
 
     </LinearLayout>
@@ -68,35 +81,28 @@
             android:id="@+id/datePicker"
             android:calendarViewShown="false"/>
 
-        <Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@color/setmine_blue"
-            android:text="Search"
-            android:textSize="20sp"
-            android:textColor="#FFFFFFFF"
-            android:id="@+id/searchButton"/>
+
 
     </LinearLayout>
+
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/setmine_blue"
+        android:layout_below="@id/datePickerContainer"
+        android:text="Search"
+        android:textSize="20sp"
+        android:textColor="#FFFFFFFF"
+        android:id="@+id/searchButton"/>
 
     <ListView
         android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/searchResults"
-        android:layout_below="@id/datePickerContainer">
+        android:layout_below="@id/searchButton">
     </ListView>
 
-    <ImageView
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_marginTop="5dp"
-        android:id="@+id/recent_nav_icon"
-        android:src="@drawable/recent_nav_icon"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_marginStart="5dp"
-        android:layout_marginLeft="5dp"/>
+
 
 </RelativeLayout>

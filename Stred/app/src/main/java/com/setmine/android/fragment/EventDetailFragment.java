@@ -125,7 +125,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
         // Load the top event image
 
         ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
-        ImageLoader.getInstance().displayImage(SetMineMainActivity.S3_ROOT_URL + EVENT_IMAGE, eventImage, options);
+        ImageLoader.getInstance().displayImage(EVENT_IMAGE, eventImage, options);
 
         // Set text for event details
 
@@ -157,14 +157,35 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
                         .execute("festival?search=" + Uri.encode(EVENT_NAME), "sets");
             }
+
+            rootView.findViewById(R.id.facebookButton).setVisibility(View.VISIBLE);
+            rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        JSONObject mixpanelProperties = new JSONObject();
+                        mixpanelProperties.put("id", EVENT_ID);
+                        mixpanelProperties.put("event", EVENT_NAME);
+                        activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Uri fbUrl = Uri.parse(currentEvent.getFacebookLink());
+                    Intent launchBrowser = new Intent(Intent.ACTION_VIEW, fbUrl);
+                    startActivity(launchBrowser);
+                }
+            });
+
         }
         else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
 
             // Set Social and Ticket Click Listeners and functions if it is a paid promoted event
 
+
+
             if(EVENT_PAID == 1) {
-                rootView.findViewById(R.id.socialButtons).setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.facebookButton).setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
@@ -181,38 +202,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                         startActivity(launchBrowser);
                     }
                 });
-                rootView.findViewById(R.id.twitterButton).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-                            JSONObject mixpanelProperties = new JSONObject();
-                            mixpanelProperties.put("id", EVENT_ID);
-                            mixpanelProperties.put("event", EVENT_NAME);
-                            activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        Uri twitterUrl = Uri.parse(currentEvent.getTwitterLink());
-                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, twitterUrl);
-                        startActivity(launchBrowser);
-                    }
-                });
-                rootView.findViewById(R.id.webButton).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-                            JSONObject mixpanelProperties = new JSONObject();
-                            mixpanelProperties.put("id", EVENT_ID);
-                            mixpanelProperties.put("event", EVENT_NAME);
-                            activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        Uri webUrl = Uri.parse(currentEvent.getWebLink());
-                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, webUrl);
-                        startActivity(launchBrowser);
-                    }
-                });
+
                 Button buyTickets = (Button)rootView.findViewById(R.id.button_buy_tickets);
                 buyTickets.setVisibility(View.VISIBLE);
                 buyTickets.setOnClickListener(new View.OnClickListener() {
@@ -243,6 +233,39 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                         .execute("lineup/" + Uri.encode(EVENT_ID), "lineups");
             }
         }
+
+        rootView.findViewById(R.id.twitterButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    JSONObject mixpanelProperties = new JSONObject();
+                    mixpanelProperties.put("id", EVENT_ID);
+                    mixpanelProperties.put("event", EVENT_NAME);
+                    activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Uri twitterUrl = Uri.parse(currentEvent.getTwitterLink());
+                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, twitterUrl);
+                startActivity(launchBrowser);
+            }
+        });
+        rootView.findViewById(R.id.webButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    JSONObject mixpanelProperties = new JSONObject();
+                    mixpanelProperties.put("id", EVENT_ID);
+                    mixpanelProperties.put("event", EVENT_NAME);
+                    activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Uri webUrl = Uri.parse(currentEvent.getWebLink());
+                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, webUrl);
+                startActivity(launchBrowser);
+            }
+        });
 
         try {
             JSONObject mixpanelProperties = new JSONObject();
@@ -290,7 +313,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                     activity.setsManager.setPlaylist(setModels);
                     activity.playlistFragment.updatePlaylist();
                     Set s = setModels.get(position);
-                    ((SetMineMainActivity)getActivity()).startPlayerFragment(Integer.parseInt(s.getId()));
+                    ((SetMineMainActivity)getActivity()).startPlayerFragment(s.getId());
                 }
             });
         } else {

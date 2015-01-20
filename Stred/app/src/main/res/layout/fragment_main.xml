@@ -2,8 +2,13 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/setmine_splash"
+    android:background="#FFFFFFFF"
     android:id="@+id/fragment_main">
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:src="@drawable/setmine_splash"/>
 
     <LinearLayout android:orientation="vertical"
         android:layout_width="match_parent"

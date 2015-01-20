@@ -5,7 +5,7 @@
     android:layout_height="wrap_content"
     android:padding="10dp"
     android:id="@+id/set_tile"
-    android:background="@drawable/pressable_button_blue">
+    android:background="@drawable/pressable_button_white_to_blue">
 
     <ImageView
         android:layout_width="50dp"

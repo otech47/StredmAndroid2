@@ -21,7 +21,7 @@ public class MainPagerAdapter extends FragmentPagerAdapter {
             "Login",
             "Events",
             "Sets",
-            "Find"
+            "Explore"
     };
 
     public int NUM_TITLES = TITLES.length;

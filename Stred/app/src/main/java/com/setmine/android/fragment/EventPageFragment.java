@@ -102,6 +102,12 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.v("Event Page Fragment Created "+page.toString(), getActivity().toString());
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater,
+                             ViewGroup container, Bundle savedInstanceState) {
         this.activity = (SetMineMainActivity)getActivity();
         this.context = activity.getApplicationContext();
         this.modelsCP = activity.modelsCP;
@@ -120,12 +126,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 .cacheOnDisk(true)
                 .considerExifParams(true)
                 .build();
-        Log.v("Event Page Fragment Created "+page.toString(), getActivity().toString());
-    }
 
-    @Override
-    public View onCreateView(LayoutInflater inflater,
-                             ViewGroup container, Bundle savedInstanceState) {
         ListView listView = null;
         eventType = "";
         this.eventViewPager = activity.eventViewPager;
@@ -134,10 +135,10 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsList);
             listView.setAdapter(new EventAdapter(inflater, currentEvents, eventType));
-            rootView.findViewById(R.id.recent_nav_icon).setOnClickListener(new View.OnClickListener() {
+            rootView.findViewById(R.id.sets_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    eventViewPager.setCurrentItem(1);
+                    eventViewPager.setCurrentItem(2);
                 }
             });
         }
@@ -149,13 +150,13 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             rootView.findViewById(R.id.event_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    eventViewPager.setCurrentItem(0);
+                    eventViewPager.setCurrentItem(1);
                 }
             });
             rootView.findViewById(R.id.event_search_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    eventViewPager.setCurrentItem(2);
+                    eventViewPager.setCurrentItem(3);
                 }
             });
         }
@@ -171,7 +172,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
 
             listView.setAdapter(dynamicAdapter);
 
-            rootView.findViewById(R.id.recent_nav_icon).setOnClickListener(new View.OnClickListener() {
+            rootView.findViewById(R.id.sets_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     eventViewPager.setCurrentItem(1);
@@ -255,15 +256,14 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                         }
                     }
             );
-            ((ViewGroup)datePicker.getParent()).findViewById(R.id.searchButton)
-                    .setOnClickListener(new View.OnClickListener() {
-                        @Override
-                        public void onClick(View v) {
-                            v.getRootView().findViewById(R.id.datePickerContainer)
-                                    .setVisibility(View.GONE);
-                            eventSearch(v);
-                        }
-                    });
+            rootView.findViewById(R.id.searchButton).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    v.getRootView().findViewById(R.id.datePickerContainer)
+                            .setVisibility(View.GONE);
+                    eventSearch(v);
+                }
+            });
         }
         if(listView != null) {
             listView.setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
@@ -370,7 +370,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             holder.date.setText(dateUtils.formatDateText(event.startDate, event.endDate));
 
             ImageLoader.getInstance()
-                    .displayImage(SetMineMainActivity.S3_ROOT_URL + event.mainImageUrl,
+                    .displayImage(event.mainImageUrl,
                             holder.image, options, animateFirstListener);
 
 

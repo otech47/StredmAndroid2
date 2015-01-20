@@ -2,5 +2,5 @@
 
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@drawable/nav_icon_blue"></item>
-    <item android:drawable="@drawable/recent_icon_white"></item>
+    <item android:drawable="@drawable/sets_icon_white"></item>
 </layer-list>
