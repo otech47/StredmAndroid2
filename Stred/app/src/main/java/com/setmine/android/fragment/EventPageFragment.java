@@ -86,13 +86,13 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         Bundle args = getArguments();
         page = args.getInt(ARG_OBJECT);
         if(page == 2) {
-            currentEvents = ((SetMineMainActivity)getActivity()).modelsCP.upcomingEvents;
+            currentEvents = ((SetMineMainActivity)activity).modelsCP.upcomingEvents;
         }
         else if(page == 3) {
-            currentEvents = ((SetMineMainActivity)getActivity()).modelsCP.recentEvents;
+            currentEvents = ((SetMineMainActivity)activity).modelsCP.recentEvents;
         }
         else if(page == 4) {
-            currentEvents = ((SetMineMainActivity)getActivity()).modelsCP.searchEvents;
+            currentEvents = ((SetMineMainActivity)activity).modelsCP.searchEvents;
         }
         else
             currentTiles = null;

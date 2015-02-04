@@ -100,7 +100,7 @@
                 android:layout_width="85dp"
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceSmall"
-                android:text="@string/hear_sets"
+                android:text="@string/recent_tag"
                 android:id="@+id/type"
                 android:textColor="#ffffff"
                 android:gravity="center"

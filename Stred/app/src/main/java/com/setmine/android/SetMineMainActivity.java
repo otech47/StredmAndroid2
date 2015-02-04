@@ -319,10 +319,17 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
 
     @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "ONRESUME");
     }
+
+
 
     @Override
     protected void onDestroy() {
