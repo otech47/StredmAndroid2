@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,27 +18,39 @@ import com.viewpagerindicator.TitlePageIndicator;
 /**
  * Created by oscarlafarga on 9/25/14.
  */
-public class MainViewPagerContainerFragment extends Fragment {
+public class MainPagerContainerFragment extends Fragment {
+
+    private static final String TAG = "MainViewPagerFragment";
 
     public ViewPager mViewPager;
     public MainPagerAdapter mMainPagerAdapter;
     public FragmentManager fragmentManager;
 
 
-    public MainViewPagerContainerFragment() {
+    public MainPagerContainerFragment() {
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
 
-        View root = inflater.inflate(R.layout.event_pager_container, container, false);
+        Log.d(TAG, "onCreate");
 
         // Child Fragment Managers are required when dealing with View Pagers
 
         fragmentManager = getChildFragmentManager();
 
-        mViewPager = (ViewPager)root.findViewById(R.id.eventpager);
         mMainPagerAdapter = new MainPagerAdapter(fragmentManager);
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
+        Log.d(TAG, "onCreateView");
+
+        View root = inflater.inflate(R.layout.main_pager_container, container, false);
+
+        mViewPager = (ViewPager)root.findViewById(R.id.eventpager);
 
         // Store a reference to the Pager Adapter in the top level activity
 

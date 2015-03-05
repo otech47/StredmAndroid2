@@ -57,8 +57,8 @@ public class TracklistFragment extends Fragment {
         super.onCreate(savedInstanceState);
         activity = (SetMineMainActivity) getActivity();
         this.context = activity.getApplicationContext();
-        if(activity.setsManager != null) {
-            this.set = activity.setsManager.getSelectedSet();
+        if(activity.playerManager != null) {
+            this.set = activity.playerManager.getSelectedSet();
         }
 
         options = new DisplayImageOptions.Builder()

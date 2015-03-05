@@ -4,7 +4,7 @@ package com.setmine.android.object;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Artist {
+public class Artist  extends JSONModel {
 	private String mId;
 	private String mArtist;
     private String mBio;
@@ -16,16 +16,8 @@ public class Artist {
     public Artist() {
     }
 
-    public Artist(String mId, String mArtist, String mBio, String mFacebookLink, String mTwitterLink, String mImageUrl) {
-        this.mId = mId;
-        this.mArtist = mArtist;
-        this.mBio = mBio;
-        this.mFacebookLink = mFacebookLink;
-        this.mTwitterLink = mTwitterLink;
-        this.mImageUrl = mImageUrl;
-    }
-
     public Artist(JSONObject json) {
+        jsonModelString = json.toString();
         try {
             setId(json.getString("id"));
             setArtist(json.getString("artist"));

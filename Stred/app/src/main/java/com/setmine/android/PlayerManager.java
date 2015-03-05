@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Created by oscarlafarga on 9/23/14.
  */
-public class SetsManager {
+public class PlayerManager {
 
     private List<Set> playlist = new ArrayList<Set>();
     private List<Set> playlistShuffled;

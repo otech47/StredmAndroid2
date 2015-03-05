@@ -5,6 +5,7 @@ import android.util.Log;
 
 import com.setmine.android.ApiCaller;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.object.Constants;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONObject;
@@ -17,16 +18,16 @@ public class SetMineApiGetRequestAsyncTask extends AsyncTask<String, Integer, JS
 
     SetMineMainActivity activity = null;
     HttpUtils httpUtil;
-    String modelType;
+    String identifier;
     ApiCaller apiCaller;
 
-    final String TAG = "SetMineApiGetRequestAsyncTask";
+    final String TAG = "SetMineGetTask";
 
     // Create the Task by passing in the activity and the ApiCaller that is creating the task
 
     public SetMineApiGetRequestAsyncTask(SetMineMainActivity activity, ApiCaller apiCaller) {
         this.activity = activity;
-        this.httpUtil = new HttpUtils(activity.getApplicationContext(), activity.API_ROOT_URL);
+        this.httpUtil = new HttpUtils(activity.getApplicationContext(), Constants.API_ROOT_URL);
         this.apiCaller = apiCaller;
     }
 
@@ -35,7 +36,7 @@ public class SetMineApiGetRequestAsyncTask extends AsyncTask<String, Integer, JS
     @Override
     protected void onPreExecute() {
         activity.asyncTasksInProgress++;
-        Log.d(TAG, "Task started. Still in queue: "+ ((Integer)activity.asyncTasksInProgress).toString());
+        Log.d(TAG, "Task started: "+ ((Integer)activity.asyncTasksInProgress).toString());
     }
 
     // Pass in the api route needed with SetMineApiGetRequestAsyncTask.executeOnExecutor(apiRoute)
@@ -46,7 +47,7 @@ public class SetMineApiGetRequestAsyncTask extends AsyncTask<String, Integer, JS
         // If there is a second parameter, then we are retrieving a model that needs to be stored
 
         if(params[1] != null) {
-            modelType = params[1];
+            identifier = params[1];
         }
         String apiRequest = params[0];
         JSONObject jsonResponse = null;
@@ -65,9 +66,9 @@ public class SetMineApiGetRequestAsyncTask extends AsyncTask<String, Integer, JS
     @Override
     protected void onPostExecute(JSONObject response) {
         activity.asyncTasksInProgress--;
-        Log.d(TAG, "Task complete. Still in queue: "+ ((Integer)activity.asyncTasksInProgress).toString());
+        Log.d(TAG, "Task complete: "+ ((Integer)activity.asyncTasksInProgress).toString());
         if(response != null) {
-            apiCaller.onApiResponseReceived(response, modelType);
+            apiCaller.onApiResponseReceived(response, identifier);
         } else {
         }
 

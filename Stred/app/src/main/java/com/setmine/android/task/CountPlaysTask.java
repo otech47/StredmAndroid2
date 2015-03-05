@@ -3,7 +3,7 @@ package com.setmine.android.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.object.Constants;
 import com.setmine.android.util.HttpUtils;
 
 /**
@@ -15,7 +15,7 @@ public class CountPlaysTask extends AsyncTask<String, Integer, String> {
     String serverUrl;
 
     public CountPlaysTask(Context c) {
-        this.serverUrl = SetMineMainActivity.PUBLIC_ROOT_URL;
+        this.serverUrl = Constants.PUBLIC_ROOT_URL;
         http = new HttpUtils(c, serverUrl);
     }
 

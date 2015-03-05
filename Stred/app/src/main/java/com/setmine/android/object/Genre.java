@@ -4,7 +4,7 @@ package com.setmine.android.object;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Genre {
+public class Genre extends JSONModel {
 	private String mId;
 	private String mGenre;
 
@@ -16,6 +16,7 @@ public class Genre {
 	}
 
     public Genre(JSONObject json) {
+        jsonModelString = json.toString();
         try {
             setId(json.getString("genre"));
             setId(json.getString("id"));

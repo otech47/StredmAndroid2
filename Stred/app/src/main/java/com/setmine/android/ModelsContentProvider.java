@@ -1,5 +1,7 @@
 package com.setmine.android;
 
+import android.util.Log;
+
 import com.setmine.android.object.Activity;
 import com.setmine.android.object.Artist;
 import com.setmine.android.object.Event;
@@ -19,6 +21,8 @@ import java.util.List;
 
 public class ModelsContentProvider {
 
+    private static final String TAG = "ModelsContentProvider";
+
     private List<Artist> artists;
     private List<Artist> allArtists;
     private List<Event> events;
@@ -30,6 +34,9 @@ public class ModelsContentProvider {
     private List<Set> recentSets;
     private List<Track> tracks = null;
     public HashMap<String, Lineup> lineups;
+    public List<Event> soonestEvents;
+    public List<Event> closestEvents;
+    public List<Event> soonestEventsAroundMe;
     public List<Event> upcomingEvents;
     public List<Event> recentEvents;
     public List<Event> searchEvents;
@@ -38,8 +45,12 @@ public class ModelsContentProvider {
     public HashMap<String, List<Event>> detailEvents;
     public boolean initialModelsReady = false;
 
+    public HashMap<String, String> jsonMappings;
+
     public ModelsContentProvider() {
-        upcomingEvents = new ArrayList<Event>();
+        soonestEvents = new ArrayList<Event>();
+        closestEvents = new ArrayList<Event>();
+        soonestEventsAroundMe = new ArrayList<Event>();
         recentEvents = new ArrayList<Event>();
         searchEvents = new ArrayList<Event>();
         lineups = new HashMap<String, Lineup>();
@@ -55,6 +66,24 @@ public class ModelsContentProvider {
         detailSets = new HashMap<String, List<Set>>();
         detailEvents = new HashMap<String, List<Event>>();
         activities = new ArrayList<Activity>();
+
+        jsonMappings = new HashMap<String, String>();
+    }
+
+    public HashMap<String, String> getJsonMappings() {
+        return jsonMappings;
+    }
+
+    public String convertModelsToString() {
+        String jsonStringToSave = "";
+        jsonStringToSave = jsonMappings.toString();
+        Log.d(TAG, jsonStringToSave);
+        return jsonStringToSave;
+//        List<Object> keys = new ArrayList<Object>(Arrays.asList(jsonMappings.keySet().toArray()));
+//        for(int i = 0; i < jsonMappings.keySet().size(); i++) {
+//            jsonStringToSave = jsonStringToSave + "{'" + keys.get(i) + "':"
+//                    + jsonMappings.get(keys.get(i)) + "}";
+//        }
     }
 
     public void setModel(JSONObject model, String modelName) {
@@ -65,40 +94,34 @@ public class ModelsContentProvider {
                 if(modelName.equals("upcomingEvents")) {
                     JSONObject upcoming = payload.getJSONObject("upcoming");
                     JSONArray soonest = upcoming.getJSONArray("soonestEvents");
-                    for(int i = 0 ; i < soonest.length() ; i++) {
-                        upcomingEvents.add(new Event(soonest.getJSONObject(i)));
-                    }
-                }
-                else if(modelName.equals("upcomingEventsAroundMe")) {
-                    JSONObject upcoming = payload.getJSONObject("upcoming");
+                    JSONArray closest = upcoming.getJSONArray("closestEvents");
                     JSONArray around = upcoming.getJSONArray("soonestEventsAroundMe");
-                    for(int i = 0 ; i < around.length() ; i++) {
-                        upcomingEvents.add(new Event(around.getJSONObject(i)));
+                    jsonMappings.put("soonestEvents", model.toString());
+                    jsonMappings.put("closestEvents", model.toString());
+                    jsonMappings.put("soonestEventsAroundMe", model.toString());
+                    for(int i = 0 ; i < soonest.length() ; i++) {
+                        soonestEvents.add(new Event(soonest.getJSONObject(i)));
                     }
-                    if(around.length() == 0) {
-                        JSONArray soonest = upcoming.getJSONArray("soonestEvents");
-                        for(int i = 0 ; i < soonest.length() ; i++) {
-                            upcomingEvents.add(new Event(soonest.getJSONObject(i)));
-                        }
+                    for(int i = 0 ; i < closest.length() ; i++) {
+                        closestEvents.add(new Event(closest.getJSONObject(i)));
+                    }
+                    for(int i = 0 ; i < around.length() ; i++) {
+                        soonestEventsAroundMe.add(new Event(around.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("recentEvents")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray recent = payload.getJSONArray("featured");
                     for(int i = 0 ; i < recent.length() ; i++) {
                         recentEvents.add(new Event(recent.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("searchEvents")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONObject upcoming = payload.getJSONObject("upcoming");
-                    JSONArray around = upcoming.getJSONArray("soonestEventsAroundMe");
+                    JSONArray around = upcoming.getJSONArray("closestEvents");
                     for(int i = 0 ; i < around.length() ; i++) {
                         searchEvents.add(new Event(around.getJSONObject(i)));
-                    }
-                    if(around.length() == 0) {
-                        JSONArray soonest = upcoming.getJSONArray("soonestEvents");
-                        for(int i = 0 ; i < soonest.length() ; i++) {
-                            searchEvents.add(new Event(soonest.getJSONObject(i)));
-                        }
                     }
                 }
                 else if(modelName.equals("sets")) {
@@ -109,27 +132,28 @@ public class ModelsContentProvider {
                     }
                 }
                 else if(modelName.equals("artists")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray artistsArray = payload.getJSONArray("artist");
                     for(int i = 0 ; i < artistsArray.length() ; i++) {
                         artists.add(new Artist(artistsArray.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("festivals")) {
+                    jsonMappings.put("events", model.toString());
                     JSONArray allFestivals = payload.getJSONArray("festival");
                     for(int i = 0 ; i < allFestivals.length() ; i++) {
                         events.add(new Event(allFestivals.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("mixes")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray allMixes = payload.getJSONArray("mix");
                     for(int i = 0 ; i < allMixes.length() ; i++) {
-                        Mix newMix = new Mix();
-                        newMix.setMix(allMixes.getString(i));
-                        mixes.add(newMix);
+                        mixes.add(new Mix(allMixes.getJSONObject(i)));
                     }
-
                 }
                 else if(modelName.equals("genres")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray allGenres = payload.getJSONArray("genre");
                     for(int i = 0 ; i < allGenres.length() ; i++) {
                         Genre newGenre = new Genre();
@@ -145,42 +169,42 @@ public class ModelsContentProvider {
                     }
                 }
                 else if(modelName.equals("popularSets")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray sets = payload.getJSONArray("popular");
                     for(int i = 0 ; i < sets.length() ; i++) {
                         popularSets.add(new Set(sets.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("recentSets")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray sets = payload.getJSONArray("recent");
                     for(int i = 0 ; i < sets.length() ; i++) {
                         recentSets.add(new Set(sets.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("allArtists")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray allArtistsArray = payload.getJSONArray("artist");
                     for(int i = 0 ; i < allArtistsArray.length() ; i++) {
                         allArtists.add(new Artist(allArtistsArray.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("activities")) {
+                    jsonMappings.put(modelName, model.toString());
                     JSONArray activitiesArray = payload.getJSONArray("activity");
                     for(int i = 0 ; i < activitiesArray.length() ; i++) {
                         activities.add(new Activity(activitiesArray.getJSONObject(i)));
                     }
                 }
-            }
-            else {
-                return;
+                onModelsChange();
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
-        onModelsChange();
     }
 
     public void onModelsChange() {
-
-        if(upcomingEvents.size() > 0 &&
+        if(soonestEvents.size() > 0 &&
                 recentEvents.size() > 0 &&
                 searchEvents.size() > 0 &&
                 artists.size() > 0 &&
@@ -189,7 +213,7 @@ public class ModelsContentProvider {
                 genres.size() > 0 &&
                 allArtists.size() > 0 &&
                 popularSets.size() > 0 &&
-                recentSets.size() > 0 ) {
+                recentEvents.size() > 0) {
             initialModelsReady = true;
         }
     }
@@ -251,6 +275,7 @@ public class ModelsContentProvider {
                 payload = response.getJSONObject("payload");
                 String event = payload.getString("event");
                 lineups.put(event, new Lineup(payload));
+                jsonMappings.put("detailLineups" + event, response.toString());
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -274,6 +299,7 @@ public class ModelsContentProvider {
                     setList.add(new Set(sets.getJSONObject(i)));
                 }
                 detailSets.put(payloadCategory.getString("name"), setList);
+                jsonMappings.put("detailSets" + payloadCategory.getString("name"), response.toString());
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -293,10 +319,35 @@ public class ModelsContentProvider {
                     eventList.add(new Event(uEvents.getJSONObject(i)));
                 }
                 detailEvents.put(payloadArtist.getString("name"), eventList);
+                jsonMappings.put("detailEvents" + payloadArtist.getString("name"), response.toString());
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public List<Event> getSoonestEvents() {
+        return soonestEvents;
+    }
+
+    public void setSoonestEvents(List<Event> soonestEvents) {
+        this.soonestEvents = soonestEvents;
+    }
+
+    public List<Event> getClosestEvents() {
+        return closestEvents;
+    }
+
+    public void setClosestEvents(List<Event> closestEvents) {
+        this.closestEvents = closestEvents;
+    }
+
+    public List<Event> getSoonestEventsAroundMe() {
+        return soonestEventsAroundMe;
+    }
+
+    public void setSoonestEventsAroundMe(List<Event> soonestEventsAroundMe) {
+        this.soonestEventsAroundMe = soonestEventsAroundMe;
     }
 
     public List<Event> getUpcomingEvents() {

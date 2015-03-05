@@ -6,7 +6,7 @@ import org.json.JSONObject;
 /**
  * Created by oscarlafarga on 9/29/14.
  */
-public class LineupSet {
+public class LineupSet extends JSONModel {
     public String Artist;
     public String time;
     public int day;
@@ -14,6 +14,7 @@ public class LineupSet {
     public boolean hasSets;
 
     public LineupSet(JSONObject json) {
+        jsonModelString = json.toString();
         try {
             setArtist(json.getString("artist"));
             setDay(json.getInt("day"));

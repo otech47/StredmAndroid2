@@ -25,7 +25,7 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 	private static final int DATABASE_VERSION = 1;
 
 	// Database Name
-	private static final String DATABASE_NAME = "setsManager";
+	private static final String DATABASE_NAME = "playerManager";
 
 	// Contacts table name
 	private static final String TABLE_SETS = "sets";
@@ -87,7 +87,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				set.setArtistImage(cursor.getString(5));
 				set.setSongURL(cursor.getString(6));
 				set.setIsRadiomix(cursor.getInt(7));
-				set.setIsDownloaded(true);
 
 				setList.add(set);
 			} while (cursor.moveToNext());
@@ -116,7 +115,6 @@ public class DatabaseHandler extends SQLiteOpenHelper {
 				set.setArtistImage(cursor.getString(5));
 				set.setSongURL(cursor.getString(6));
                 set.setIsRadiomix(cursor.getInt(6));
-				set.setIsDownloaded(true);
 			} while (cursor.moveToNext());
 		}
 

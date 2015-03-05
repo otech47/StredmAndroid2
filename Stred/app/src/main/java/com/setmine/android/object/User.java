@@ -10,7 +10,7 @@ import java.util.List;
 /**
  * Created by oscarlafarga on 1/5/15.
  */
-public class User {
+public class User extends JSONModel {
 
     private String email;
     private String firstName;
@@ -21,6 +21,7 @@ public class User {
     public User() {}
 
     public User(JSONObject json) {
+        jsonModelString = json.toString();
         try {
             setEmail(json.getString("username"));
             setFirstName(json.getString("first_name"));

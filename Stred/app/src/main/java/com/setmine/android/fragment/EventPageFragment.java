@@ -8,6 +8,7 @@ import android.location.Geocoder;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.view.ViewPager;
@@ -34,6 +35,7 @@ import com.setmine.android.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.task.ApiCallAsyncTask;
 import com.setmine.android.task.InitialApiCallAsyncTask;
@@ -51,66 +53,117 @@ import java.util.Locale;
 
 public class EventPageFragment extends Fragment implements ApiCaller {
 
+    private static final String TAG = "EventPageFragment";
+
     public static final String ARG_OBJECT = "page";
-    public Context context;
-    public View rootView;
     public Integer page;
+
+    public SetMineMainActivity activity;
+    public Context context;
     public ModelsContentProvider modelsCP;
-    public ViewPager eventViewPager;
+
+    public View rootView;
+    public ViewPager viewPager;
+    public ListView listView;
     public List<View> currentTiles;
-    public List<Event> currentEvents;
+
     public DateUtils dateUtils;
     public DisplayImageOptions options;
     public Geocoder geocoder;
-    public SetMineMainActivity activity;
     public Calendar selectedDate;
     public Location selectedLocation;
-    public EventAdapter dynamicAdapter;
     public List<Address> addressResultList;
     public Address addressResult;
+
+    public List<Event> currentEvents;
     public String eventType;
+    public EventAdapter eventAdapter;
+
 
     public EventPageFragment() {}
 
+    final Handler handler = new Handler();
+
+    final Runnable updateUI = new Runnable() {
+        @Override
+        public void run() {
+            setEventAdapter();
+        }
+    };
+
     @Override
     public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
-        modelsCP.setModel(jsonObject, identifier);
-        currentEvents = modelsCP.searchEvents;
-        dynamicAdapter.newData();
-        dynamicAdapter.notifyDataSetChanged();
+        final JSONObject finalJsonObject = jsonObject;
+        final String finalIdentifier = identifier;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "onApiResponse: "+finalIdentifier);
+                if(modelsCP == null) {
+                    Log.d(TAG, "modelsCP is null");
+                    modelsCP = new ModelsContentProvider();
+                }
+                modelsCP.setModel(finalJsonObject, finalIdentifier);
+                currentEvents = modelsCP.searchEvents;
+                handler.post(updateUI);
+            }
+        }).start();
+
     }
 
     @Override
     public void onAttach(Activity activity) {
         super.onAttach(activity);
-        Bundle args = getArguments();
-        page = args.getInt(ARG_OBJECT);
-        if(page == 2) {
-            currentEvents = ((SetMineMainActivity)activity).modelsCP.upcomingEvents;
-        }
-        else if(page == 3) {
-            currentEvents = ((SetMineMainActivity)activity).modelsCP.recentEvents;
-        }
-        else if(page == 4) {
-            currentEvents = ((SetMineMainActivity)activity).modelsCP.searchEvents;
-        }
-        else
-            currentTiles = null;
-        Log.v("Event Page Fragment Attached "+page.toString(), getActivity().toString());
+        Log.d(TAG, "onAttach");
     }
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v("Event Page Fragment Created "+page.toString(), getActivity().toString());
+        Bundle args = getArguments();
+        page = args.getInt(ARG_OBJECT);
+        Log.v(TAG, "onCreate: " + page.toString());
+
+        if(savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
+            modelsCP = activity.modelsCP;
+            if(page == 2) {
+                currentEvents = modelsCP.soonestEventsAroundMe;
+            }
+            else if(page == 3) {
+                currentEvents = modelsCP.recentEvents;
+            }
+            else if(page == 4) {
+                currentEvents = modelsCP.searchEvents;
+            }
+        } else {
+            String model = savedInstanceState.getString("currentEvents");
+            try {
+                JSONObject jsonModel = new JSONObject(model);
+                if(page == 2) {
+                    modelsCP.setModel(jsonModel, "upcomingEvents");
+                    currentEvents = modelsCP.soonestEventsAroundMe;
+                }
+                else if(page == 3) {
+                    modelsCP.setModel(jsonModel, "recentEvents");
+                    currentEvents = modelsCP.recentEvents;
+                }
+                else if(page == 4) {
+                    modelsCP.setModel(jsonModel, "searchEvents");
+                    currentEvents = modelsCP.searchEvents;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
-        this.activity = (SetMineMainActivity)getActivity();
+        Log.v(TAG, "onCreateView: " + page.toString());
+
         this.context = activity.getApplicationContext();
-        this.modelsCP = activity.modelsCP;
         this.dateUtils = new DateUtils();
         this.geocoder = new Geocoder(context, Locale.getDefault());
         this.selectedDate = Calendar.getInstance();
@@ -118,27 +171,15 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         this.addressResultList = null;
         this.addressResult = null;
 
-        options =  new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.logo_small)
-                .showImageForEmptyUri(R.drawable.logo_small)
-                .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
-
-        ListView listView = null;
-        eventType = "";
-        this.eventViewPager = activity.eventViewPager;
+        this.viewPager = ((MainPagerContainerFragment)this.getParentFragment()).mViewPager;
         if(page == 2) {
             eventType = "upcoming";
             rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsList);
-            listView.setAdapter(new EventAdapter(inflater, currentEvents, eventType));
             rootView.findViewById(R.id.sets_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    eventViewPager.setCurrentItem(2);
+                    viewPager.setCurrentItem(2);
                 }
             });
         }
@@ -146,17 +187,16 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             eventType = "recent";
             rootView = inflater.inflate(R.layout.events_scroll_view_recent, container, false);
             listView = (ListView) rootView.findViewById(R.id.eventsListRecent);
-            listView.setAdapter(new EventAdapter(inflater, currentEvents, eventType));
             rootView.findViewById(R.id.event_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    eventViewPager.setCurrentItem(1);
+                    viewPager.setCurrentItem(1);
                 }
             });
             rootView.findViewById(R.id.event_search_nav_icon).setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    eventViewPager.setCurrentItem(3);
+                    viewPager.setCurrentItem(3);
                 }
             });
         }
@@ -164,27 +204,145 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             eventType = "search";
             rootView = inflater.inflate(R.layout.events_finder, container, false);
             listView = (ListView) rootView.findViewById(R.id.searchResults);
-            final EditText locationText = (EditText)rootView.findViewById(R.id.locationText);
-            final TextView dateText = (TextView)rootView.findViewById(R.id.dateText);
-            final DatePicker datePicker = (DatePicker)rootView.findViewById(R.id.datePicker);
+            configureEventSearch();
+        }
+        setEventAdapter();
 
-            dynamicAdapter = new EventAdapter(inflater, currentEvents, eventType);
+        return rootView;
+    }
 
-            listView.setAdapter(dynamicAdapter);
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+    }
 
-            rootView.findViewById(R.id.sets_nav_icon).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    eventViewPager.setCurrentItem(1);
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "onSaveInstanceState");
+        if(page == 2) {
+            outState.putString("currentEvents", modelsCP.jsonMappings.get("soonestEventsAroundMe"));
+        }
+        else if(page == 3) {
+            outState.putString("currentEvents", modelsCP.jsonMappings.get("recentEvents"));
+        }
+        else if(page == 4) {
+            outState.putString("currentEvents", modelsCP.jsonMappings.get("searchEvents"));
+        }
+        else
+            currentTiles = null;
+        super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.v(TAG, "onResume");
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
+        Log.d(TAG, "onDetach");
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        Log.d(TAG, "onDestroy");
+    }
+
+    public void setEventAdapter() {
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
+
+        eventAdapter = new EventAdapter(inflater, currentEvents, eventType);
+        listView.setAdapter(eventAdapter);
+        eventAdapter.newData();
+        eventAdapter.notifyDataSetChanged();
+        listView.setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
+        listView.setOnItemClickListener(new ListView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+                Event currentEvent = currentEvents.get(position);
+                activity.openEventDetailPage(currentEvent, eventType);
+            }
+        });
+        rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
+    }
+
+    public void eventSearch(View v) {
+        eventAdapter.clear();
+        eventAdapter.notifyDataSetChanged();
+        String latitude = ((Double)selectedLocation.getLatitude()).toString();
+        String longitude = ((Double)selectedLocation.getLongitude()).toString();
+        SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy'-'MM'-'d");
+        String date = apiDateFormat.format(selectedDate.getTime());
+        String route = "upcoming/?date=" + Uri.encode(date) + "&latitude=" + latitude + "&longitude=" + longitude;
+        new ApiCallAsyncTask(activity, context, Constants.API_ROOT_URL, this)
+                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                        route,
+                        "searchEvents");
+    }
+
+    public void configureEventSearch() {
+        final EditText locationText = (EditText)rootView.findViewById(R.id.locationText);
+        final TextView dateText = (TextView)rootView.findViewById(R.id.dateText);
+        final DatePicker datePicker = (DatePicker)rootView.findViewById(R.id.datePicker);
+
+        rootView.findViewById(R.id.sets_nav_icon).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                viewPager.setCurrentItem(2);
+            }
+        });
+
+        locationText.setImeActionLabel("Search", KeyEvent.KEYCODE_ENTER);
+        locationText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
+            @Override
+            public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+                try {
+                    List<Address> results = geocoder.getFromLocationName(v.getText().toString(), 1);
+                    if (results != null) {
+                        selectedLocation.setLatitude(results.get(0).getLatitude());
+                        selectedLocation.setLongitude(results.get(0).getLongitude());
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-            });
+                eventSearch(v);
+                return true;
+            }
+        });
+        if(addressResult == null) {
+            try {
+                addressResultList = geocoder.getFromLocation(selectedLocation.getLatitude(),
+                        selectedLocation.getLongitude(), 1);
+                if(addressResultList.size() > 0) {
+                    addressResult = addressResultList.get(0);
+                    locationText.setText(addressResult.getLocality() + ", " + addressResult.getAdminArea());
+                }
+                else {
+                    locationText.setText("No Address");
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
 
-            locationText.setImeActionLabel("Search", KeyEvent.KEYCODE_ENTER);
-            locationText.setOnEditorActionListener(new TextView.OnEditorActionListener() {
-                @Override
-                public boolean onEditorAction(TextView v, int actionId, KeyEvent event) {
+
+        locationText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
+            @Override
+            public void onFocusChange(View v, boolean hasFocus) {
+                if (!hasFocus) {
                     try {
-                        List<Address> results = geocoder.getFromLocationName(v.getText().toString(), 1);
+                        List<Address> results = geocoder.getFromLocationName(((TextView) v).getText().toString(), 1);
                         if (results != null) {
                             selectedLocation.setLatitude(results.get(0).getLatitude());
                             selectedLocation.setLongitude(results.get(0).getLongitude());
@@ -193,105 +351,43 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                         e.printStackTrace();
                     }
                     eventSearch(v);
-                    return true;
-                }
-            });
-            if(addressResult == null) {
-                try {
-                    addressResultList = geocoder.getFromLocation(selectedLocation.getLatitude(),
-                            selectedLocation.getLongitude(), 1);
-                    if(addressResultList.size() > 0) {
-                        addressResult = addressResultList.get(0);
-                        locationText.setText(addressResult.getLocality() + ", " + addressResult.getAdminArea());
-                    }
-                    else {
-                        locationText.setText("No Address");
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
                 }
             }
+        });
+
+        SimpleDateFormat inputDateFormat = new SimpleDateFormat("MMMM' 'd', 'yyyy");
+        dateText.setText(inputDateFormat.format(selectedDate.getTime()));
+
+        dateText.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.getRootView().findViewById(R.id.datePickerContainer).setVisibility(View.VISIBLE);
+            }
+        });
 
 
-            locationText.setOnFocusChangeListener(new View.OnFocusChangeListener() {
-                @Override
-                public void onFocusChange(View v, boolean hasFocus) {
-                    if (!hasFocus) {
-                        try {
-                            List<Address> results = geocoder.getFromLocationName(((TextView) v).getText().toString(), 1);
-                            if (results != null) {
-                                selectedLocation.setLatitude(results.get(0).getLatitude());
-                                selectedLocation.setLongitude(results.get(0).getLongitude());
-                            }
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        eventSearch(v);
+        Calendar today = Calendar.getInstance();
+        datePicker.init(
+                today.get(Calendar.YEAR),
+                today.get(Calendar.MONTH),
+                today.get(Calendar.DAY_OF_MONTH),
+                new DatePicker.OnDateChangedListener() {
+                    @Override
+                    public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
+                        selectedDate.set(year, monthOfYear, dayOfMonth);
+                        SimpleDateFormat inputDateFormat = new SimpleDateFormat("MMMM' 'd', 'yyyy");
+                        ((TextView)view.getRootView().findViewById(R.id.dateText)).setText(inputDateFormat.format(selectedDate.getTime()));
                     }
                 }
-            });
-
-            SimpleDateFormat inputDateFormat = new SimpleDateFormat("MMMM' 'd', 'yyyy");
-            dateText.setText(inputDateFormat.format(selectedDate.getTime()));
-
-            dateText.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    v.getRootView().findViewById(R.id.datePickerContainer).setVisibility(View.VISIBLE);
-                }
-            });
-
-
-            Calendar today = Calendar.getInstance();
-            datePicker.init(
-                    today.get(Calendar.YEAR),
-                    today.get(Calendar.MONTH),
-                    today.get(Calendar.DAY_OF_MONTH),
-                    new DatePicker.OnDateChangedListener() {
-                        @Override
-                        public void onDateChanged(DatePicker view, int year, int monthOfYear, int dayOfMonth) {
-                            selectedDate.set(year, monthOfYear, dayOfMonth);
-                            SimpleDateFormat inputDateFormat = new SimpleDateFormat("MMMM' 'd', 'yyyy");
-                            ((TextView)view.getRootView().findViewById(R.id.dateText)).setText(inputDateFormat.format(selectedDate.getTime()));
-                        }
-                    }
-            );
-            rootView.findViewById(R.id.searchButton).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    v.getRootView().findViewById(R.id.datePickerContainer)
-                            .setVisibility(View.GONE);
-                    eventSearch(v);
-                }
-            });
-        }
-        if(listView != null) {
-            listView.setOnScrollListener(new PauseOnScrollListener(ImageLoader.getInstance(), false, true));
-            listView.setOnItemClickListener(new ListView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView <?> parent, View v,
-                int position, long id) {
-                    Event currentEvent = currentEvents.get(position);
-                    activity.openEventDetailPage(currentEvent, eventType);
-                }
-            });
-        }
-        Log.v("Event Page Fragment View Created ", page.toString());
-        return rootView;
-    }
-
-    public void eventSearch(View v) {
-        dynamicAdapter.clear();
-        dynamicAdapter.notifyDataSetChanged();
-        String latitude = ((Double)selectedLocation.getLatitude()).toString();
-        String longitude = ((Double)selectedLocation.getLongitude()).toString();
-        SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy'-'MM'-'d");
-        String date = apiDateFormat.format(selectedDate.getTime());
-        String route = "upcoming/?date=" + Uri.encode(date) + "&latitude=" + latitude + "&longitude=" + longitude;
-        new ApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
-                route,
-                "searchEvents");
+        );
+        rootView.findViewById(R.id.searchButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                v.getRootView().findViewById(R.id.datePickerContainer)
+                        .setVisibility(View.GONE);
+                eventSearch(v);
+            }
+        });
     }
 
     private static class ViewHolder {
@@ -368,6 +464,15 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             holder.city.setText(dateUtils.getCityStateFromAddress(event.address));
             holder.event.setText(event.event);
             holder.date.setText(dateUtils.formatDateText(event.startDate, event.endDate));
+
+            options =  new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(true)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
 
             ImageLoader.getInstance()
                     .displayImage(event.mainImageUrl,

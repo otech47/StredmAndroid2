@@ -4,7 +4,7 @@ package com.setmine.android.object;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Mix {
+public class Mix extends JSONModel {
 	private String id;
 	private String mix;
     private String bio;
@@ -15,14 +15,10 @@ public class Mix {
 
     public Mix() {}
 
-	public Mix(String id, String mix) {
-		setId(id);
-		setMix(mix);
-	}
-
     public Mix(JSONObject json) {
+        jsonModelString = json.toString();
         try {
-            setMix(json.getString("mix"));
+            setMix(json.getString("event"));
             setId(json.getString("id"));
             setBio(json.getString("bio"));
             setFacebookLink(json.getString("fb_link"));

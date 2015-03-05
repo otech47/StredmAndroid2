@@ -10,12 +10,13 @@ import java.util.List;
 /**
  * Created by oscarlafarga on 9/29/14.
  */
-public class Lineup {
+public class Lineup extends JSONModel {
     public String id;
     public String event;
     public List<LineupSet> lineup;
 
     public Lineup(JSONObject json) {
+        jsonModelString = json.toString();
         try {
             setId(json.getString("id"));
             setEvent(json.getString("event"));

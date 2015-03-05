@@ -4,12 +4,13 @@ package com.setmine.android.object;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.util.DateUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Event implements Parcelable {
+public class Event extends JSONModel implements Parcelable {
+
 	public String id;
 	public String event;
     public String bio;
@@ -21,6 +22,7 @@ public class Event implements Parcelable {
     public String mainImageUrl;
     public String startDate;
     public String endDate;
+    public String dateFormatted;
     public int paid;
     public int days;
     public String venue;
@@ -52,6 +54,7 @@ public class Event implements Parcelable {
         mainImageUrl = in.readString();
         startDate = in.readString();
         endDate = in.readString();
+        dateFormatted = in.readString();
         paid = in.readInt();
         days = in.readInt();
         venue = in.readString();
@@ -79,6 +82,7 @@ public class Event implements Parcelable {
         out.writeString(mainImageUrl);
         out.writeString(startDate);
         out.writeString(endDate);
+        out.writeString(dateFormatted);
         out.writeInt(paid);
         out.writeInt(days);
         out.writeString(venue);
@@ -91,41 +95,22 @@ public class Event implements Parcelable {
     // Object Creation and Method Definitions
 
     public Event() {}
-    public Event(String id, String event, String bio,
-                 String facebookLink, String twitterLink, String webLink, String iconImageUrl,
-                 String mainImageUrl, String startDate, String endDate,
-                 int days, String venue, double latitude, double longitude,
-                 String address) {
-        this.id = id;
-        this.event = event;
-        this.bio = bio;
-        this.facebookLink = facebookLink;
-        this.twitterLink = twitterLink;
-        this.webLink = webLink;
-
-        this.iconImageUrl = iconImageUrl;
-        this.mainImageUrl = mainImageUrl;
-        this.startDate = startDate;
-        this.endDate = endDate;
-        this.days = days;
-        this.venue = venue;
-        this.latitude = latitude;
-        this.longitude = longitude;
-        this.address = address;
-    }
 
     public Event(JSONObject json) {
+        jsonModelString = json.toString();
+
         try {
             setId(json.getString("id"));
             setEvent(json.getString("event"));
             setBio(json.getString("bio"));
             setFacebookLink(json.getString("fb_link"));
             setTwitterLink(json.getString("twitter_link"));
-            setIconImageUrl(json.getString("imageURL"));
+            setIconImageUrl(Constants.S3_ROOT_URL + json.getString("imageURL"));
             setWebLink(json.getString("web_link"));
-            setMainImageUrl(SetMineMainActivity.S3_ROOT_URL + json.getString("main_imageURL"));
+            setMainImageUrl(Constants.S3_ROOT_URL + json.getString("main_imageURL"));
             setStartDate(json.getString("start_date"));
             setEndDate(json.getString("end_date"));
+            setDateFormatted();
             setDays(json.getInt("days"));
             setVenue(json.getString("venue"));
             setLatitude(json.getDouble("latitude"));
@@ -220,6 +205,10 @@ public class Event implements Parcelable {
         this.startDate = startDate;
     }
 
+    public String getDateFormatted() {
+        return dateFormatted;
+    }
+
     public String getEndDate() {
         return endDate;
     }
@@ -227,6 +216,12 @@ public class Event implements Parcelable {
     public void setEndDate(String endDate) {
         this.endDate = endDate;
     }
+
+    public void setDateFormatted() {
+        DateUtils dateUtils = new DateUtils();
+        this.dateFormatted = dateUtils.formatDateText(this.startDate, this.endDate);
+    }
+
 
     public int getPaid() {
         return paid;

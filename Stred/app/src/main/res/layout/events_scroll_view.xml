@@ -5,6 +5,22 @@
     android:layout_height="match_parent"
     android:background="#ff000000">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/centered_loader_container">
+
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/centered_loader"
+            android:layout_margin="@dimen/progress_padding"
+            android:layout_centerInParent="true"
+            android:gravity="center|bottom"
+            android:indeterminate="true" />
+
+    </RelativeLayout>
+
     <ListView
         android:orientation="vertical"
         android:layout_width="fill_parent"

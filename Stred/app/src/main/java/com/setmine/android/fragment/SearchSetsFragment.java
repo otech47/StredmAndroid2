@@ -4,6 +4,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,10 +20,12 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.OnTaskCompleted;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Artist;
+import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Genre;
 import com.setmine.android.object.Mix;
@@ -30,25 +33,39 @@ import com.setmine.android.object.SearchResultSetViewHolder;
 import com.setmine.android.object.Set;
 import com.setmine.android.task.GetSetsTask;
 
+import org.json.JSONObject;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set> {
+
+    private static final String TAG = "SearchSetsFragment";
 
     private SetMineMainActivity activity;
     public DisplayImageOptions options;
     public String searchQuery;
     public GetSetsTask getSetsTask;
 
+    public ModelsContentProvider modelsCP;
+    public boolean modelsReady;
+
     public View rootView;
     public SearchView searchView;
-
     public ListView browseItemList;
     public ListView searchResultsList;
     public TextView noResults;
     public ProgressBar setsLoading;
     public ViewGroup browseNavContainer;
     public View browseItemListContainer;
+    public View selectedBrowseView;
+
+    public List<Artist> artists;
+    public List<Event> festivals;
+    public List<Mix> mixes;
+    public List<Genre> genres;
+    public List<Set> popularSets;
+    public List<Set> recentSets;
 
     public SearchResultSetAdapter searchResultSetAdapter;
     public ArtistAdapter artistAdapter;
@@ -59,43 +76,82 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
         this.activity = (SetMineMainActivity)getActivity();
-        options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.logo_small)
-                .showImageForEmptyUri(R.drawable.logo_small)
-                .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
+
+        // Recover data from saved instance or retrieve from activity
+
+        if(savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
+            modelsCP = activity.modelsCP;
+        } else {
+            if(modelsCP == null) {
+                modelsCP = new ModelsContentProvider();
+            }
+            String artistsModel = savedInstanceState.getString("artists");
+            String festivalsModel = savedInstanceState.getString("festivals");
+            String mixesModel = savedInstanceState.getString("mixes");
+            String genresModel = savedInstanceState.getString("genres");
+            String popularSetsModel = savedInstanceState.getString("popularSets");
+            String recentSetsModel = savedInstanceState.getString("recentSets");
+            String allArtistsModel = savedInstanceState.getString("allArtists");
+            try {
+                JSONObject jsonArtistsModel = new JSONObject(artistsModel);
+                JSONObject jsonFestivalsModel = new JSONObject(festivalsModel);
+                JSONObject jsonMixesModel = new JSONObject(mixesModel);
+                JSONObject jsonGenresModel = new JSONObject(genresModel);
+                JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
+                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
+                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
+                modelsCP.setModel(jsonArtistsModel, "artists");
+                modelsCP.setModel(jsonFestivalsModel, "festivals");
+                modelsCP.setModel(jsonMixesModel, "mixes");
+                modelsCP.setModel(jsonGenresModel, "genres");
+                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
+                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
+                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        artists = modelsCP.getArtists();
+        festivals = modelsCP.getEvents();
+        mixes = modelsCP.getMixes();
+        genres = modelsCP.getGenres();
+        popularSets = modelsCP.getPopularSets();
+        recentSets = modelsCP.getRecentSets();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         rootView = inflater.inflate(R.layout.fragment_search_sets, container, false);
+
+        // Find and store view elements
+
         noResults = (TextView)rootView.findViewById(R.id.noResults);
         setsLoading = (ProgressBar)rootView.findViewById(R.id.setsLoading);
         browseItemList = (ListView)rootView.findViewById(R.id.browseList);
         browseNavContainer = (ViewGroup)rootView.findViewById(R.id.browse_container);
         browseItemListContainer = rootView.findViewById(R.id.browseListContainer);
         searchResultsList = (ListView)rootView.findViewById(R.id.setSearchResults);
+        searchView = (SearchView) rootView.findViewById(R.id.search_sets);
 
-        artistAdapter = new ArtistAdapter(activity.modelsCP.getArtists());
-        eventAdapter = new EventAdapter(activity.modelsCP.getEvents());
-        mixAdapter = new MixAdapter(activity.modelsCP.getMixes());
-        genreAdapter = new GenreAdapter(activity.modelsCP.getGenres());
+        // Initialize search results list adapter
 
         searchResultSetAdapter = new SearchResultSetAdapter(new ArrayList<Set>());
-
         searchResultsList.setAdapter(searchResultSetAdapter);
+
+        // Style search box
 
         int searchSrcTextId = getResources().getIdentifier("android:id/search_src_text", null, null);
         EditText searchEditText = (EditText) rootView.findViewById(searchSrcTextId);
         searchEditText.setTextColor(Color.BLACK);
         searchEditText.setHintTextColor(Color.GRAY);
 
-        searchView = (SearchView) rootView.findViewById(R.id.search_sets);
+        // Listener for changed text in search bar
+
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
 
             @Override
@@ -112,138 +168,54 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             }
         });
 
-        rootView.findViewById(R.id.browse_artist).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
-                    browseNavContainer.getChildAt(i).setSelected(false);
-                }
-                v.setSelected(true);
-                rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.GONE);
-                browseItemListContainer.setVisibility(View.VISIBLE);
-                browseItemList.setAdapter(artistAdapter);
-                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
-                        v.setPressed(true);
-                        Artist a = activity.modelsCP.getArtists().get(position);
-                        activity.openArtistDetailPage(a);
-                    }
-                });
-            }
-        });
-        rootView.findViewById(R.id.browse_festival).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
-                    browseNavContainer.getChildAt(i).setSelected(false);
-                }
-                v.setSelected(true);
-                rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.GONE);
-                browseItemListContainer.setVisibility(View.VISIBLE);
-                browseItemList.setAdapter(eventAdapter);
-                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
-                        v.setPressed(true);
-                        Event e = activity.modelsCP.getEvents().get(position);
-                        activity.openEventDetailPage(e, "recent");
-                    }
-                });
-            }
-        });
-        rootView.findViewById(R.id.browse_mix).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
-                    browseNavContainer.getChildAt(i).setSelected(false);
-                }
-                v.setSelected(true);
-                rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.GONE);
-                browseItemListContainer.setVisibility(View.VISIBLE);
-                browseItemList.setAdapter(mixAdapter);
-                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
-                        v.setPressed(true);
-                        Mix m = activity.modelsCP.getMixes().get(position);
-                        searchView.setQuery(m.getMix(), false);
-                    }
-                });
-            }
-        });
-        rootView.findViewById(R.id.browse_genre).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
-                    browseNavContainer.getChildAt(i).setSelected(false);
-                }
-                v.setSelected(true);
-                rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.GONE);
-                browseItemListContainer.setVisibility(View.VISIBLE);
-                browseItemList.setAdapter(genreAdapter);
-                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
-                        v.setPressed(true);
-                        Genre g = activity.modelsCP.getGenres().get(position);
-                        searchView.setQuery(g.getGenre(), false);
-                    }
-                });
-            }
-        });
+        artistAdapter = new ArtistAdapter(artists);
+        eventAdapter = new EventAdapter(festivals);
+        mixAdapter = new MixAdapter(mixes);
+        genreAdapter = new GenreAdapter(genres);
 
-        rootView.findViewById(R.id.browse_popular).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
-                    browseNavContainer.getChildAt(i).setSelected(false);
-                }
-                v.setSelected(true);
-                browseItemListContainer.setVisibility(View.GONE);
-                searchResultSetAdapter.sets = activity.modelsCP.getPopularSets();
-                rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.VISIBLE);
-                searchResultsList.setVisibility(View.VISIBLE);
-                setsLoading.setVisibility(View.GONE);
-                noResults.setVisibility(View.GONE);
-                searchResultSetAdapter.notifyDataSetChanged();
-                activity.setsManager.setPlaylist(searchResultSetAdapter.sets);
-                searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Set s = searchResultSetAdapter.sets.get(position);
-                        activity.startPlayerFragment(s.getId());
-                    }
-                });
-            }
-        });
-
-        rootView.findViewById(R.id.browse_recent).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
-                    browseNavContainer.getChildAt(i).setSelected(false);
-                }
-                v.setSelected(true);
-                browseItemListContainer.setVisibility(View.GONE);
-                searchResultSetAdapter.sets = activity.modelsCP.getRecentSets();
-                rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.VISIBLE);
-                searchResultsList.setVisibility(View.VISIBLE);
-                setsLoading.setVisibility(View.GONE);
-                noResults.setVisibility(View.GONE);
-                searchResultSetAdapter.notifyDataSetChanged();
-                activity.setsManager.setPlaylist(searchResultSetAdapter.sets);
-                searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                        Set s = searchResultSetAdapter.sets.get(position);
-                        activity.startPlayerFragment(s.getId());
-                    }
-                });
-            }
-        });
+        setBrowseClickListeners();
 
         return rootView;
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Log.d(TAG, "onStart");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d(TAG, "onResume");
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        Log.d(TAG, "onSaveInstanceState");
+        outState.putString("artists", modelsCP.jsonMappings.get("artists"));
+        outState.putString("festivals", modelsCP.jsonMappings.get("festivals"));
+        outState.putString("mixes", modelsCP.jsonMappings.get("mixes"));
+        outState.putString("genres", modelsCP.jsonMappings.get("genres"));
+        outState.putString("popularSets", modelsCP.jsonMappings.get("popularSets"));
+        outState.putString("recentSets", modelsCP.jsonMappings.get("recentSets"));
+        outState.putString("allArtists", modelsCP.jsonMappings.get("allArtists"));
+        super.onSaveInstanceState(outState);
+
     }
 
     public void searchSets(String query) {
@@ -264,7 +236,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             cancelTask();
             if (!searchQuery.equals("")) {
                 getSetsTask = new GetSetsTask(activity,
-                        activity.getApplicationContext(), activity.API_ROOT_URL, this);
+                        activity.getApplicationContext(), Constants.API_ROOT_URL, this);
                 getSetsTask.execute("search?search="+ Uri.encode(searchQuery), "searchedSets");
             } else {
                 setsLoading.setVisibility(View.GONE);
@@ -285,18 +257,19 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
 
     @Override
     public void onTaskCompleted(List<Set> list) {
+        Log.d(TAG, list.toString());
         searchResultSetAdapter.sets = list;
         if(list.size() > 0) {
             searchResultsList.setVisibility(View.VISIBLE);
             setsLoading.setVisibility(View.GONE);
             noResults.setVisibility(View.GONE);
             searchResultSetAdapter.notifyDataSetChanged();
-            activity.setsManager.setPlaylist(list);
+            activity.playerManager.setPlaylist(list);
             searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Set s = searchResultSetAdapter.sets.get(position);
-                    activity.startPlayerFragment(s.getId());
+                    activity.playSetWithSetID(s.getId());
                 }
             });
         }
@@ -313,11 +286,133 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
 
     }
 
+    public void setBrowseClickListeners() {
+        rootView.findViewById(R.id.browse_artist).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                didSelectCategory(v);
+                browseItemList.setAdapter(artistAdapter);
+                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                        v.setPressed(true);
+                        Artist a = activity.modelsCP.getArtists().get(position);
+                        activity.openArtistDetailPage(a);
+                    }
+                });
+            }
+        });
+        rootView.findViewById(R.id.browse_festival).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                didSelectCategory(v);
+                browseItemList.setAdapter(eventAdapter);
+                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                        v.setPressed(true);
+                        Event e = activity.modelsCP.getEvents().get(position);
+                        activity.openEventDetailPage(e, "recent");
+                    }
+                });
+            }
+        });
+        rootView.findViewById(R.id.browse_mix).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                didSelectCategory(v);
+                browseItemList.setAdapter(mixAdapter);
+                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                        v.setPressed(true);
+                        Mix m = activity.modelsCP.getMixes().get(position);
+                        searchView.setQuery(m.getMix(), false);
+                    }
+                });
+
+            }
+        });
+        rootView.findViewById(R.id.browse_genre).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                didSelectCategory(v);
+                browseItemList.setAdapter(genreAdapter);
+                browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                        v.setPressed(true);
+                        Genre g = activity.modelsCP.getGenres().get(position);
+                        searchView.setQuery(g.getGenre(), false);
+                    }
+                });
+            }
+        });
+
+        rootView.findViewById(R.id.browse_popular).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                didSelectPopularRecent(v);
+                searchResultSetAdapter.sets = popularSets;
+                searchResultsList.setVisibility(View.VISIBLE);
+                setsLoading.setVisibility(View.GONE);
+                noResults.setVisibility(View.GONE);
+                searchResultSetAdapter.notifyDataSetChanged();
+//                  activity.playerManager.setPlaylist(searchResultSetAdapter.sets);
+                searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Set s = searchResultSetAdapter.sets.get(position);
+                        activity.playSetWithSetID(s.getId());
+                    }
+                });
+            }
+        });
+
+        rootView.findViewById(R.id.browse_recent).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                didSelectPopularRecent(v);
+                searchResultSetAdapter.sets = recentSets;
+                searchResultsList.setVisibility(View.VISIBLE);
+                setsLoading.setVisibility(View.GONE);
+                noResults.setVisibility(View.GONE);
+                searchResultSetAdapter.notifyDataSetChanged();
+//                  activity.playerManager.setPlaylist(searchResultSetAdapter.sets);
+                searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                        Set s = searchResultSetAdapter.sets.get(position);
+                        activity.playSetWithSetID(s.getId());
+                    }
+                });
+            }
+        });
+    }
+
+    public void didSelectCategory(View v) {
+        selectedBrowseView = v;
+        for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
+            browseNavContainer.getChildAt(i).setSelected(false);
+        }
+        v.setSelected(true);
+        rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.GONE);
+        browseItemListContainer.setVisibility(View.VISIBLE);
+    }
+
+    public void didSelectPopularRecent(View v) {
+        selectedBrowseView = v;
+        for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
+            browseNavContainer.getChildAt(i).setSelected(false);
+        }
+        v.setSelected(true);
+        browseItemListContainer.setVisibility(View.GONE);
+        rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.VISIBLE);
+    }
+
     public static class BrowseItemHolder {
         TextView browseItemText;
     }
-
-
 
     // Adapters for Browse Lists
 
@@ -566,11 +661,20 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 @Override
                 public void onClick(View v) {
                     Set s = sets.get(position);
-                    activity.startPlayerFragment(s.getId());
+                    activity.playSetWithSetID(s.getId());
                 }
             });
 
-            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
+            options = new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(true)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
+
+            ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }

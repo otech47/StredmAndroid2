@@ -3,6 +3,7 @@ package com.setmine.android.fragment;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,15 +18,19 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.object.Constants;
 import com.setmine.android.object.SearchResultSetViewHolder;
 import com.setmine.android.object.Set;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
  * Created by oscarlafarga on 11/2/14.
  */
 public class PlaylistFragment extends Fragment {
+
+    private static final String TAG = "PlaylistFragment";
 
     public View rootView;
     public Integer setNum;
@@ -41,6 +46,8 @@ public class PlaylistFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
+
         this.activity = (SetMineMainActivity) getActivity();
         this.context = activity.getApplicationContext();
 
@@ -56,8 +63,14 @@ public class PlaylistFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         rootView = inflater.inflate(R.layout.playlist, container, false);
-        setlist = activity.searchSetsFragment.searchResultSetAdapter.sets;
+        if(savedInstanceState == null) {
+            setlist = activity.searchSetsFragment.searchResultSetAdapter.sets;
+        } else {
+            ArrayList<Set> setlistParcel = savedInstanceState.getParcelableArrayList("setlist");
+            setlist = new ArrayList<Set>(setlistParcel);
+        }
         ListView listview = (ListView) rootView.findViewById(R.id.playlist);
         setListAdapter = new SetAdapter(setlist);
         listview.setAdapter(setListAdapter);
@@ -66,7 +79,7 @@ public class PlaylistFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                activity.setsManager.selectSetByIndex(position);
+                activity.playerManager.selectSetByIndex(position);
                 activity.playerFragment.playSong();
                 activity.playerContainerFragment.mViewPager.setCurrentItem(1);
             }
@@ -74,17 +87,25 @@ public class PlaylistFragment extends Fragment {
         return rootView;
     }
 
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        Log.d(TAG, "onSaveInstanceState");
+        ArrayList<Set> setlistBundle = new ArrayList<Set>(setlist);
+        outState.putParcelableArrayList("setlist", setlistBundle);
+    }
+
     public void updatePlaylist() {
         ListView listview = (ListView) rootView.findViewById(R.id.playlist);
-        setlist = activity.setsManager.getPlaylist();
+        setlist = activity.playerManager.getPlaylist();
         setListAdapter.sets = setlist;
         setListAdapter.notifyDataSetChanged();
         listview.setOnItemClickListener(new ListView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                activity.startPlayerFragment(activity.playerFragment
-                        .setsManager.getPlaylist().get(position).getId());
+                activity.playSetWithSetID(activity.playerFragment
+                        .playerManager.getPlaylist().get(position).getId());
                 activity.playerContainerFragment.mViewPager.setCurrentItem(1);
             }
         });
@@ -143,7 +164,7 @@ public class PlaylistFragment extends Fragment {
             holder.artistText.setText(set.getArtist());
             holder.eventText.setText(set.getEvent());
 
-            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
+            ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }

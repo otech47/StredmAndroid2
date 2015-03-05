@@ -3,8 +3,6 @@ package com.setmine.android.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -16,7 +14,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Artist;
-import com.setmine.android.object.Event;
+import com.setmine.android.object.Constants;
 import com.setmine.android.object.Set;
 import com.setmine.android.util.DateUtils;
 
@@ -43,7 +41,6 @@ public class DetailSetsFragment extends Fragment {
         super.onCreate(savedInstanceState);
         activity = (SetMineMainActivity)getActivity();
         dateUtils = new DateUtils();
-        detailSets = activity.modelsCP.getDetailSets(selectedArtist.getArtist());
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
@@ -52,13 +49,15 @@ public class DetailSetsFragment extends Fragment {
                 .cacheOnDisk(true)
                 .considerExifParams(true)
                 .build();
-        Log.d("Detail Sets Fragment Created", this.toString());
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.detail_list, container, false);
         View detailListContainer = rootView.findViewById(R.id.detailListContainer);
+
+        detailSets = ((ArtistDetailFragment)getParentFragment()).detailSets;
+
         if(detailSets.size() == 0) {
             ((TextView)rootView.findViewById(R.id.noResults)).setText("No Sets Found");
             detailListContainer.setBackgroundResource(R.drawable.top_bottom_border_blue);
@@ -76,54 +75,46 @@ public class DetailSetsFragment extends Fragment {
 
             ImageView imageView = (ImageView)setTile.findViewById(R.id.artistImage);
             ImageLoader.getInstance()
-                    .displayImage(SetMineMainActivity.S3_ROOT_URL + set.getEventImage(),
+                    .displayImage(Constants.S3_ROOT_URL + set.getEventImage(),
                             imageView, options);
             if(set.isRadiomix() == 1) {
                 setTile.findViewById(R.id.detailActionButton).setVisibility(View.GONE);
             } else {
                 ((ImageView)setTile.findViewById(R.id.iconImage)).setImageResource(R.drawable.festival_icon);
                 ((TextView)setTile.findViewById(R.id.iconText)).setText("Event Info");
-                setTile.findViewById(R.id.detailActionButton).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        v.setPressed(true);
-                        Event currentEvent = null;
-                        for (Event event : activity.modelsCP.getEvents()) {
-                            if (event.getEvent().equals(set.getEvent())) {
-                                currentEvent = event;
-                            }
-                        }
-                        EventDetailFragment eventDetailFragment = new EventDetailFragment();
-                        eventDetailFragment.EVENT_ID = currentEvent.id;
-                        eventDetailFragment.EVENT_NAME = currentEvent.event;
-                        eventDetailFragment.EVENT_DATE_FORMATTED = dateUtils.formatDateText(currentEvent.startDate, currentEvent.endDate);
-                        eventDetailFragment.EVENT_START_DATE_UNFORMATTED = currentEvent.startDate;
-                        eventDetailFragment.EVENT_ADDRESS = currentEvent.address;
-                        eventDetailFragment.EVENT_IMAGE = currentEvent.mainImageUrl;
-                        eventDetailFragment.EVENT_TYPE = "recent";
-                        eventDetailFragment.EVENT_PAID = currentEvent.getPaid();
-                        eventDetailFragment.EVENT_TICKET = currentEvent.getTicketLink();
-                        SetMineMainActivity activity = (SetMineMainActivity) getActivity();
-                        FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-                        Log.v("which frag artist sets detail", "is this");
-                        transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
-                        transaction.addToBackStack(null);
-                        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                        transaction.commit();
-                    }
-                });
+//                setTile.findViewById(R.id.detailActionButton).setOnClickListener(new View.OnClickListener() {
+//                    @Override
+//                    public void onClick(View v) {
+//                        v.setPressed(true);
+//                        Event currentEvent = null;
+//                        for (Event event : activity.modelsCP.getEvents()) {
+//                            if (event.getEvent().equals(set.getEvent())) {
+//                                currentEvent = event;
+//                            }
+//                        }
+//                        EventDetailFragment eventDetailFragment = new EventDetailFragment();
+//                        eventDetailFragment.currentEvent = currentEvent;
+//                        eventDetailFragment.EVENT_TYPE = "recent";
+//                        SetMineMainActivity activity = (SetMineMainActivity) getActivity();
+//                        FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
+//                        transaction.replace(R.id.currentFragmentContainer, eventDetailFragment, "eventDetailFragment");
+//                        transaction.addToBackStack(null);
+//                        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+//                        transaction.commit();
+//
+//                    }
+//                });
             }
             setTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.setsManager.setPlaylist(detailSets);
+                    activity.playerManager.setPlaylist(detailSets);
                     activity.playlistFragment.updatePlaylist();
-                    activity.startPlayerFragment(set.getId());
+                    activity.playSetWithSetID(set.getId());
                 }
             });
             ((ViewGroup)detailListContainer).addView(setTile);
         }
-        Log.d("Detail Sets Fragment View Created", this.toString());
         return rootView;
     }
 }

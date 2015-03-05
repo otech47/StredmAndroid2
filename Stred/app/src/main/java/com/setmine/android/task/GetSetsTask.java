@@ -2,7 +2,6 @@ package com.setmine.android.task;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.setmine.android.OnTaskCompleted;
 import com.setmine.android.SetMineMainActivity;
@@ -46,7 +45,6 @@ public class GetSetsTask extends AsyncTask<String, Integer, JSONObject> {
 
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
-        Log.v("Task complete. Still in queue: ", ((Integer)activity.asyncTasksInProgress).toString());
         if(jsonObject != null) {
             activity.modelsCP.setModel(jsonObject, modelType);
             listener.onTaskCompleted(activity.modelsCP.getSearchedSets());

@@ -1,5 +1,7 @@
 package com.setmine.android.object;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import android.util.Log;
 
 import com.setmine.android.util.TimeUtils;
@@ -11,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class Set {
+public class Set extends JSONModel implements Parcelable {
     private static final String amazonS3Url = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
     private String mId;
     private String mArtistImage;
@@ -24,15 +26,57 @@ public class Set {
     private List<Track> mTracklist;
     private Integer popularity;
     private Integer mRadiomix;
-    private boolean mDownloaded;
+
+//      Parcelable Implementation
+
+    public static final Parcelable.Creator<Set> CREATOR = new Parcelable.Creator<Set>() {
+        public Set createFromParcel(Parcel in) {
+            return new Set(in);
+        }
+
+        public Set[] newArray(int size) {
+            return new Set[size];
+        }
+    };
+
+    private Set(Parcel in) {
+        mId = in.readString();
+        mArtistImage = in.readString();
+        mEventImage = in.readString();
+        mArtist = in.readString();
+        mEvent = in.readString();
+        mGenre = in.readString();
+        mSongURL = in.readString();
+        episode = in.readString();
+        popularity = in.readInt();
+        mRadiomix = in.readInt();
+    }
+
+    @Override
+    public int describeContents() {
+        return Integer.parseInt(getId());
+    }
+
+    @Override
+    public void writeToParcel(Parcel out, int flags) {
+        out.writeString(mId);
+        out.writeString(mArtistImage);
+        out.writeString(mEventImage);
+        out.writeString(mArtist);
+        out.writeString(mEvent);
+        out.writeString(mGenre);
+        out.writeString(mSongURL);
+        out.writeString(episode);
+        out.writeInt(popularity);
+        out.writeInt(mRadiomix);
+
+    }
 
     public Set() {
-        // default testing values
-        this("-1", "artist", "event", "genre", "http://setmine.com/favicon.ico",
-                "", new ArrayList<Track>(), 0, false);
     }
 
     public Set(JSONObject json) {
+        jsonModelString = json.toString();
         try {
             setId(json.getString("id"));
             setArtistImage(json.getString("artistimageURL"));
@@ -45,7 +89,6 @@ public class Set {
             setIsRadiomix(json.getInt("is_radiomix"));
             setEpisode(json.getString("episode"));
             setTracklist(generateTracklist(json.getString("tracklist"), json.getString("starttimes")));
-            setIsDownloaded(false);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -60,7 +103,6 @@ public class Set {
         setEventImage(s.getEventImage());
         setSongURL(s.getSongURL());
         setIsRadiomix(s.isRadiomix());
-        setIsDownloaded(s.isDownloaded());
         setTracklist(s.getTracklist());
     }
 
@@ -74,7 +116,6 @@ public class Set {
         setArtistImage(imageURL);
         setSongURL(songURL);
         setIsRadiomix(isRadiomix);
-        setIsDownloaded(isDownloaded);
         setTracklist(tracklist);
     }
 
@@ -164,14 +205,6 @@ public class Set {
 
     public void setIsRadiomix(Integer mRadiomix) {
         this.mRadiomix = mRadiomix;
-    }
-
-    public boolean isDownloaded() {
-        return mDownloaded;
-    }
-
-    public void setIsDownloaded(boolean mDownloaded) {
-        this.mDownloaded = mDownloaded;
     }
 
     public String getCurrentTrack(long time) {

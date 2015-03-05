@@ -1,10 +1,10 @@
 package com.setmine.android.task;
 
 import android.os.AsyncTask;
-import android.util.Log;
 
 import com.setmine.android.ApiCaller;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.object.Constants;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONObject;
@@ -26,7 +26,7 @@ public class SetMineApiPostRequestAsyncTask extends AsyncTask<String, Integer, J
 
     public SetMineApiPostRequestAsyncTask(SetMineMainActivity activity, ApiCaller apiCaller) {
         this.activity = activity;
-        this.httpUtil = new HttpUtils(activity.getApplicationContext(), activity.API_ROOT_URL);
+        this.httpUtil = new HttpUtils(activity.getApplicationContext(), Constants.API_ROOT_URL);
         this.apiCaller = apiCaller;
     }
 
@@ -34,8 +34,6 @@ public class SetMineApiPostRequestAsyncTask extends AsyncTask<String, Integer, J
 
     @Override
     protected void onPreExecute() {
-        activity.asyncTasksInProgress++;
-        Log.d(TAG, "Task started. Still in queue: "+ ((Integer)activity.asyncTasksInProgress).toString());
     }
 
     // Pass in the api route needed with SetMineApiGetRequestAsyncTask.executeOnExecutor(apiRoute)
@@ -68,13 +66,11 @@ public class SetMineApiPostRequestAsyncTask extends AsyncTask<String, Integer, J
 
     @Override
     protected void onPostExecute(JSONObject response) {
-        activity.asyncTasksInProgress--;
-        Log.d(TAG, "Task complete. Still in queue: "+ ((Integer)activity.asyncTasksInProgress).toString());
         if(response != null) {
             apiCaller.onApiResponseReceived(response, identifier);
         } else {
         }
-
+        super.onPostExecute(response);
     }
 
 

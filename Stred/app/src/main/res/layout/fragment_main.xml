@@ -13,21 +13,21 @@
     <LinearLayout android:orientation="vertical"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/searchSetsContainer">
+        android:id="@+id/currentFragmentContainer">
     </LinearLayout>
 
-    <LinearLayout android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/playerPagerContainer">
-    </LinearLayout>
+    <!--<LinearLayout android:orientation="vertical"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:id="@+id/playerPagerContainer">-->
+    <!--</LinearLayout>-->
 
-    <LinearLayout
-        android:orientation="vertical"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/eventPagerContainer">
-    </LinearLayout>
+    <!--<LinearLayout-->
+        <!--android:orientation="vertical"-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="match_parent"-->
+        <!--android:id="@+id/mainPagerContainer">-->
+    <!--</LinearLayout>-->
 
     <ProgressBar
         android:layout_width="match_parent"

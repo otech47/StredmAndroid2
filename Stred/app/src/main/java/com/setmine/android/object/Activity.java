@@ -10,8 +10,7 @@ import java.util.List;
 /**
  * Created by oscarlafarga on 1/5/15.
  */
-public class Activity {
-    private static final String imageServerUrl = "http://setmine.com/images/";
+public class Activity extends JSONModel {
 
     private Integer id;
     private String activityName;
@@ -22,15 +21,16 @@ public class Activity {
     public Activity() {
     }
 
-    public Activity(JSONObject jsonObject) {
+    public Activity(JSONObject json) {
+        jsonModelString = json.toString();
         try {
-            this.id = jsonObject.getInt("id");
-            this.activityName = jsonObject.getString("activity");
-            this.imageURL = imageServerUrl + jsonObject.getString("imageURL");
+            this.id = json.getInt("id");
+            this.activityName = json.getString("activity");
+            this.imageURL = Constants.S3_ROOT_URL + json.getString("imageURL");
             this.setIDs = new ArrayList<Integer>();
             this.sets = new ArrayList<Set>();
-            JSONArray setIDsArray = jsonObject.getJSONArray("set_ids");
-            JSONArray setsArray = jsonObject.getJSONArray("sets");
+            JSONArray setIDsArray = json.getJSONArray("set_ids");
+            JSONArray setsArray = json.getJSONArray("sets");
             for(int i = 0; i < setIDsArray.length() ; i++) {
                 setIDs.add(setIDsArray.getInt(i));
             }

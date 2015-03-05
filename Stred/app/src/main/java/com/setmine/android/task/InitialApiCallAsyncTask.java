@@ -27,7 +27,7 @@ public class InitialApiCallAsyncTask extends AsyncTask<String, Integer, JSONObje
     @Override
     protected void onPreExecute() {
         activity.asyncTasksInProgress++;
-        Log.v("Task started. Still in queue: ", ((Integer)activity.asyncTasksInProgress).toString());
+        Log.v("Task started: ", ((Integer)activity.asyncTasksInProgress).toString());
     }
 
     @Override
@@ -50,9 +50,8 @@ public class InitialApiCallAsyncTask extends AsyncTask<String, Integer, JSONObje
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
         activity.asyncTasksInProgress--;
-        Log.v("Task complete. Still in queue: ", ((Integer)activity.asyncTasksInProgress).toString());
+        Log.v("Task complete: ", ((Integer)activity.asyncTasksInProgress).toString());
         if(jsonObject != null) {
-            activity.onInitialResponseReceived(jsonObject, modelType);
         } else {
             Toast.makeText(activity.getApplicationContext(), "Check your Internet Connection", Toast.LENGTH_SHORT).show();
         }

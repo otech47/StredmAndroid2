@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
@@ -24,17 +25,18 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.setmine.android.LineupsSetsApiCaller;
+import com.setmine.android.ApiCaller;
+import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.SetsManager;
 import com.setmine.android.object.Artist;
+import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Lineup;
 import com.setmine.android.object.LineupSet;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.SetViewHolder;
-import com.setmine.android.task.LineupsSetsApiCallAsyncTask;
+import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 
 import org.json.JSONException;
@@ -47,65 +49,134 @@ import java.util.List;
 /**
  * Created by oscarlafarga on 9/22/14.
  */
-public class EventDetailFragment extends Fragment implements LineupsSetsApiCaller {
+public class EventDetailFragment extends Fragment implements ApiCaller {
+
+    private static final String TAG = "EventDetailFragment";
 
     public View rootView;
-    private static final String amazonS3Url = "http://setmine.s3-website-us-east-1.amazonaws.com/namecheap/";
+    public ImageView eventImageView;
+    public ListView lineupContainerView;
+
     public Event currentEvent;
-    public String EVENT_ID;
-    public String EVENT_NAME;
-    public String EVENT_DATE_FORMATTED;
-    public String EVENT_START_DATE_UNFORMATTED;
-    public String EVENT_END_DATE_UNFORMATTED;
-    public String EVENT_ADDRESS;
-    public String EVENT_VENUE;
-    public String EVENT_IMAGE;
     public String EVENT_TYPE;
-    public String EVENT_TICKET;
-    public int EVENT_PAID;
-    public ListView lineupContainer;
-    public JSONObject savedApiResponse = null;
-    public SetsManager setsManager;
+    public boolean modelsReady;
+
     public Context context;
     public SetMineMainActivity activity;
+    public ModelsContentProvider modelsCP;
+
+    public Lineup detailLineups;
     public List<LineupSet> currentLineupSet;
+
+    public List<Set> detailSets;
+
     public DateUtils dateUtils;
     DisplayImageOptions options;
-    Lineup selectedLineup = null;
 
-    // This method is called after the currentEvent variable is stored with a new value.
-    // Refreshes all event properties. Might not be necessary, potential re-factoring to be done here
+    // When the API Response is received, a new thread stores the data and the UI is updated
+    // Using a separate thread increases performance and minimizes UI lag
 
-    public void onEventAssigned() {
-        dateUtils = new DateUtils();
-        EVENT_ID = currentEvent.getId();
-        EVENT_NAME = currentEvent.getEvent();
-        EVENT_START_DATE_UNFORMATTED = currentEvent.getStartDate();
-        EVENT_END_DATE_UNFORMATTED = currentEvent.getEndDate();
-        EVENT_DATE_FORMATTED = dateUtils
-                .formatDateText(EVENT_START_DATE_UNFORMATTED, EVENT_END_DATE_UNFORMATTED);
-        EVENT_ADDRESS = currentEvent.getAddress();
-        EVENT_VENUE = currentEvent.getVenue();
-        EVENT_IMAGE = currentEvent.getMainImageUrl();
-        EVENT_PAID = currentEvent.getPaid();
-        EVENT_TICKET = currentEvent.getTicketLink();
+    final Handler handler = new Handler();
+
+    final Runnable updateUI = new Runnable() {
+        @Override
+        public void run() {
+            onModelsReady();
+        }
+    };
+
+    @Override
+    public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
+        final JSONObject finalJsonObject = jsonObject;
+        final String finalIdentifier = identifier;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(modelsCP == null) {
+                    modelsCP = new ModelsContentProvider();
+                }
+                if(finalIdentifier.equals("sets")) {
+                    modelsCP.setDetailSets(finalJsonObject);
+                    detailSets = modelsCP.getDetailSets(currentEvent.getEvent());
+                }
+                if(finalIdentifier.equals("lineups")) {
+                    modelsCP.setLineups(finalJsonObject);
+                    detailLineups = modelsCP.getLineups(currentEvent.getEvent());
+                }
+                handler.post(updateUI);
+            }
+        }).start();
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        Log.v("Event Detail Fragment Created", "");
+        Log.v(TAG, "onCreate");
+        modelsReady = false;
 
-        // Storing global variables for frequent re-use and readability
+        // If savedInstance is null, the fragment is being generated directly from the activity
+        // So it is safe to assume the activity has a ModelsContentProvider
 
-        setsManager = ((SetMineMainActivity)getActivity()).setsManager;
-        context = getActivity().getApplicationContext();
-        activity = (SetMineMainActivity)getActivity();
+        // Else, the activity may or may not be attached yet
+        // Use the Bundle to re-generate event data
 
-        // DateUtils is created in two methods due to some fragment lifecycle issues
+        if(savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
+            modelsCP = activity.modelsCP;
+            Bundle arguments = getArguments();
+            EVENT_TYPE = arguments.getString("eventType");
+            String eventJsonString = arguments.getString("currentEvent");
+            try {
+                JSONObject eventJson = new JSONObject(eventJsonString);
+                currentEvent = new Event(eventJson);
+            } catch(Exception e) {
+                e.printStackTrace();
+            }
+            if(EVENT_TYPE == "recent") {
+                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                "festival?search=" + Uri.encode(currentEvent.getEvent()), "sets");
+            } else {
+                new SetMineApiGetRequestAsyncTask(activity, this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                "lineup/" + Uri.encode(currentEvent.getId()), "lineups");
+            }
+        } else {
+            String eventModel = savedInstanceState.getString("currentEvent");
+            EVENT_TYPE = savedInstanceState.getString("eventType");
+            if(modelsCP == null) {
+                modelsCP = new ModelsContentProvider();
+            }
+            try {
+                JSONObject jsonEventModel = new JSONObject(eventModel);
+                currentEvent = new Event(jsonEventModel);
+                if(EVENT_TYPE == "recent") {
+                    String setsModel = savedInstanceState.getString("detailSets" + currentEvent.getEvent());
+                    JSONObject jsonSetsModel = new JSONObject(setsModel);
+                    modelsCP.setDetailSets(jsonSetsModel);
+                    detailSets = modelsCP.getDetailSets(currentEvent.getEvent());
+                } else {
+                    String lineupsModel = savedInstanceState.getString("detailLineups" + currentEvent.getEvent());
+                    JSONObject jsonLineupsModel = new JSONObject(lineupsModel);
+                    modelsCP.setLineups(jsonLineupsModel);
+                    detailLineups =  modelsCP.getLineups(currentEvent.getEvent());
+                }
+                onModelsReady();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
 
-        dateUtils = new DateUtils();
-        options = new DisplayImageOptions.Builder()
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        rootView = inflater.inflate(R.layout.event_detail, container, false);
+        lineupContainerView = (ListView) rootView.findViewById(R.id.lineupContainer);
+        eventImageView = (ImageView)rootView.findViewById(R.id.eventImage);
+
+        options =  new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
                 .showImageOnFail(R.drawable.logo_small)
@@ -114,49 +185,25 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 .considerExifParams(true)
                 .build();
 
-    }
+        dateUtils = new DateUtils();
 
-    @Nullable
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        rootView = inflater.inflate(R.layout.event_detail, container, false);
-        lineupContainer = (ListView) rootView.findViewById(R.id.lineupContainer);
+        // Set text and for event details
 
-        // Load the top event image
-
-        ImageView eventImage = (ImageView)rootView.findViewById(R.id.eventImage);
-        ImageLoader.getInstance().displayImage(EVENT_IMAGE, eventImage, options);
-
-        // Set text for event details
-
-        ((TextView)rootView.findViewById(R.id.dateText)).setText(EVENT_DATE_FORMATTED);
-        ((TextView)rootView.findViewById(R.id.locationText)).setText(EVENT_VENUE + ", "
-                + dateUtils.getCityStateFromAddress(EVENT_ADDRESS));
-        ((TextView)rootView.findViewById(R.id.eventText)).setText(EVENT_NAME);
-
-
-        // This logic is to fix a server side inconsistency with the default SetMine image
-
-        if(EVENT_IMAGE.equals(83)) {
-            EVENT_IMAGE = "83";
-        }
+        ImageLoader.getInstance().displayImage(currentEvent.getMainImageUrl(), eventImageView, options);
+        ((TextView)rootView.findViewById(R.id.dateText)).setText(currentEvent.getDateFormatted());
+        ((TextView)rootView.findViewById(R.id.locationText)).setText(currentEvent.getVenue() + ", "
+                + dateUtils.getCityStateFromAddress(currentEvent.getAddress()));
+        ((TextView)rootView.findViewById(R.id.eventText)).setText(currentEvent.getEvent());
 
         // Customize detail page based on recent or upcoming
 
         if(EVENT_TYPE == "recent") {
-            rootView.findViewById(R.id.directionsButton).setVisibility(View.GONE);
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_blue);
             ((TextView)rootView.findViewById(R.id.lineupText)).setText("Sets");
 
-            // If the sets have already been stored as a model, finish creating the view
-            // Else, make the API call to retrieve those sets
+            rootView.findViewById(R.id.directionsButton).setVisibility(View.GONE);
 
-            if(activity.modelsCP.detailSets.containsKey(EVENT_NAME)) {
-                finishCreateView();
-            } else {
-                new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
-                        .execute("festival?search=" + Uri.encode(EVENT_NAME), "sets");
-            }
+            // Set Facebook Click Listeners for past events
 
             rootView.findViewById(R.id.facebookButton).setVisibility(View.VISIBLE);
             rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
@@ -164,8 +211,8 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 public void onClick(View v) {
                     try {
                         JSONObject mixpanelProperties = new JSONObject();
-                        mixpanelProperties.put("id", EVENT_ID);
-                        mixpanelProperties.put("event", EVENT_NAME);
+                        mixpanelProperties.put("id", currentEvent.getId());
+                        mixpanelProperties.put("event", currentEvent.getEvent());
                         activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
                     } catch (JSONException e) {
                         e.printStackTrace();
@@ -176,71 +223,162 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 }
             });
 
-        }
-        else {
+        } else {
             ((TextView)rootView.findViewById(R.id.eventText)).setBackgroundResource(R.color.setmine_purple);
 
-            // Set Social and Ticket Click Listeners and functions if it is a paid promoted event
+            // Set Facebook and Ticket Click Listeners and functions if it is a paid promoted event
 
-
-
-            if(EVENT_PAID == 1) {
-                rootView.findViewById(R.id.facebookButton).setVisibility(View.VISIBLE);
-                rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-                            JSONObject mixpanelProperties = new JSONObject();
-                            mixpanelProperties.put("id", EVENT_ID);
-                            mixpanelProperties.put("event", EVENT_NAME);
-                            activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        Uri fbUrl = Uri.parse(currentEvent.getFacebookLink());
-                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, fbUrl);
-                        startActivity(launchBrowser);
-                    }
-                });
-
-                Button buyTickets = (Button)rootView.findViewById(R.id.button_buy_tickets);
-                buyTickets.setVisibility(View.VISIBLE);
-                buyTickets.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        try {
-                            JSONObject mixpanelProperties = new JSONObject();
-                            mixpanelProperties.put("id", EVENT_ID);
-                            mixpanelProperties.put("event", EVENT_NAME);
-                            activity.mixpanel.track("Ticket Link Clicked", mixpanelProperties);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
-                        Uri ticketUrl = Uri.parse(EVENT_TICKET);
-                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, ticketUrl);
-                        startActivity(launchBrowser);
-                    }
-                });
-            }
-
-            // If the event lineup has already been stored as a model, finish creating the view
-            // Else, make the API call to retrieve that lineup
-
-            if(activity.modelsCP.lineups.containsKey(EVENT_NAME)) {
-                finishCreateView();
-            } else {
-                new LineupsSetsApiCallAsyncTask(activity, context, activity.API_ROOT_URL, this)
-                        .execute("lineup/" + Uri.encode(EVENT_ID), "lineups");
+            if(currentEvent.getPaid() == 1) {
+                configurePaidButtons();
             }
         }
 
+        // Set Twitter and Web click listeners for all events past, upcoming (paid and unpaid)
+
+        configureSocialMediaButtons();
+
+        // Only track Mixpanel events if created for the first time
+
+        if(savedInstanceState == null) {
+            try {
+                JSONObject mixpanelProperties = new JSONObject();
+                mixpanelProperties.put("id", currentEvent.getId());
+                mixpanelProperties.put("event", currentEvent.getEvent());
+                activity.mixpanel.track("Event Click Through", mixpanelProperties);
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Data models were ready in onCreate method, configure the Pagers with artist data now
+
+        // If false, data models are currently being generated asynchronously
+
+        if(modelsReady && activity != null) {
+            setAdapters();
+        }
+
+        return rootView;
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        Log.v(TAG, "onActivityCreated");
+        this.activity = (SetMineMainActivity)getActivity();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        Log.d(TAG, "onPause");
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.v(TAG, "onResume");
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("currentEvent", currentEvent.jsonModelString);
+        outState.putString("eventType", EVENT_TYPE);
+        if(EVENT_TYPE.equals("recent")) {
+            outState.putString("detailSets"+currentEvent.getEvent(),
+                    modelsCP.jsonMappings.get("detailSets"+currentEvent.getEvent()));
+        } else {
+            outState.putString("detailLineups"+currentEvent.getEvent(),
+                    modelsCP.jsonMappings.get("detailLineups"+currentEvent.getEvent()));
+        }
+    }
+
+    public void setAdapters() {
+        if(EVENT_TYPE == "recent") {
+            lineupContainerView.setAdapter(new SetAdapter(detailSets));
+            lineupContainerView.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                    v.setPressed(true);
+                    activity.playerService.playerManager.setPlaylist(detailSets);
+                    Set s = detailSets.get(position);
+                    activity.playerService.playerManager.selectSetById(s.getId());
+                }
+            });
+        } else {
+            currentLineupSet = detailLineups.getLineup();
+            lineupContainerView.setAdapter(new LineupSetAdapter(currentLineupSet));
+            lineupContainerView.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
+                    v.setPressed(true);
+                    String artistName = currentLineupSet.get(position).getArtist();
+                    Artist artist = null;
+                    List<Artist> allArtists = modelsCP.getAllArtists();
+                    for (int i = 0; i < allArtists.size(); i++) {
+                        if (allArtists.get(i).getArtist().equals(artistName)) {
+                            artist = allArtists.get(i);
+                        }
+                    }
+                    activity.openArtistDetailPage(artist);
+                }
+            });
+        }
+        rootView.findViewById(R.id.loading).setVisibility(View.GONE);
+    }
+
+    // Set Click listeners and Mixpanel event tracking for Facebook and Ticket links
+
+    public void configurePaidButtons() {
+        rootView.findViewById(R.id.facebookButton).setVisibility(View.VISIBLE);
+        rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    JSONObject mixpanelProperties = new JSONObject();
+                    mixpanelProperties.put("id", currentEvent.getId());
+                    mixpanelProperties.put("event", currentEvent.getEvent());
+                    activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Uri fbUrl = Uri.parse(currentEvent.getFacebookLink());
+                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, fbUrl);
+                startActivity(launchBrowser);
+            }
+        });
+
+        Button buyTickets = (Button)rootView.findViewById(R.id.button_buy_tickets);
+        buyTickets.setVisibility(View.VISIBLE);
+        buyTickets.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try {
+                    JSONObject mixpanelProperties = new JSONObject();
+                    mixpanelProperties.put("id", currentEvent.getId());
+                    mixpanelProperties.put("event", currentEvent.getEvent());
+                    activity.mixpanel.track("Ticket Link Clicked", mixpanelProperties);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                Uri ticketUrl = Uri.parse(currentEvent.getTicketLink());
+                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, ticketUrl);
+                startActivity(launchBrowser);
+            }
+        });
+    }
+
+    // Set Click listeners and Mixpanel event tracking for Twitter and Web links
+
+    public void configureSocialMediaButtons() {
         rootView.findViewById(R.id.twitterButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
                     JSONObject mixpanelProperties = new JSONObject();
-                    mixpanelProperties.put("id", EVENT_ID);
-                    mixpanelProperties.put("event", EVENT_NAME);
+                    mixpanelProperties.put("id", currentEvent.getId());
+                    mixpanelProperties.put("event", currentEvent.getEvent());
                     activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -255,8 +393,8 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
             public void onClick(View v) {
                 try {
                     JSONObject mixpanelProperties = new JSONObject();
-                    mixpanelProperties.put("id", EVENT_ID);
-                    mixpanelProperties.put("event", EVENT_NAME);
+                    mixpanelProperties.put("id", currentEvent.getId());
+                    mixpanelProperties.put("event", currentEvent.getEvent());
                     activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -266,84 +404,15 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 startActivity(launchBrowser);
             }
         });
-
-        try {
-            JSONObject mixpanelProperties = new JSONObject();
-            mixpanelProperties.put("id", this.EVENT_ID);
-            mixpanelProperties.put("event", this.EVENT_NAME);
-            activity.mixpanel.track("Event Click Through", mixpanelProperties);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        Log.v("Event Detail Fragment View created", rootView.toString());
-        return rootView;
-    }
-
-    @Override
-    public void onDestroyView() {
-        rootView = getView();
-        super.onDestroyView();
-    }
-
-    // Implement Lineup/Sets API Response Callback, executed at the end of a LineupSetsApiCallTask
-
-    @Override
-    public void onLineupsSetsReceived(JSONObject jsonObject, String identifier) {
-        Log.v("Event Detail onLineupsSetsReceived", this.toString());
-        if(identifier == "sets") {
-            activity.modelsCP.setDetailSets(jsonObject);
-        }
-        if(identifier == "lineups") {
-            activity.modelsCP.setLineups(jsonObject);
-        }
-        finishCreateView();
     }
 
     // Detail Models must be valid before executing this method
 
-    public void finishCreateView() {
-        if(EVENT_TYPE == "recent") {
-            final List<Set> setModels = activity.modelsCP.getDetailSets(EVENT_NAME);
-            lineupContainer.setAdapter(new SetAdapter(setModels));
-            lineupContainer.setOnItemClickListener(new ListView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
-                    v.setPressed(true);
-                    activity.setsManager.setPlaylist(setModels);
-                    activity.playlistFragment.updatePlaylist();
-                    Set s = setModels.get(position);
-                    ((SetMineMainActivity)getActivity()).startPlayerFragment(s.getId());
-                }
-            });
-        } else {
-            selectedLineup = activity.modelsCP.getLineups(EVENT_NAME);
-            currentLineupSet = selectedLineup.getLineup();
-            rootView.findViewById(R.id.loading).setVisibility(View.GONE);
-            lineupContainer.setAdapter(new LineupSetAdapter(currentLineupSet));
-            lineupContainer.setOnItemClickListener(new ListView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
-                    v.setPressed(true);
-                    String artistName = currentLineupSet.get(position).getArtist();
-                    Artist currentArtist = null;
-                    List<Artist> allArtists = activity.modelsCP.getAllArtists();
-                    for(int i = 0 ; i < allArtists.size() ; i++) {
-                        if(allArtists.get(i).getArtist().equals(artistName)) {
-                            currentArtist = allArtists.get(i);
-                        }
-                    }
-                    ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
-                    artistDetailFragment.selectedArtist = currentArtist;
-                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-                    transaction.replace(R.id.eventPagerContainer, artistDetailFragment, "artistDetailFragment");
-                    transaction.addToBackStack(null);
-                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                    transaction.commit();
-                }
-            });
+    public void onModelsReady() {
+        if(rootView != null && activity != null) {
+            setAdapters();
         }
-        rootView.findViewById(R.id.loading).setVisibility(View.GONE);
+        modelsReady = true;
     }
 
     private static class LineupSetViewHolder {
@@ -400,11 +469,11 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                 holder = (LineupSetViewHolder) view.getTag();
             }
 
-            holder.setTime.setText(dateUtils.getDayFromDate(EVENT_START_DATE_UNFORMATTED, lineupSet.getDay()) + " " + lineupSet.getTime());
+            holder.setTime.setText(dateUtils.getDayFromDate(currentEvent.getStartDate(), lineupSet.getDay()) + " " + lineupSet.getTime());
             holder.artistText.setText(lineupSet.getArtist());
             holder.detailActionButton.setVisibility(View.GONE);
 
-            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + lineupSet.getArtistImage(), holder.artistImage, options, animateFirstListener);
+            ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + lineupSet.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }
@@ -470,9 +539,9 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
                         }
                     }
                     ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
-                    artistDetailFragment.selectedArtist = currentArtist;
+                    artistDetailFragment.currentArtist = currentArtist;
                     FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-                    transaction.replace(R.id.eventPagerContainer, artistDetailFragment, "artistDetailFragment");
+                    transaction.replace(R.id.currentFragmentContainer, artistDetailFragment, "artistDetailFragment");
                     transaction.addToBackStack(null);
                     transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
                     transaction.commit();
@@ -484,7 +553,7 @@ public class EventDetailFragment extends Fragment implements LineupsSetsApiCalle
             }
             holder.artistText.setText(set.getArtist());
 
-            ImageLoader.getInstance().displayImage(activity.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
+            ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }

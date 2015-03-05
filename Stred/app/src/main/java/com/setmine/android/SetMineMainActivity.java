@@ -8,10 +8,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.graphics.Point;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
@@ -37,7 +37,7 @@ import com.setmine.android.adapter.MainPagerAdapter;
 import com.setmine.android.adapter.PlayerPagerAdapter;
 import com.setmine.android.fragment.ArtistDetailFragment;
 import com.setmine.android.fragment.EventDetailFragment;
-import com.setmine.android.fragment.MainViewPagerContainerFragment;
+import com.setmine.android.fragment.MainPagerContainerFragment;
 import com.setmine.android.fragment.PlayerContainerFragment;
 import com.setmine.android.fragment.PlayerFragment;
 import com.setmine.android.fragment.PlaylistFragment;
@@ -45,20 +45,23 @@ import com.setmine.android.fragment.SearchSetsFragment;
 import com.setmine.android.fragment.TracklistFragment;
 import com.setmine.android.fragment.UserFragment;
 import com.setmine.android.object.Artist;
+import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.User;
-import com.setmine.android.task.InitialApiCallAsyncTask;
+import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
+import com.setmine.android.util.HttpUtils;
 import com.setmine.android.util.ImageUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Locale;
 import java.util.Random;
 import java.util.TimeZone;
@@ -67,7 +70,7 @@ import java.util.concurrent.RejectedExecutionException;
 import uk.co.chrisjenx.calligraphy.CalligraphyContextWrapper;
 
 public class SetMineMainActivity extends FragmentActivity implements
-        InitialApiCaller,
+        ApiCaller,
         GooglePlayServicesClient.ConnectionCallbacks,
         GooglePlayServicesClient.OnConnectionFailedListener {
 
@@ -76,14 +79,12 @@ public class SetMineMainActivity extends FragmentActivity implements
     private final static int
             FACEBOOK_LOGIN = 64206;
 
-    public static final String MIXPANEL_TOKEN = "dfe92f3c1c49f37a7d8136a2eb1de219";
-    public static String APP_VERSION;
-    public static final String API_VERSION = "3";
-    public static final String API_ROOT_URL = "http://setmine.com/api/v/" + API_VERSION + "/";
-    public static final String PUBLIC_ROOT_URL = "http://setmine.com/";
-    public static final String S3_ROOT_URL = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
-
     private static final String TAG = "SetMineMainActivity";
+
+    public static String APP_VERSION;
+
+    public String MODELS_VERSION;
+
 
     public MainPagerAdapter mMainPagerAdapter;
     public ViewPager eventViewPager;
@@ -95,19 +96,21 @@ public class SetMineMainActivity extends FragmentActivity implements
     public PlayerFragment playerFragment;
     public TracklistFragment tracklistFragment;
     public SearchSetsFragment searchSetsFragment;
-    public MainViewPagerContainerFragment mainViewPagerContainerFragment;
+    public MainPagerContainerFragment mainPagerContainerFragment;
     public UserFragment userFragment;
+    public EventDetailFragment eventDetailFragment;
+    public ArtistDetailFragment artistDetailFragment;
+
 
     public ModelsContentProvider modelsCP;
-    public SetsManager setsManager;
+    public PlayerManager playerManager;
     public PlayerService playerService;
     public boolean serviceBound = false;
+    public Set selectedSet;
 
     public User registeredUser;
-    public boolean userIsRegistered = false;
+    public boolean userIsRegistered;
 
-    public Integer screenHeight;
-    public Integer screenWidth;
     public int asyncTasksInProgress;
 
 
@@ -115,7 +118,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     public LocationClient locationClient;
     public Location currentLocation;
 
-    public boolean finishedOnCreate = false;
     public Menu menu;
     public ActionBar actionBar;
 
@@ -125,38 +127,193 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     // Create the Service Connection to start and bind at onStart()
 
-    public ServiceConnection playerServiceConnection = new ServiceConnection() {
-        @Override
-        public void onServiceConnected(ComponentName name, IBinder service) {
-            PlayerService.PlayerBinder binder = (PlayerService.PlayerBinder) service;
-            playerService = binder.getService();
-            serviceBound = true;
-        }
+    public ServiceConnection playerServiceConnection;
 
+    final Handler handler = new Handler();
+
+    final Runnable updateUI = new Runnable() {
         @Override
-        public void onServiceDisconnected(ComponentName name) {
-            serviceBound = false;
+        public void run() {
+            finishOnCreate();
         }
     };
+
+    @Override
+    public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
+        final JSONObject finalJsonObject = jsonObject;
+        final String finalIdentifier = identifier;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "onApiResponseReceived: ");
+                if(finalIdentifier.equals("modelsVersion")) {
+                    try {
+                        boolean modelsVersionMatches = finalJsonObject.getJSONObject("payload").getBoolean("version");
+                        Log.d(TAG, Boolean.toString(modelsVersionMatches));
+                        if(modelsVersionMatches) {}
+                        else {
+                            String newModelsVersion = finalJsonObject.getString("models_version");
+                            Log.d(TAG, newModelsVersion);
+                            updateModelsVersion(newModelsVersion);
+                        }
+                        getModels(modelsVersionMatches);
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    modelsCP.setModel(finalJsonObject, finalIdentifier);
+                    if(modelsCP.initialModelsReady) {
+                        handler.post(updateUI);
+                    }
+                }
+            }
+        }).start();
+
+    }
+
+    public void updateModelsVersion(String newModelsVersion) {
+
+        try {
+            FileOutputStream fos = openFileOutput("models_version_file", Context.MODE_PRIVATE);
+            fos.write(newModelsVersion.getBytes());
+            fos.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public void getModels(boolean modelsAreStored) {
+
+        Log.d(TAG, "getModels");
+
+        // IF modelsVersionMatches is true, models are stored on device
+
+        modelsCP = new ModelsContentProvider();
+        if(modelsAreStored) {
+            try {
+                FileInputStream fis = openFileInput("stored_models_file");
+                int c;
+                String jsonString = "";
+                while( (c = fis.read()) != -1){
+                    jsonString = jsonString + Character.toString((char)c);
+                }
+                fis.close();
+                Log.d(TAG, "stored models: " + jsonString);
+            } catch (Exception e) {
+
+            }
+        } else {
+
+            // Get All initial Data Models from SetMine API and store it in the content provider
+            // See onApiResponse method
+
+
+        }
+    }
+
+    public String getModelsVersion() {
+        Log.d(TAG, "getModelsVersion");
+
+        try {
+            File file = getBaseContext().getFileStreamPath("models_version_file");
+            if(file.exists()) {
+                FileInputStream fis = openFileInput("models_version_file");
+                int c;
+                MODELS_VERSION = "";
+                while( (c = fis.read()) != -1) {
+                    MODELS_VERSION = MODELS_VERSION + Character.toString((char)c);
+                }
+                fis.close();
+                Log.d(TAG, "MODELS_VERSION Found: " + MODELS_VERSION);
+                return MODELS_VERSION;
+            } else {
+                return "0";
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            return "0";
+        }
+    }
+
+    public void checkModelsVersion() {
+        Log.d(TAG, "checkModelsVersion");
+        String modelsVersion = getModelsVersion();
+        new SetMineApiGetRequestAsyncTask(this, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                        , "version/" + modelsVersion, "modelsVersion");
+    }
 
     // Activity Handling
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
 
-        if(savedInstanceState == null) {
-            // Get Application Version from build.gradle
+        mixpanel = MixpanelAPI.getInstance(this, Constants.MIXPANEL_TOKEN);
 
-            try {
-                APP_VERSION = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
-            } catch (PackageManager.NameNotFoundException e) {
-                e.printStackTrace();
+        JSONObject mixpanelProperties = new JSONObject();
+        try {
+            mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
+            mixpanel.track("Application Opened", mixpanelProperties);
+            MixpanelAPI.People people = mixpanel.getPeople();
+            String id = mixpanel.getDistinctId();
+            mixpanel.identify(id);
+            people.identify(id);
+
+            // Initialize Push Notifications with Google Sender ID
+
+            people.initPushHandling("699004373125");
+
+            SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
+            df.setTimeZone(TimeZone.getTimeZone("UTC"));
+            String nowAsISO = df.format(new Date());
+            people.setOnce("user_id", id);
+            people.set("SetMine Upgrade", "Yes");
+            people.set("Client", "SetMine");
+            people.set("Version", "SetMine v"+APP_VERSION);
+            people.setOnce("date_tracked", nowAsISO);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        // Create the ServiceConnection to the PlayerService every time the activity is created, regardless of savedInstanceState
+
+        playerServiceConnection = new ServiceConnection() {
+            @Override
+            public void onServiceConnected(ComponentName name, IBinder service) {
+                Log.d(TAG, "onServiceConnected");
+                PlayerService.PlayerBinder binder = (PlayerService.PlayerBinder) service;
+                playerService = binder.getService();
+                serviceBound = true;
             }
 
-            // Only allow keyboard pop up on EditText click
+            @Override
+            public void onServiceDisconnected(ComponentName name) {
+                Log.d(TAG, "onServiceDisconnected");
+                serviceBound = false;
+            }
+        };
 
-            this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
+//        checkModelsVersion();
+
+        // Fragment Manager handles all fragments and the navigation between them
+
+        fragmentManager = getSupportFragmentManager();
+
+        if(modelsCP == null) {
+            modelsCP = new ModelsContentProvider();
+        }
+
+        // PlayerManager handles updating the playlist and keeping track of set results
+
+//        if(playerManager == null) {
+//            playerManager = new PlayerManager();
+//        }
+
+        if(savedInstanceState == null) {
+            userIsRegistered = false;
 
             // Check for Google Play Services for Location
             // Use Gainesville, FL if not found, and don't use soonestEventsAroundMe
@@ -171,121 +328,88 @@ public class SetMineMainActivity extends FragmentActivity implements
                 currentLocation = new Location("default");
                 currentLocation.setLatitude(29.652175);
                 currentLocation.setLongitude(-82.325856);
-                String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
-                        +currentLocation.getLongitude();
-                new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                        .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
-                                eventSearchUrl,
-                                "searchEvents");
-                new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                        .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
-                                "upcoming",
-                                "upcomingEvents");
             }
 
-            // Image utilities for smoothly loading and caching images
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                            "featured", "recentEvents");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "artist", "artists");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "festival", "festivals");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "mix", "mixes");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "genre", "genres");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "popular", "popularSets");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "recent", "recentSets");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "artist?all=true", "allArtists");
 
-            imageUtils = new ImageUtils();
-            ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
-                    .diskCacheExtraOptions(480, 800, null)
-                    .diskCacheSize(50 * 1024 * 1024)
-                    .diskCacheFileCount(100)
-                    .build();
-            ImageLoader.getInstance().init(config);
-
-            // See utils/DateUtils.java for documentation
-
-            dateUtils = new DateUtils();
-
-            // Fragment Manager handles all fragments and the navigation between them
-
-            fragmentManager = getSupportFragmentManager();
-
-            // A Content Provider for storing models returned from the SetMine API
-            // It is not implemented as a traditional Android Content Provider (pending project)
-
-            modelsCP = new ModelsContentProvider();
-
-            // SetsManager handles updating the playlist and keeping track of set results
-
-            setsManager = new SetsManager();
-
-            // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
-            // button depending on if the user is at the top level
-
-            actionBar = getActionBar();
-
-            // Handles showing or hiding the back button in the action bar
-
-            fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-                @Override
-                public void onBackStackChanged() {
-                    if (fragmentManager.getBackStackEntryCount() > 0) {
-                        actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
-                    } else {
-                        actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
-                    }
-                }
-            });
-
-            // Mixpanel Instance for sending data to Mixpanel to analyze metrics
-
-            mixpanel = MixpanelAPI.getInstance(this, MIXPANEL_TOKEN);
-
-            JSONObject mixpanelProperties = new JSONObject();
-            try {
-                mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
-                mixpanel.track("Application Opened", mixpanelProperties);
-                MixpanelAPI.People people = mixpanel.getPeople();
-                String id = mixpanel.getDistinctId();
-                mixpanel.identify(id);
-                people.identify(id);
-
-                // Initialize Push Notifications with Google Sender ID
-
-                people.initPushHandling("699004373125");
-
-                SimpleDateFormat df = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US);
-                df.setTimeZone(TimeZone.getTimeZone("UTC"));
-                String nowAsISO = df.format(new Date());
-                people.setOnce("user_id", id);
-                people.set("SetMine Upgrade", "Yes");
-                people.set("Client", "SetMine");
-                people.set("Version", "SetMine v"+APP_VERSION);
-                people.setOnce("date_tracked", nowAsISO);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-
-            // Sets the Activity view where all fragment view containers are held
-
-            setContentView(R.layout.fragment_main);
-
-            // See each method for documentation
-
-            handleIntent(getIntent());
-            applyCustomViewStyles();
-
-            // Get All initial Data Models from SetMine API and store it in the content provider
-
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "featured", "recentEvents");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist", "artists");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "festival", "festivals");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "mix", "mixes");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "genre", "genres");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "popular", "popularSets");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "recent", "recentSets");
-            new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                    .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR, "artist?all=true", "allArtists");
+        } else {
+            Log.d(TAG, "getting instance state");
+            userIsRegistered = savedInstanceState.getBoolean("userIsRegistered");
+            currentLocation = savedInstanceState.getParcelable("currentLocation");
         }
 
+        // Get Application Version from build.gradle
+
+        try {
+            APP_VERSION = getPackageManager().getPackageInfo(getPackageName(), 0).versionName;
+        } catch (PackageManager.NameNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        // Image utilities for smoothly loading and caching images
+
+        imageUtils = new ImageUtils();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
+                .diskCacheExtraOptions(480, 800, null)
+                .diskCacheSize(50 * 1024 * 1024)
+                .diskCacheFileCount(100)
+                .build();
+        ImageLoader.getInstance().init(config);
+
+        // See utils/DateUtils.java for documentation
+
+        dateUtils = new DateUtils();
+
+        // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
+        // button depending on if the user is at the top level
+
+        actionBar = getActionBar();
+
+        // Handles showing or hiding the back button in the action bar
+
+//        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
+//            @Override
+//            public void onBackStackChanged() {
+//                if (fragmentManager.getBackStackEntryCount() > 0) {
+//                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
+//                } else {
+//                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
+//                }
+//            }
+//        });
+
+        // Sets the Activity view for container fragments
+
+        setContentView(R.layout.fragment_main);
+
+        // See each method for documentation
+
+        handleIntent(getIntent());
+        applyCustomViewStyles();
+//        createSecondLevelFragments();
 
         // See finishOnCreate method which is called after these tasks are finished executing
     }
@@ -297,11 +421,10 @@ public class SetMineMainActivity extends FragmentActivity implements
         return true;
     }
 
-
-
     @Override
     protected void onStart() {
         super.onStart();
+        Log.d(TAG, "onStart");
 
         // Start and Bind the PlayerService
 
@@ -310,29 +433,30 @@ public class SetMineMainActivity extends FragmentActivity implements
             startService(intent);
             bindService(intent, playerServiceConnection, Context.BIND_AUTO_CREATE);
         }
+
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        Log.d(TAG, "ONPAUSE");
+        Log.d(TAG, "onPause");
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
+    protected void onStop() {
+        super.onStop();
+        Log.d(TAG, "onStop");
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        Log.d(TAG, "ONRESUME");
+        Log.d(TAG, "onResume");
     }
-
-
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
 
         Log.d(TAG, "onDestroy");
 
@@ -348,43 +472,23 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
         playerService.stopSelf();
 
-        super.onDestroy();
-    }
-
-    // Implement InitialApiCaller Interface
-
-    @Override
-    public void onInitialResponseReceived(JSONObject jsonObject, String modelType) {
-        modelsCP.setModel(jsonObject, modelType);
-        if(modelsCP.initialModelsReady) {
-            finishOnCreate();
-        }
     }
 
     // Executed after all initial models are loaded
 
     public void finishOnCreate() {
         try {
-            calculateScreenSize();
-
-            // Create the 2nd Level Fragments
-
-            mainViewPagerContainerFragment = new MainViewPagerContainerFragment();
-            playerContainerFragment = new PlayerContainerFragment();
-            searchSetsFragment = new SearchSetsFragment();
-
-            // Add them to the activity's container fragment
-
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.add(R.id.playerPagerContainer, playerContainerFragment);
-            ft.add(R.id.eventPagerContainer, mainViewPagerContainerFragment);
-            ft.add(R.id.searchSetsContainer, searchSetsFragment);
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.commit();
-
             // Remove the splash loader
 
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
+
+            // Initialize the MainViewPagerFragment
+
+            mainPagerContainerFragment = new MainPagerContainerFragment();
+            FragmentTransaction ft = fragmentManager.beginTransaction();
+            ft.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
+            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+            ft.commit();
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
@@ -401,13 +505,10 @@ public class SetMineMainActivity extends FragmentActivity implements
         View customView = inflater.inflate(R.layout.custom_action_bar, null);
         actionBar.setCustomView(customView);
         actionBar.setDisplayShowCustomEnabled(true);
-    }
 
-    public void calculateScreenSize() {
-        Point size = new Point();
-        getWindowManager().getDefaultDisplay().getSize(size);
-        screenHeight = size.y;
-        screenWidth = size.x;
+        // Only allow keyboard pop up on EditText click
+
+        this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
 
     // Required for applying a global custom font style
@@ -420,20 +521,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Click Function for the Home button on the Action Bar
 
     public void homeButtonPress(View v) {
-
-        // Hide Player and Search Sets
-        // Show Main View Pager (Home, Events, Sets, Find)
-
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
-
-        // Add it to the Fragment Back Stack (see Android Dev for Documentation)
-
-        fragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE);
+        openMainViewPager();
     }
 
     // Click Function for the Back button on the Action Bar
@@ -443,9 +531,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         if(fragmentManager.getBackStackEntryCount() > 0)
             super.onBackPressed();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
     }
@@ -466,103 +551,118 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Click Function for the Play button on the Action Bar
 
     public void playNavigationClick(View v) {
-        if(setsManager.getPlaylist().size() > 0) {
-            openPlayer();
-            if(setsManager.selectedSet == null) {
-                Random r = new Random();
-                int randomInt = r.nextInt(setsManager.getPlaylist().size() - 1);
-                Set s = setsManager.getPlaylist().get(randomInt);
-                startPlayerFragment(s.getId());
-            }
-        }
-        else {
-            Random r = new Random();
-            int randomInt = r.nextInt(modelsCP.getPopularSets().size() - 1);
-            Set s = modelsCP.getPopularSets().get(randomInt);
-            List<Set> oneSetList = new ArrayList<Set>();
-            oneSetList.add(s);
-            setsManager.setPlaylist(oneSetList);
-            startPlayerFragment(s.getId());
+        if(playerService.mediaPlayer.isPlaying()) {
+            startPlayerFragment();
+        } else {
+            playSetWithSetID("random");
         }
     }
 
     // Start the Player Fragment from anywhere in the App given the set ID
 
-    public void startPlayerFragment(String setId) {
-        openPlayer();
-        if(playerFragment == null) {
-            playerFragment = new PlayerFragment();
-        }
-        if(setId == "random") {
+    public void playSetWithSetID(String setID) {
+        final Handler playHandler = new Handler();
+        final Runnable playSet = new Runnable() {
+            @Override
+            public void run() {
+                playerService.playerManager.clearPlaylist();
+                playerService.playerManager.addToPlaylist(selectedSet);
+            }
+        };
+        final HttpUtils httpUtil =
+                new HttpUtils(this.getApplicationContext(), Constants.API_ROOT_URL);
+        final String finalSetId = setID;
+
+        if(setID.equals("random")) {
+            playerService.playerManager.setPlaylist(modelsCP.getPopularSets());
             Random r = new Random();
-            int randomInt = r.nextInt(setsManager.getPlaylist().size() - 1);
-            Set s = setsManager.getPlaylist().get(randomInt);
-            setId = s.getId();
+            int randomInt = r.nextInt(playerService.playerManager.getPlaylist().size() - 1);
+            selectedSet = playerService.playerManager.getPlaylist().get(randomInt);
+            setID = selectedSet.getId();
+            playerService.playerManager.selectSetById(setID);
+        } else {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        String apiRequest = "set/id/" + finalSetId;
+                        String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
+                        JSONObject jsonResponse = new JSONObject(jsonString);
+                        if(jsonResponse.get("status").equals("success")) {
+                            JSONObject setJson = jsonResponse
+                                    .getJSONObject("payload")
+                                    .getJSONObject("set");
+                            selectedSet = new Set(setJson);
+                            playHandler.post(playSet);
+                        }
+                    }
+                    catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
         }
-        playlistFragment.updatePlaylist();
-        setsManager.selectSetById(setId);
-        playerContainerFragment.mViewPager.setCurrentItem(1);
-        playerFragment.playSong();
+        startPlayerFragment();
+        playerContainerFragment.mPlayerPagerAdapter.playerFragment.playSong();
     }
 
     public void openMainViewPager() {
+        Log.d(TAG, "openMainViewPager");
+        mainPagerContainerFragment = new MainPagerContainerFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.eventPagerContainer));
+        transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
-    }
-
-    // Open Search Fragment from anywhere in the app
-
-    public void openSearch(View v) {
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.playerPagerContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
+        transaction.commit();
     }
 
     // Open Player Fragment from anywhere in the app
 
-    public void openPlayer() {
+    public void startPlayerFragment() {
+        Log.d(TAG, "startPlayerFragment");
+        playerContainerFragment = new PlayerContainerFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.hide(fragmentManager.findFragmentById(R.id.eventPagerContainer));
-        transaction.hide(fragmentManager.findFragmentById(R.id.searchSetsContainer));
-        transaction.show(fragmentManager.findFragmentById(R.id.playerPagerContainer));
+        transaction.replace(R.id.currentFragmentContainer, playerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
+        transaction.commit();
+    }
 
+    // Open Search Fragment from anywhere in the app
+
+    public void startSearchFragment(View v) {
+        Log.d(TAG, "startSearchFragment");
+        searchSetsFragment =  new SearchSetsFragment();
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.currentFragmentContainer, searchSetsFragment);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commit();
     }
 
     // Open Artist Detail Fragment from anywhere in the app given a valid Artist object
 
     public void openArtistDetailPage(Artist artist) {
-        ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
-        artistDetailFragment.selectedArtist = artist;
+        artistDetailFragment = new ArtistDetailFragment();
+        Bundle args = new Bundle();
+        args.putString("currentArtist", artist.jsonModelString);
+        artistDetailFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.eventPagerContainer, artistDetailFragment, "artistDetailFragment");
-        transaction.addToBackStack(null);
+        transaction.replace(R.id.currentFragmentContainer, artistDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
+        transaction.commit();
     }
 
     // Open Event Detail Fragment from anywhere in the app given a valid Event object
 
     public void openEventDetailPage(Event event, String eventType) {
-        EventDetailFragment eventDetailFragment = new EventDetailFragment();
-        eventDetailFragment.currentEvent = event;
-        eventDetailFragment.EVENT_TYPE = (eventType.equals("search")?"upcoming":eventType);
-        eventDetailFragment.onEventAssigned();
+        eventDetailFragment = new EventDetailFragment();
+        Bundle args = new Bundle();
+        args.putString("currentEvent", event.jsonModelString);
+        args.putString("eventType", (eventType.equals("search") ? "upcoming" : eventType));
+        eventDetailFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.replace(R.id.eventPagerContainer, eventDetailFragment, "eventDetailFragment");
-        transaction.addToBackStack(null);
+        transaction.replace(R.id.currentFragmentContainer, eventDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
+        transaction.commit();
     }
-
 
     // Required to intercept intents for handling
 
@@ -579,7 +679,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             // Remote Controls and the Notification player send in this intent
 
             if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
-                openPlayer();
+                startPlayerFragment();
             } else if(intent.getAction().equals("com.setmine.android.VIEW")) {
 
                 // Intent for deep linking
@@ -675,16 +775,14 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
         locationClient.disconnect();
 
-        // Get upcoming events from API based on location
-
-        String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
-                +currentLocation.getLongitude();
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+        String eventSearchUrl = "upcoming/?latitude=" + currentLocation.getLatitude();
+        eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
+        new SetMineApiGetRequestAsyncTask(this, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl, "upcomingEvents");
+        new SetMineApiGetRequestAsyncTask(this, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl, "searchEvents");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl, "upcomingEventsAroundMe");
 
     }
 
@@ -705,12 +803,12 @@ public class SetMineMainActivity extends FragmentActivity implements
         currentLocation.setLongitude(-82.325856);
         String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
                 +currentLocation.getLongitude();
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+        new SetMineApiGetRequestAsyncTask(this, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl,
                         "searchEvents");
-        new InitialApiCallAsyncTask(this, getApplicationContext(), API_ROOT_URL)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+        new SetMineApiGetRequestAsyncTask(this, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         "upcoming",
                         "upcomingEvents");
     }

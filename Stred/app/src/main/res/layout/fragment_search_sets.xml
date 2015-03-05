@@ -83,6 +83,7 @@
             android:layout_centerInParent="true"
             android:gravity="center|bottom"
             android:indeterminate="true" />
+
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

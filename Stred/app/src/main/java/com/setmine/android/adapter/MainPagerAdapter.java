@@ -3,7 +3,7 @@ package com.setmine.android.adapter;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
 import com.setmine.android.SetMineMainActivity;
@@ -11,7 +11,7 @@ import com.setmine.android.fragment.EventPageFragment;
 import com.setmine.android.fragment.UserFragment;
 
 
-public class MainPagerAdapter extends FragmentPagerAdapter {
+public class MainPagerAdapter extends FragmentStatePagerAdapter {
 
     public Fragment currentFragment;
     public int currentFragmentPosition;

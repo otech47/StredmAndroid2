@@ -6,58 +6,47 @@
     android:minWidth="100dp"
     android:animateLayoutChanges="true">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/centered_loader_container"
+        android:background="@color/setmine_gray">
+
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/centered_loader"
+            android:layout_margin="@dimen/progress_padding"
+            android:layout_centerInParent="true"
+            android:gravity="center|bottom"
+            android:indeterminate="true" />
+
+    </RelativeLayout>
+
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/background_overlay"
         android:scaleType="centerCrop"></ImageView>
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/background_color_overlay"
-        android:background="#CC000000"></ImageView>
-
     <RelativeLayout
         android:id="@+id/player_header"
         android:layout_width="fill_parent"
         android:layout_height="wrap_content"
-        android:paddingLeft="10dp"
         android:background="@drawable/border_blue"
-        android:paddingRight="10dp"
+        android:padding="5dp"
         android:layout_alignParentTop="true">
 
-        <ImageView
-            android:id="@+id/player_thumb"
-            android:layout_width="50dp"
-            android:layout_height="80dp"
-            android:paddingRight="10dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/logo_small"
-            />
-
-        <ImageView
-            android:layout_width="50dp"
-            android:layout_height="80dp"
-            android:scaleType="centerInside"
-            android:id="@+id/favorite_set_icon"
-            android:src="@drawable/favorite_button_white"
-            android:background="@drawable/pressable_button_transparent_to_blue"
-            android:padding="3dp"
-            android:layout_alignParentRight="true"
-            />
 
         <TextView
             android:id="@+id/player_event_name"
-            android:layout_toRightOf="@+id/player_thumb"
-            android:layout_toLeftOf="@id/favorite_set_icon"
-            android:layout_width="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/pressable_button_blue_to_transparent"
-            android:gravity="left"
-            android:layout_alignTop="@id/player_thumb"
+            android:gravity="center"
             android:textSize="16sp"
-            android:padding="10dp"
+            android:padding="5dp"
             android:text="Event Name"
             android:lines="1"
             android:singleLine="true"
@@ -65,12 +54,11 @@
 
         <TextView
             android:id="@+id/player_artist_name"
-            android:layout_toRightOf="@+id/player_thumb"
-            android:layout_toLeftOf="@id/favorite_set_icon"
-            android:layout_width="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="left"
-            android:padding="10dp"
+            android:gravity="center"
+            android:padding="5dp"
             android:layout_below="@id/player_event_name"
             android:textSize="16sp"
             android:background="@drawable/pressable_button_blue_to_transparent"
@@ -201,16 +189,17 @@
 	    android:layout_alignParentBottom="true"
 	    android:gravity="center" >
 
-        <ImageButton
-            android:id="@+id/player_button_playlist"
+        <ImageView
             android:layout_width="50dp"
             android:layout_height="50dp"
-            android:padding="10dp"
-            android:background="@null"
             android:scaleType="centerInside"
+            android:id="@+id/favorite_set_icon"
+            android:src="@drawable/favorite_button_white"
+            android:background="@drawable/pressable_button_transparent_to_blue"
+            android:padding="3dp"
             android:layout_alignParentStart="true"
             android:layout_alignParentLeft="true"
-            android:src="@drawable/playlist_icon"/>
+            />
 
         <ImageButton
 	        android:id="@+id/player_button_rewind"
