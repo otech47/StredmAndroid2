@@ -153,7 +153,7 @@ public class PlaylistFragment extends Fragment {
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.eventText = (TextView) view.findViewById(R.id.eventText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.playButton = (ImageView) view.findViewById(R.id.detailActionButton);
+                holder.playButton = (ImageView) view.findViewById(R.id.playsIcon);
                 view.setTag(holder);
                 view.setId(Integer.valueOf(set.getId()).intValue());
             } else {

@@ -10,6 +10,7 @@ import android.widget.TextView;
 public class SearchResultSetViewHolder {
     public TextView playCount;
     public TextView artistText;
+    public TextView setLength;
     public TextView eventText;
     public ImageView artistImage;
     public ImageView playButton;

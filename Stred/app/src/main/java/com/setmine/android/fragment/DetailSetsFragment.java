@@ -78,7 +78,7 @@ public class DetailSetsFragment extends Fragment {
                     .displayImage(Constants.S3_ROOT_URL + set.getEventImage(),
                             imageView, options);
             if(set.isRadiomix() == 1) {
-                setTile.findViewById(R.id.detailActionButton).setVisibility(View.GONE);
+                setTile.findViewById(R.id.playsIcon).setVisibility(View.GONE);
             } else {
                 ((ImageView)setTile.findViewById(R.id.iconImage)).setImageResource(R.drawable.festival_icon);
                 ((TextView)setTile.findViewById(R.id.iconText)).setText("Event Info");

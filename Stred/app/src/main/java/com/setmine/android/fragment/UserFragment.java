@@ -33,7 +33,6 @@ import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.User;
-import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.task.SetMineApiPostRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
@@ -108,10 +107,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         if(modelsCP == null) {
             modelsCP = new ModelsContentProvider();
         }
-        if(identifier == "activities") {
-            modelsCP.setModel(jsonObject, "activities");
-            populateActivities();
-        } else if(identifier == "updateUserSets") {
+        if(identifier == "updateUserSets") {
             try {
                 registeredUser.setFavoriteSets(jsonObject.getJSONObject("payload").getJSONObject("user"));
                 populateMySets();
@@ -142,16 +138,12 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         if(savedInstanceState == null) {
             this.activity = (SetMineMainActivity)getActivity();
-            new SetMineApiGetRequestAsyncTask(activity, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                            "activity?all=true", "activities");
+            modelsCP = activity.modelsCP;
         } else {
             String activitiesModel = savedInstanceState.getString("activities");
-
             try {
                 JSONObject jsonModel = new JSONObject(activitiesModel);
                 modelsCP.setModel(jsonModel, "activities");
-                populateActivities();
             } catch(Exception e) {
 
             }
@@ -208,6 +200,12 @@ public class UserFragment extends Fragment implements ApiCaller {
                 (currentSession.isOpened() || currentSession.isClosed()) ) {
             onSessionStateChange(currentSession, currentSession.getState(), null);
         }
+    }
+
+    @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        this.activity = (SetMineMainActivity)getActivity();
     }
 
     @Override
@@ -367,6 +365,8 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             final List<Activity> userActivities = modelsCP.getActivities();
 
+            Log.d(TAG, userActivities.toString());
+
             // Get the inflater for inflating XML files into Views
 
             LayoutInflater inflater = LayoutInflater.from(activity);
@@ -524,6 +524,8 @@ public class UserFragment extends Fragment implements ApiCaller {
                     .setText(set.getEvent());
             ((TextView) mySetTile.findViewById(R.id.playCount))
                     .setText(set.getPopularity() + " plays");
+            ((TextView) mySetTile.findViewById(R.id.setLength))
+                    .setText(set.getSetLength());
 
             mySetTile.setTag(set);
 

@@ -85,6 +85,61 @@
                     android:layout_height="1dp"
                     android:background="@color/setmine_blue"/>
 
+
+
+                <RelativeLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/activitiesHeader"
+                    android:background="@color/setmine_white"
+                    >
+
+                    <ImageView
+                        android:layout_width="70dp"
+                        android:layout_height="70dp"
+                        android:id="@+id/activitiesHeaderIcon"
+                        android:background="@color/setmine_blue"
+                        android:layout_alignParentRight="true"
+                        android:src="@drawable/activities_icon"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_toLeftOf="@id/activitiesHeaderIcon"
+                        android:textColor="@color/setmine_blue"
+                        android:id="@+id/activitiesHeaderText"
+                        android:textSize="30sp"
+                        android:padding="@dimen/small_text_padding"
+                        android:layout_centerInParent="true"
+                        android:gravity="center"
+                        android:text="@string/activities"/>
+
+                </RelativeLayout>
+
+                <View
+                    android:layout_width="match_parent"
+                    android:layout_height="1dp"
+                    android:background="@color/setmine_blue"/>
+
+                <LinearLayout
+                    android:orientation="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/setmine_white"
+                    android:id="@+id/activityTilesContainer">
+
+
+
+                </LinearLayout>
+
+                <ProgressBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/activitiesLoading"
+                    android:layout_margin="@dimen/progress_padding"
+                    android:gravity="center|bottom"
+                    android:indeterminate="true" />
+
                 <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -141,59 +196,6 @@
                     android:layout_width="match_parent"
                     android:layout_height="1dp"
                     android:background="@color/setmine_blue"/>
-
-                <RelativeLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/activitiesHeader"
-                    android:background="@color/setmine_white"
-                    >
-
-                    <ImageView
-                        android:layout_width="70dp"
-                        android:layout_height="70dp"
-                        android:id="@+id/activitiesHeaderIcon"
-                        android:background="@color/setmine_blue"
-                        android:layout_alignParentRight="true"
-                        android:src="@drawable/activities_icon"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_toLeftOf="@id/activitiesHeaderIcon"
-                        android:textColor="@color/setmine_blue"
-                        android:id="@+id/activitiesHeaderText"
-                        android:textSize="30sp"
-                        android:padding="@dimen/small_text_padding"
-                        android:layout_centerInParent="true"
-                        android:gravity="center"
-                        android:text="@string/activities"/>
-
-                </RelativeLayout>
-
-                <View
-                    android:layout_width="match_parent"
-                    android:layout_height="1dp"
-                    android:background="@color/setmine_blue"/>
-
-                <LinearLayout
-                    android:orientation="vertical"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:background="@color/setmine_white"
-                    android:id="@+id/activityTilesContainer">
-
-
-
-                </LinearLayout>
-
-                <ProgressBar
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/activitiesLoading"
-                    android:layout_margin="@dimen/progress_padding"
-                    android:gravity="center|bottom"
-                    android:indeterminate="true" />
 
 
 

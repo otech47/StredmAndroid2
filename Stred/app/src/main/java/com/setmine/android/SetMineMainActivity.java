@@ -354,11 +354,52 @@ public class SetMineMainActivity extends FragmentActivity implements
             new SetMineApiGetRequestAsyncTask(this, this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
                             , "artist?all=true", "allArtists");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "activity?all=true", "activities");
 
         } else {
             Log.d(TAG, "getting instance state");
             userIsRegistered = savedInstanceState.getBoolean("userIsRegistered");
             currentLocation = savedInstanceState.getParcelable("currentLocation");
+            String upcomingEventsModel = savedInstanceState.getString("upcomingEvents");
+            String searchEventsModel = savedInstanceState.getString("searchEvents");
+            String recentEventsModel = savedInstanceState.getString("recentEvents");
+            String artistsModel = savedInstanceState.getString("artists");
+            String festivalsModel = savedInstanceState.getString("festivals");
+            String mixesModel = savedInstanceState.getString("mixes");
+            String genresModel = savedInstanceState.getString("genres");
+            String popularSetsModel = savedInstanceState.getString("popularSets");
+            String recentSetsModel = savedInstanceState.getString("recentSets");
+            String allArtistsModel = savedInstanceState.getString("allArtists");
+            String activitiesModel = savedInstanceState.getString("activities");
+            try {
+                JSONObject jsonUpcomingEventsModel = new JSONObject(upcomingEventsModel);
+                JSONObject jsonSearchEventsModel = new JSONObject(searchEventsModel);
+                JSONObject jsonRecentEventsModel = new JSONObject(recentEventsModel);
+                JSONObject jsonArtistsModel = new JSONObject(artistsModel);
+                JSONObject jsonFestivalsModel = new JSONObject(festivalsModel);
+                JSONObject jsonMixesModel = new JSONObject(mixesModel);
+                JSONObject jsonGenresModel = new JSONObject(genresModel);
+                JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
+                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
+                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
+                JSONObject jsonActivitiesModel = new JSONObject(activitiesModel);
+                modelsCP.setModel(jsonUpcomingEventsModel, "upcomingEvents");
+                modelsCP.setModel(jsonSearchEventsModel, "searchEvents");
+                modelsCP.setModel(jsonRecentEventsModel, "recentEvents");
+                modelsCP.setModel(jsonArtistsModel, "artists");
+                modelsCP.setModel(jsonFestivalsModel, "festivals");
+                modelsCP.setModel(jsonMixesModel, "mixes");
+                modelsCP.setModel(jsonGenresModel, "genres");
+                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
+                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
+                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
+                modelsCP.setModel(jsonActivitiesModel, "activities");
+                finishOnCreate();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
 
         // Get Application Version from build.gradle
@@ -452,6 +493,24 @@ public class SetMineMainActivity extends FragmentActivity implements
     protected void onResume() {
         super.onResume();
         Log.d(TAG, "onResume");
+    }
+
+    @Override
+    protected void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        userIsRegistered = outState.getBoolean("userIsRegistered");
+        currentLocation = outState.getParcelable("currentLocation");
+        outState.putString("upcomingEvents", modelsCP.jsonMappings.get("upcomingEvents"));
+        outState.putString("searchEvents", modelsCP.jsonMappings.get("searchEvents"));
+        outState.putString("recentEvents", modelsCP.jsonMappings.get("recentEvents"));
+        outState.putString("artists", modelsCP.jsonMappings.get("artists"));
+        outState.putString("festivals", modelsCP.jsonMappings.get("festivals"));
+        outState.putString("mixes", modelsCP.jsonMappings.get("mixes"));
+        outState.putString("genres", modelsCP.jsonMappings.get("genres"));
+        outState.putString("popularSets", modelsCP.jsonMappings.get("popularSets"));
+        outState.putString("recentSets", modelsCP.jsonMappings.get("recentSets"));
+        outState.putString("allArtists", modelsCP.jsonMappings.get("allArtists"));
+        outState.putString("activities", modelsCP.jsonMappings.get("activities"));
     }
 
     @Override
@@ -608,7 +667,10 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void openMainViewPager() {
         Log.d(TAG, "openMainViewPager");
+        if(mainPagerContainerFragment == null) {
+        }
         mainPagerContainerFragment = new MainPagerContainerFragment();
+
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);

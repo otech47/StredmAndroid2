@@ -8,35 +8,23 @@
     android:background="@drawable/pressable_button_white_to_blue">
 
     <ImageView
-        android:layout_width="50dp"
-        android:layout_height="50dp"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
         android:src="@drawable/logo"
         android:scaleType="centerCrop"
         android:id="@+id/artistImage"
-        android:layout_gravity="center"
-        android:contentDescription="" />
+        android:layout_gravity="center" />
 
-    <ImageView
-        android:layout_width="60dp"
-        android:layout_height="40dp"
-        android:paddingLeft="10dp"
-        android:paddingRight="10dp"
-        android:id="@+id/detailActionButton"
-        android:layout_alignParentEnd="true"
-        android:layout_alignParentRight="true"
-        android:src="@drawable/ic_action_play"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="50dp"
+        android:layout_height="60dp"
         android:paddingLeft="10dp"
         android:paddingStart="10dp"
         android:paddingRight="10dp"
         android:paddingEnd="10dp"
         android:layout_toEndOf="@id/artistImage"
-        android:layout_toRightOf="@id/artistImage"
-        android:layout_toLeftOf="@id/detailActionButton"
-        android:layout_toStartOf="@id/detailActionButton">
+        android:layout_toRightOf="@id/artistImage">
 
         <TextView
             android:layout_width="match_parent"
@@ -49,42 +37,58 @@
             android:scrollHorizontally="true"
             android:id="@+id/artistText"
             android:textColor="#FF000000"
-            android:textSize="17sp"/>
+            android:textSize="17sp"
+            android:textStyle="bold"/>
 
-        <LinearLayout
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_alignParentBottom="true"
+            android:text="Event"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit ="marquee_forever"
             android:layout_below="@id/artistText"
-            android:orientation="horizontal">
+            android:scrollHorizontally="true"
+            android:id="@+id/eventText"
+            android:textColor="#FF000000"
+            android:textSize="15sp"/>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Event"
-                android:id="@+id/eventText"
-                android:textColor="@color/setmine_blue"
-                android:layout_gravity="bottom"
-                android:textSize="13sp"
-                android:singleLine="true"
-                android:textStyle="bold"/>
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="12dp"
+            android:id="@+id/playsIcon"
+            android:layout_alignParentBottom="true"
+            android:src="@drawable/ic_action_play"/>
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 plays"
+            android:id="@+id/playCount"
+            android:textColor="@color/setmine_blue"
+            android:gravity="center"
+            android:layout_toRightOf="@id/playsIcon"
+            android:layout_toEndOf="@id/playsIcon"
+            android:layout_alignParentBottom="true"
+            android:textSize="12sp"/>
 
-        </LinearLayout>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="00:00"
+            android:id="@+id/setLength"
+            android:gravity="right"
+            android:textColor="@color/setmine_black"
+            android:layout_toRightOf="@id/playCount"
+            android:layout_toEndOf="@id/playCount"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:layout_alignParentRight="true"
+            android:textSize="12sp"/>
 
 
     </RelativeLayout>
 
-    <TextView
-        android:layout_width="60dp"
-        android:layout_height="wrap_content"
-        android:text="0 plays"
-        android:id="@+id/playCount"
-        android:textColor="@color/setmine_blue"
-        android:layout_below="@id/detailActionButton"
-        android:gravity="center"
-        android:layout_alignLeft="@id/detailActionButton"
-        android:layout_alignStart="@id/detailActionButton"
-        android:textSize="12sp"/>
+
 
 </RelativeLayout>

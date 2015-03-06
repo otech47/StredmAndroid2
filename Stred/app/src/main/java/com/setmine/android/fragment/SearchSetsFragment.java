@@ -76,6 +76,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Log.d(TAG, "onCreate");
         this.activity = (SetMineMainActivity)getActivity();
 
@@ -644,10 +645,11 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 view = inflater.inflate(R.layout.set_tile, parent, false);
                 holder = new SearchResultSetViewHolder();
                 holder.playCount = (TextView) view.findViewById(R.id.playCount);
+                holder.setLength = (TextView) view.findViewById(R.id.setLength);
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.eventText = (TextView) view.findViewById(R.id.eventText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.playButton = (ImageView) view.findViewById(R.id.detailActionButton);
+                holder.playButton = (ImageView) view.findViewById(R.id.playsIcon);
                 view.setTag(holder);
                 view.setId(Integer.valueOf(set.getId()).intValue());
             } else {
@@ -655,6 +657,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             }
 
             holder.playCount.setText(set.getPopularity() + " plays");
+            holder.playCount.setText(set.getSetLength());
             holder.artistText.setText(set.getArtist());
             holder.eventText.setText(set.getEvent());
             holder.playButton.setOnClickListener(new View.OnClickListener() {

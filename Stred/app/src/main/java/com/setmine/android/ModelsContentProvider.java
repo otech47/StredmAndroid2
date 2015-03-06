@@ -96,6 +96,7 @@ public class ModelsContentProvider {
                     JSONArray soonest = upcoming.getJSONArray("soonestEvents");
                     JSONArray closest = upcoming.getJSONArray("closestEvents");
                     JSONArray around = upcoming.getJSONArray("soonestEventsAroundMe");
+                    jsonMappings.put("upcomingEvents", model.toString());
                     jsonMappings.put("soonestEvents", model.toString());
                     jsonMappings.put("closestEvents", model.toString());
                     jsonMappings.put("soonestEventsAroundMe", model.toString());
@@ -213,7 +214,8 @@ public class ModelsContentProvider {
                 genres.size() > 0 &&
                 allArtists.size() > 0 &&
                 popularSets.size() > 0 &&
-                recentEvents.size() > 0) {
+                recentEvents.size() > 0 &&
+                activities.size() > 0) {
             initialModelsReady = true;
         }
     }

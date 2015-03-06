@@ -463,7 +463,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 holder.setTime = (TextView) view.findViewById(R.id.setTime);
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.detailActionButton = view.findViewById(R.id.detailActionButton);
+                holder.detailActionButton = view.findViewById(R.id.playsIcon);
                 view.setTag(holder);
             } else {
                 holder = (LineupSetViewHolder) view.getTag();
@@ -522,7 +522,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 }
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.detailActionButton = view.findViewById(R.id.detailActionButton);
+                holder.detailActionButton = view.findViewById(R.id.playsIcon);
                 view.setTag(holder);
                 view.setId(Integer.valueOf(set.getId()).intValue());
             } else {

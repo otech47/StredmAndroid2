@@ -23,6 +23,7 @@ public class Set extends JSONModel implements Parcelable {
     private String mGenre;
     private String mSongURL;
     private String episode;
+    private String setLength;
     private List<Track> mTracklist;
     private Integer popularity;
     private Integer mRadiomix;
@@ -48,6 +49,7 @@ public class Set extends JSONModel implements Parcelable {
         mGenre = in.readString();
         mSongURL = in.readString();
         episode = in.readString();
+        setLength = in.readString();
         popularity = in.readInt();
         mRadiomix = in.readInt();
     }
@@ -67,6 +69,7 @@ public class Set extends JSONModel implements Parcelable {
         out.writeString(mGenre);
         out.writeString(mSongURL);
         out.writeString(episode);
+        out.writeString(setLength);
         out.writeInt(popularity);
         out.writeInt(mRadiomix);
 
@@ -88,6 +91,7 @@ public class Set extends JSONModel implements Parcelable {
             setPopularity(json.getInt("popularity"));
             setIsRadiomix(json.getInt("is_radiomix"));
             setEpisode(json.getString("episode"));
+            setSetLength(json.getString("set_length"));
             setTracklist(generateTracklist(json.getString("tracklist"), json.getString("starttimes")));
         } catch (JSONException e) {
             e.printStackTrace();
@@ -102,6 +106,7 @@ public class Set extends JSONModel implements Parcelable {
         setArtistImage(s.getArtistImage());
         setEventImage(s.getEventImage());
         setSongURL(s.getSongURL());
+        setSetLength(s.getSetLength());
         setIsRadiomix(s.isRadiomix());
         setTracklist(s.getTracklist());
     }
@@ -189,6 +194,14 @@ public class Set extends JSONModel implements Parcelable {
 
     public void setEpisode(String episode) {
         this.episode = episode;
+    }
+
+    public String getSetLength() {
+        return setLength;
+    }
+
+    public void setSetLength(String setLength) {
+        this.setLength = setLength;
     }
 
     public List<Track> getTracklist() {

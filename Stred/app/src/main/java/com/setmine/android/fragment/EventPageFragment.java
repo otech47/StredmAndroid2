@@ -35,10 +35,9 @@ import com.setmine.android.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
-import com.setmine.android.task.ApiCallAsyncTask;
 import com.setmine.android.task.InitialApiCallAsyncTask;
+import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 
 import org.json.JSONObject;
@@ -118,15 +117,24 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     }
 
     @Override
+    public void onActivityCreated(@Nullable Bundle savedInstanceState) {
+        super.onActivityCreated(savedInstanceState);
+        this.activity = (SetMineMainActivity)getActivity();
+    }
+
+    @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         Bundle args = getArguments();
         page = args.getInt(ARG_OBJECT);
         Log.v(TAG, "onCreate: " + page.toString());
 
         if(savedInstanceState == null) {
             this.activity = (SetMineMainActivity)getActivity();
-            modelsCP = activity.modelsCP;
+            if(modelsCP == null) {
+                modelsCP = activity.modelsCP;
+            }
             if(page == 2) {
                 currentEvents = modelsCP.soonestEventsAroundMe;
             }
@@ -137,6 +145,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 currentEvents = modelsCP.searchEvents;
             }
         } else {
+            if(modelsCP == null) {
+                modelsCP = new ModelsContentProvider();
+            }
             String model = savedInstanceState.getString("currentEvents");
             try {
                 JSONObject jsonModel = new JSONObject(model);
@@ -163,11 +174,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                              ViewGroup container, Bundle savedInstanceState) {
         Log.v(TAG, "onCreateView: " + page.toString());
 
-        this.context = activity.getApplicationContext();
         this.dateUtils = new DateUtils();
-        this.geocoder = new Geocoder(context, Locale.getDefault());
+        this.geocoder = new Geocoder(getActivity().getApplicationContext(), Locale.getDefault());
         this.selectedDate = Calendar.getInstance();
-        this.selectedLocation = new Location(activity.currentLocation);
         this.addressResultList = null;
         this.addressResult = null;
 
@@ -285,7 +294,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         SimpleDateFormat apiDateFormat = new SimpleDateFormat("yyyy'-'MM'-'d");
         String date = apiDateFormat.format(selectedDate.getTime());
         String route = "upcoming/?date=" + Uri.encode(date) + "&latitude=" + latitude + "&longitude=" + longitude;
-        new ApiCallAsyncTask(activity, context, Constants.API_ROOT_URL, this)
+        new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                 .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
                         route,
                         "searchEvents");
@@ -295,6 +304,14 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         final EditText locationText = (EditText)rootView.findViewById(R.id.locationText);
         final TextView dateText = (TextView)rootView.findViewById(R.id.dateText);
         final DatePicker datePicker = (DatePicker)rootView.findViewById(R.id.datePicker);
+        if(activity.currentLocation != null) {
+            this.selectedLocation = new Location(activity.currentLocation);
+        } else {
+            this.selectedLocation = new Location("default");
+            selectedLocation.setLatitude(29.652175);
+            selectedLocation.setLongitude(-82.325856);
+        }
+
 
         rootView.findViewById(R.id.sets_nav_icon).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -449,7 +466,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 } else if (type.equals("recent")){
                     view = inflater.inflate(R.layout.event_tile_recent, parent, false);
                 } else {
-                    view = inflater.inflate(R.layout.event_search_tile, parent, false);
+                    view = inflater.inflate(R.layout.upcoming_event_tile_top, parent, false);
                 }
                 holder = new ViewHolder();
                 holder.city = (TextView) view.findViewById(R.id.city);
