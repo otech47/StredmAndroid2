@@ -12,6 +12,7 @@ import java.util.List;
  */
 public class User extends JSONModel {
 
+    private String id;
     private String email;
     private String firstName;
     private String lastName;
@@ -25,6 +26,7 @@ public class User extends JSONModel {
     public User(JSONObject json) {
         jsonModelString = json.toString();
         try {
+            setId(json.getString("id"));
             setEmail(json.getString("username"));
             setFirstName(json.getString("first_name"));
             setLastName(json.getString("last_name"));
@@ -33,6 +35,14 @@ public class User extends JSONModel {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getEmail() {

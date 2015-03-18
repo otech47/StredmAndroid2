@@ -454,7 +454,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         String myNextEventQuery = "user/myNextEvent";
         Location userLocation = ((SetMineMainActivity) getActivity()).currentLocation;
         if(userLocation != null) {
-            myNextEventQuery += "?userID=72";
+            myNextEventQuery += "?userID="+registeredUser.getId();
             myNextEventQuery += "&latitude="+userLocation.getLatitude();
             myNextEventQuery += "&longitude="+userLocation.getLongitude();
         }
@@ -464,7 +464,7 @@ public class UserFragment extends Fragment implements ApiCaller {
     }
 
     private void kickOffNewSetsQuery() {
-        String myNewSetsQuery = "user/newSets?userID=72";
+        String myNewSetsQuery = "user/newSets?userID="+registeredUser.getId();
         new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), runnableUserFragmentTarget)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         myNewSetsQuery, "newSets");
