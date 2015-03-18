@@ -21,6 +21,7 @@
     <string name="activities">Activities</string>
     <string name="activities_description">Recommended sets to fit your current mood or activity</string>
     <string name="my_sets">My Sets</string>
+    <string name="new_sets">New Sets</string>
     <string name="my_sets_description">Favorite the Sets you want to listen to later</string>
     <string name="recent_sets">Recent Sets</string>
     <string name="recent_sets_description">Be the first to hear new sets</string>

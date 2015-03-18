@@ -3,6 +3,7 @@ package com.setmine.android.fragment;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
+import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
@@ -33,6 +34,7 @@ import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.User;
+import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.task.SetMineApiPostRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
@@ -65,6 +67,7 @@ public class UserFragment extends Fragment implements ApiCaller {
     public View mySetsContainer;
     public View activitiesContainer;
     public View myNextEventContainer;
+    public View newSetsContainer;
 
 
     public DisplayImageOptions options;
@@ -90,12 +93,14 @@ public class UserFragment extends Fragment implements ApiCaller {
     // For handling the successfully retrieved registered SetMine Useru
 
     final Handler userHandler = new Handler();
+    private final UserFragment runnableUserFragmentTarget = this;
 
     final Runnable handleRegisteredUser = new Runnable() {
         public void run() {
             populateActivities();
             populateMySets();
-//            populateMyNextEvent();
+            kickOffNextEventQuery();
+            kickOffNewSetsQuery();
             registerMixpanelUser();
             ((MainPagerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(0);
         }
@@ -107,7 +112,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         if(modelsCP == null) {
             modelsCP = new ModelsContentProvider();
         }
-        if(identifier == "updateUserSets") {
+        if(identifier.equals("updateUserSets")) {
             try {
                 registeredUser.setFavoriteSets(jsonObject.getJSONObject("payload").getJSONObject("user"));
                 populateMySets();
@@ -115,6 +120,21 @@ public class UserFragment extends Fragment implements ApiCaller {
                 if(activity.playerService.playerFragment != null) {
                     activity.playerService.playerFragment.handleFavoriteSets(true);
                 }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if(identifier.equals("myNextEvent")) {
+            try {
+                registeredUser.setNextEvent(jsonObject.getJSONObject("payload").getJSONObject("user"));
+                populateMyNextEvent();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        } else if(identifier.equals("newSets")) {
+            try {
+                Log.d(TAG, jsonObject.getJSONObject("payload").getJSONArray("user").toString());
+                registeredUser.setNewSets(jsonObject.getJSONObject("payload").getJSONArray("user"));
+                populateNewSets();
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -160,6 +180,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         mySetsContainer = rootView.findViewById(R.id.mySetTilesContainer);
         activitiesContainer = rootView.findViewById(R.id.activityTilesContainer);
         myNextEventContainer = rootView.findViewById(R.id.myNextEventContainer);
+        newSetsContainer = rootView.findViewById(R.id.newSetsTilesContainer);
         loginButton = (LoginButton)rootView.findViewById(R.id.facebookLoginButton);
 
         // Set permissions necessary for Facebook Login Prompt
@@ -328,7 +349,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         if(registeredUser != null) {
             populateMySets();
             populateActivities();
-//            populateMyNextEvent();
+            populateMyNextEvent();
         }
 
         // Scroll to top of view
@@ -429,13 +450,30 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     }
 
+    private void kickOffNextEventQuery() {
+        String myNextEventQuery = "user/myNextEvent";
+        Location userLocation = ((SetMineMainActivity) getActivity()).currentLocation;
+        if(userLocation != null) {
+            myNextEventQuery += "?userID=72";
+            myNextEventQuery += "&latitude="+userLocation.getLatitude();
+            myNextEventQuery += "&longitude="+userLocation.getLongitude();
+        }
+        new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), runnableUserFragmentTarget)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        myNextEventQuery, "myNextEvent");
+    }
+
+    private void kickOffNewSetsQuery() {
+        String myNewSetsQuery = "user/newSets?userID=72";
+        new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), runnableUserFragmentTarget)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        myNewSetsQuery, "newSets");
+    }
+
     // Create the My Next Event Tile after upcomingEvents have been stored in Models CP
 
     public void populateMyNextEvent() {
-
-        // Use the first event in the upcomingEvents model
-
-        final Event myNextEvent = modelsCP.getSoonestEvents().get(0);
+        final Event myNextEvent = registeredUser.getNextEvent();
 
         // Get the inflater for inflating XML files into Views
 
@@ -573,4 +611,65 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     }
 
+    public void populateNewSets() {
+        final List<Set> newSets = registeredUser.getNewSets();
+
+        // Get the inflater for inflating XML files into Views
+
+        LayoutInflater inflater = LayoutInflater.from(activity);
+
+        // Remove all views inside the layout container
+
+        ((ViewGroup)newSetsContainer).removeAllViews();
+
+        // Remove the loader
+
+        rootView.findViewById(R.id.newSetsLoading).setVisibility(View.GONE);
+
+        // If the user has not favorited any sets
+
+        if(newSets.size() == 0) {
+            Log.d(TAG, "No New Sets");
+            TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
+            noNewSets.setText("You have no new sets yet! Hang on, we'll find some for you.");
+            ((ViewGroup) newSetsContainer).addView(noNewSets);
+        }
+        for(int i = 0 ; i < newSets.size() ; i++) {
+            Set set = newSets.get(i);
+            View mySetTile = inflater.inflate(R.layout.set_tile, null);
+
+            ((TextView) mySetTile.findViewById(R.id.artistText))
+                    .setText(set.getArtist());
+            ((TextView) mySetTile.findViewById(R.id.eventText))
+                    .setText(set.getEvent());
+            ((TextView) mySetTile.findViewById(R.id.playCount))
+                    .setText(set.getPopularity() + " plays");
+            ((TextView) mySetTile.findViewById(R.id.setLength))
+                    .setText(set.getSetLength());
+
+            mySetTile.setTag(set);
+
+            mySetTile.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    activity.playerManager.setPlaylist(newSets);
+                    activity.playlistFragment.updatePlaylist();
+                    activity.playSetWithSetID(((Set) v.getTag()).getId());
+                }
+            });
+
+            final ImageView artistImage = (ImageView) mySetTile.findViewById(R.id.artistImage);
+
+            ImageLoader.getInstance()
+                    .loadImage(Constants.S3_ROOT_URL + set.getArtistImage(),
+                            options, new SimpleImageLoadingListener() {
+                                @Override
+                                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                                    artistImage.setImageDrawable(new BitmapDrawable(activity.getResources(), loadedImage));
+                                }
+                            });
+
+            ((ViewGroup)newSetsContainer).addView(mySetTile);
+        }
+    }
 }

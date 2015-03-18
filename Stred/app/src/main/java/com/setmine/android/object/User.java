@@ -17,6 +17,8 @@ public class User extends JSONModel {
     private String lastName;
     private String facebookID;
     private List<Set> favoriteSets;
+    private Event nextEvent;
+    private List<Set> newSets;
 
     public User() {}
 
@@ -95,4 +97,30 @@ public class User extends JSONModel {
         return false;
     }
 
+    public Event getNextEvent() {
+        return nextEvent;
+    }
+
+    public void setNextEvent(Event nextEvent) {
+        this.nextEvent = nextEvent;
+    }
+
+    public void setNextEvent(JSONObject json) {
+        nextEvent = new Event(json);
+    }
+
+    public List<Set> getNewSets() {
+        return newSets;
+    }
+
+    public void setNewSets(JSONArray json) {
+        try {
+            newSets = new ArrayList<Set>();
+            for(int i = 0 ; i < json.length() ; i++) {
+                newSets.add(new Set(json.getJSONObject(i)));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }
