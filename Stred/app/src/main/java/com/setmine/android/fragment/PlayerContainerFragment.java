@@ -5,6 +5,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,8 @@ import com.viewpagerindicator.TitlePageIndicator;
  */
 public class PlayerContainerFragment extends Fragment {
 
+    private static final String TAG = "PlayerContainerFragment";
+
     public ViewPager mViewPager;
     public PlayerPagerAdapter mPlayerPagerAdapter;
     public FragmentManager fragmentManager;
@@ -29,6 +32,7 @@ public class PlayerContainerFragment extends Fragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         View root = inflater.inflate(R.layout.fragment_player_pager_container, container, false);
         fragmentManager = getChildFragmentManager();
         mViewPager = (ViewPager)root.findViewById(R.id.playerpager);

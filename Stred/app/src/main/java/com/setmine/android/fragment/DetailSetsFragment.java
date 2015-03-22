@@ -15,6 +15,7 @@ import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Artist;
 import com.setmine.android.object.Constants;
+import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.util.DateUtils;
 
@@ -39,7 +40,6 @@ public class DetailSetsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        activity = (SetMineMainActivity)getActivity();
         dateUtils = new DateUtils();
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
@@ -55,6 +55,7 @@ public class DetailSetsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.detail_list, container, false);
         View detailListContainer = rootView.findViewById(R.id.detailListContainer);
+        activity = (SetMineMainActivity)getActivity();
 
         detailSets = ((ArtistDetailFragment)getParentFragment()).detailSets;
 
@@ -82,34 +83,26 @@ public class DetailSetsFragment extends Fragment {
             } else {
                 ((ImageView)setTile.findViewById(R.id.iconImage)).setImageResource(R.drawable.festival_icon);
                 ((TextView)setTile.findViewById(R.id.iconText)).setText("Event Info");
-//                setTile.findViewById(R.id.detailActionButton).setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        v.setPressed(true);
-//                        Event currentEvent = null;
-//                        for (Event event : activity.modelsCP.getEvents()) {
-//                            if (event.getEvent().equals(set.getEvent())) {
-//                                currentEvent = event;
-//                            }
-//                        }
-//                        EventDetailFragment eventDetailFragment = new EventDetailFragment();
-//                        eventDetailFragment.currentEvent = currentEvent;
-//                        eventDetailFragment.EVENT_TYPE = "recent";
-//                        SetMineMainActivity activity = (SetMineMainActivity) getActivity();
-//                        FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-//                        transaction.replace(R.id.currentFragmentContainer, eventDetailFragment, "eventDetailFragment");
-//                        transaction.addToBackStack(null);
-//                        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-//                        transaction.commit();
-//
-//                    }
-//                });
+                setTile.findViewById(R.id.playsIcon).setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        v.setPressed(true);
+                        Event currentEvent = null;
+                        for (Event event : ((ArtistDetailFragment)getParentFragment()).modelsCP.getEvents()) {
+                            if (event.getEvent().equals(set.getEvent())) {
+                                currentEvent = event;
+                            }
+                        }
+                        activity.openEventDetailPage(currentEvent, "recent");
+
+                    }
+                });
             }
             setTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.playerManager.setPlaylist(detailSets);
-                    activity.playlistFragment.updatePlaylist();
+                    activity.playerService.playerManager.setPlaylist(detailSets);
+//                    activity.playlistFragment.updatePlaylist();
                     activity.playSetWithSetID(set.getId());
                 }
             });

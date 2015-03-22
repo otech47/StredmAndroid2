@@ -8,7 +8,6 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -304,6 +303,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                     activity.playerService.playerManager.setPlaylist(detailSets);
                     Set s = detailSets.get(position);
                     activity.playerService.playerManager.selectSetById(s.getId());
+                    activity.playSetWithSetID(s.getId());
                 }
             });
         } else {
@@ -538,13 +538,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                             currentArtist = activity.modelsCP.getArtists().get(i);
                         }
                     }
-                    ArtistDetailFragment artistDetailFragment = new ArtistDetailFragment();
-                    artistDetailFragment.currentArtist = currentArtist;
-                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-                    transaction.replace(R.id.currentFragmentContainer, artistDetailFragment, "artistDetailFragment");
-                    transaction.addToBackStack(null);
-                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                    transaction.commit();
+                    activity.openArtistDetailPage(currentArtist);
                 }
             });
 

@@ -103,22 +103,32 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     @Override
     public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
-        Log.d(TAG, "onApiResponseReceived: "+identifier);
-        if(modelsCP == null) {
-            modelsCP = new ModelsContentProvider();
-        }
-        if(identifier == "updateUserSets") {
-            try {
-                registeredUser.setFavoriteSets(jsonObject.getJSONObject("payload").getJSONObject("user"));
-                populateMySets();
-                activity = (SetMineMainActivity)getActivity();
-                if(activity.playerService.playerFragment != null) {
-                    activity.playerService.playerFragment.handleFavoriteSets(true);
+        final JSONObject finalJsonObject = jsonObject;
+        final String finalIdentifier = identifier;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "onApiResponseReceived: "+finalIdentifier);
+                if(modelsCP == null) {
+                    modelsCP = new ModelsContentProvider();
                 }
-            } catch (JSONException e) {
-                e.printStackTrace();
+                if(finalIdentifier == "updateUserSets") {
+
+                    try {
+                        registeredUser.setFavoriteSets(finalJsonObject.getJSONObject("payload").getJSONObject("user"));
+                        populateMySets();
+                        activity = (SetMineMainActivity)getActivity();
+                        if(activity.playerService.playerFragment != null) {
+                            activity.playerService.playerFragment.handleFavoriteSets(true);
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
             }
-        }
+        }).start();
+
+
     }
 
 
@@ -532,8 +542,8 @@ public class UserFragment extends Fragment implements ApiCaller {
             mySetTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.playerManager.setPlaylist(favoriteSets);
-                    activity.playlistFragment.updatePlaylist();
+                    activity.playerService.playerManager.setPlaylist(favoriteSets);
+//                    activity.playlistFragment.updatePlaylist();
                     activity.playSetWithSetID(((Set) v.getTag()).getId());
                 }
             });

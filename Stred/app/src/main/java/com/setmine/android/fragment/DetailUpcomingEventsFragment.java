@@ -3,7 +3,6 @@ package com.setmine.android.fragment;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -84,16 +83,7 @@ public class DetailUpcomingEventsFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     v.setPressed(true);
-                    Event currentEvent = uEvent;
-                    EventDetailFragment eventDetailFragment = new EventDetailFragment();
-                    eventDetailFragment.currentEvent = uEvent;
-                    eventDetailFragment.EVENT_TYPE = "upcoming";
-                    SetMineMainActivity activity = (SetMineMainActivity) getActivity();
-                    FragmentTransaction transaction = activity.fragmentManager.beginTransaction();
-                    transaction.replace(R.id.currentFragmentContainer, eventDetailFragment);
-                    transaction.addToBackStack(null);
-                    transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-                    transaction.commit();
+                    ((SetMineMainActivity) getActivity()).openEventDetailPage(uEvent, "upcoming");
                 }
             });
             ((ViewGroup)detailListContainer).addView(eventTile);

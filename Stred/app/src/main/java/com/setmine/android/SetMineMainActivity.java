@@ -662,6 +662,19 @@ public class SetMineMainActivity extends FragmentActivity implements
             });
         }
         startPlayerFragment();
+        Log.d(TAG, "playSetFinish");
+    }
+
+    public void playSelectedSet() {
+        if(playerContainerFragment == null) {
+            Log.d(TAG, "containerfragment is null");
+        }
+        if(playerContainerFragment.mPlayerPagerAdapter == null) {
+            Log.d(TAG, "adapter is null");
+        }
+        if(playerContainerFragment == null) {
+            Log.d(TAG, "playerfragment is null");
+        }
         playerContainerFragment.mPlayerPagerAdapter.playerFragment.playSong();
     }
 
@@ -686,6 +699,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.replace(R.id.currentFragmentContainer, playerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commit();
+        playSelectedSet();
     }
 
     // Open Search Fragment from anywhere in the app
