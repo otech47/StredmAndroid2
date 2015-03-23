@@ -1,5 +1,7 @@
 package com.setmine.android.object;
 
+import android.util.Log;
+
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -35,6 +37,8 @@ public class Activity extends JSONModel {
                 setIDs.add(setIDsArray.getInt(i));
             }
             for(int j = 0; j < setsArray.length() ; j++) {
+                Log.d("Activity: ", Integer.toString(j));
+                Log.d("Activity: ", setsArray.getJSONObject(j).toString());
                 sets.add(new Set(setsArray.getJSONObject(j)));
             }
 

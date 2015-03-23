@@ -95,6 +95,31 @@ public class UserFragment extends Fragment implements ApiCaller {
     final Handler userHandler = new Handler();
     private final UserFragment runnableUserFragmentTarget = this;
 
+    final Runnable updateNewSets = new Runnable() {
+        @Override
+        public void run() {
+            populateNewSets();
+        }
+    };
+
+    final Runnable updateMyNextEvent = new Runnable() {
+        @Override
+        public void run() {
+            populateMyNextEvent();
+        }
+    };
+
+    final Runnable updateMySets = new Runnable() {
+        @Override
+        public void run() {
+            populateMySets();
+            activity = (SetMineMainActivity) getActivity();
+            if (activity.playerService.playerFragment != null) {
+                activity.playerService.playerFragment.handleFavoriteSets(true);
+            }
+        }
+    };
+
     final Runnable handleRegisteredUser = new Runnable() {
         public void run() {
             populateActivities();
@@ -117,21 +142,17 @@ public class UserFragment extends Fragment implements ApiCaller {
                 if (modelsCP == null) {
                     modelsCP = new ModelsContentProvider();
                 }
-                if (finalIdentifier == "updateUserSets") {
+                if (finalIdentifier.equals("updateUserSets")) {
                     try {
                         registeredUser.setFavoriteSets(finalJsonObject.getJSONObject("payload").getJSONObject("user"));
-                        populateMySets();
-                        activity = (SetMineMainActivity) getActivity();
-                        if (activity.playerService.playerFragment != null) {
-                            activity.playerService.playerFragment.handleFavoriteSets(true);
-                        }
+                        userHandler.post(updateMySets);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
                 } else if (finalIdentifier.equals("myNextEvent")) {
                     try {
                         registeredUser.setNextEvent(finalJsonObject.getJSONObject("payload").getJSONObject("user"));
-                        populateMyNextEvent();
+                        userHandler.post(updateMyNextEvent);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -139,7 +160,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                     try {
                         Log.d(TAG, finalJsonObject.getJSONObject("payload").getJSONArray("user").toString());
                         registeredUser.setNewSets(finalJsonObject.getJSONObject("payload").getJSONArray("user"));
-                        populateNewSets();
+                        userHandler.post(updateNewSets);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

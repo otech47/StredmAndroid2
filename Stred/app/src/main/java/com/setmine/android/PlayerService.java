@@ -180,7 +180,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             this.newSong = true;
             play();
         } catch (IOException ioe) {
-            
+
         }
     }
 

@@ -47,15 +47,14 @@
             android:id="@+id/timeContainer"
             android:layout_alignParentBottom="true">
 
-
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="00:00"
                 android:padding="5dp"
-                android:id="@+id/trackTime"
-                android:layout_toLeftOf="@id/timeDivider"
+                android:id="@+id/setLength"
+                android:layout_alignParentRight="true"
+                android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
                 android:textColor="@color/setmine_black"
                 android:textSize="12sp"/>
@@ -73,12 +72,15 @@
                 android:layout_height="wrap_content"
                 android:text="00:00"
                 android:padding="5dp"
-                android:id="@+id/setLength"
-                android:layout_alignParentRight="true"
-                android:layout_alignParentEnd="true"
+                android:id="@+id/trackTime"
+                android:layout_toLeftOf="@id/timeDivider"
                 android:layout_alignParentBottom="true"
                 android:textColor="@color/setmine_black"
                 android:textSize="12sp"/>
+
+
+
+
 
             <TextView
                 android:layout_width="wrap_content"
