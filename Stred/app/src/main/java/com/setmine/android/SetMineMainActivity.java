@@ -33,26 +33,26 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.setmine.android.adapter.MainPagerAdapter;
-import com.setmine.android.adapter.PlayerPagerAdapter;
-import com.setmine.android.fragment.ArtistDetailFragment;
-import com.setmine.android.fragment.EventDetailFragment;
-import com.setmine.android.fragment.MainPagerContainerFragment;
-import com.setmine.android.fragment.PlayerContainerFragment;
-import com.setmine.android.fragment.PlayerFragment;
-import com.setmine.android.fragment.PlaylistFragment;
-import com.setmine.android.fragment.SearchSetsFragment;
-import com.setmine.android.fragment.TracklistFragment;
-import com.setmine.android.fragment.UserFragment;
-import com.setmine.android.object.Artist;
-import com.setmine.android.object.Constants;
-import com.setmine.android.object.Event;
-import com.setmine.android.object.Set;
-import com.setmine.android.object.User;
-import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.player.PlayerPagerAdapter;
+import com.setmine.android.artist.ArtistDetailFragment;
+import com.setmine.android.event.EventDetailFragment;
+import com.setmine.android.player.PlayerContainerFragment;
+import com.setmine.android.player.PlayerFragment;
+import com.setmine.android.player.PlaylistFragment;
+import com.setmine.android.search.SearchSetsFragment;
+import com.setmine.android.player.TracklistFragment;
+import com.setmine.android.user.UserFragment;
+import com.setmine.android.interfaces.ApiCaller;
+import com.setmine.android.artist.Artist;
+import com.setmine.android.event.Event;
+import com.setmine.android.player.PlayerManager;
+import com.setmine.android.player.PlayerService;
+import com.setmine.android.set.Set;
+import com.setmine.android.user.User;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
-import com.setmine.android.util.ImageUtils;
+import com.setmine.android.image.ImageUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -86,7 +86,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     public String MODELS_VERSION;
 
 
-    public MainPagerAdapter mMainPagerAdapter;
     public ViewPager eventViewPager;
     public PlayerPagerAdapter mPlayerPagerAdapter;
 
@@ -669,10 +668,10 @@ public class SetMineMainActivity extends FragmentActivity implements
         if(playerContainerFragment == null) {
             Log.d(TAG, "containerfragment is null");
         }
-        if(playerContainerFragment.mPlayerPagerAdapter == null) {
+        else if(playerContainerFragment.mPlayerPagerAdapter == null) {
             Log.d(TAG, "adapter is null");
         }
-        if(playerContainerFragment == null) {
+        else if(playerContainerFragment.mPlayerPagerAdapter.playerFragment == null) {
             Log.d(TAG, "playerfragment is null");
         }
         playerContainerFragment.mPlayerPagerAdapter.playerFragment.playSong();

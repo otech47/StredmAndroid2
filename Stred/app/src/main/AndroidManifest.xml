@@ -82,7 +82,7 @@
 
         <!--Service for SetMine Player-->
 
-        <service android:name="com.setmine.android.PlayerService" />
+        <service android:name=".player.PlayerService" />
 
         <!--Receiver for Push Notifications-->
 
@@ -95,7 +95,7 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".RemoteControlReceiver">
+        <receiver android:name=".player.RemoteControlReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>

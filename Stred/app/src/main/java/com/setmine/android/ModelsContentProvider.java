@@ -2,14 +2,14 @@ package com.setmine.android;
 
 import android.util.Log;
 
-import com.setmine.android.object.Activity;
-import com.setmine.android.object.Artist;
-import com.setmine.android.object.Event;
-import com.setmine.android.object.Genre;
-import com.setmine.android.object.Lineup;
-import com.setmine.android.object.Mix;
-import com.setmine.android.object.Set;
-import com.setmine.android.object.Track;
+import com.setmine.android.api.Activity;
+import com.setmine.android.artist.Artist;
+import com.setmine.android.event.Event;
+import com.setmine.android.genre.Genre;
+import com.setmine.android.event.Lineup;
+import com.setmine.android.set.Mix;
+import com.setmine.android.set.Set;
+import com.setmine.android.track.Track;
 
 import org.json.JSONArray;
 import org.json.JSONException;

@@ -9,7 +9,7 @@ import android.database.sqlite.SQLiteOpenHelper;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 
-import com.setmine.android.object.Set;
+import com.setmine.android.set.Set;
 
 import java.io.File;
 import java.io.FileNotFoundException;
