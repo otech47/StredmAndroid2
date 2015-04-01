@@ -7,9 +7,9 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.setmine.android.R;
-import com.setmine.android.ViewHolder;
-import com.setmine.android.adapter.ListAdapter;
-import com.setmine.android.object.Set;
+import com.setmine.android.base.ViewHolder;
+import com.setmine.android.base.ListAdapter;
+import com.setmine.android.set.Set;
 
 import java.util.List;
 
