@@ -51,8 +51,7 @@ public class InitialApiCallAsyncTask extends AsyncTask<String, Integer, JSONObje
     protected void onPostExecute(JSONObject jsonObject) {
         activity.asyncTasksInProgress--;
         Log.v("Task complete: ", ((Integer)activity.asyncTasksInProgress).toString());
-        if(jsonObject != null) {
-        } else {
+        if(jsonObject == null) {
             Toast.makeText(activity.getApplicationContext(), "Check your Internet Connection", Toast.LENGTH_SHORT).show();
         }
     }
