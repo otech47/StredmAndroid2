@@ -1,5 +1,7 @@
 package com.setmine.android.object;
 
+import com.setmine.android.Constants;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -55,7 +57,7 @@ public class LineupSet extends JSONModel {
     }
 
     public void setArtistImage(String artistImage) {
-        this.artistImage = artistImage;
+        this.artistImage = Constants.CLOUDFRONT_URL_FOR_IMAGES + artistImage;
     }
 
     public boolean isHasSets() {

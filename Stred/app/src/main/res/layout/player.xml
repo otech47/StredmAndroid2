@@ -6,6 +6,12 @@
     android:minWidth="100dp"
     android:animateLayoutChanges="true">
 
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/background_overlay"
+        android:scaleType="centerCrop"></ImageView>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -23,11 +29,7 @@
 
     </RelativeLayout>
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/background_overlay"
-        android:scaleType="centerCrop"></ImageView>
+
 
     <RelativeLayout
         android:id="@+id/player_header"
@@ -244,5 +246,6 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true" />
     </RelativeLayout>
+
 
 </RelativeLayout>

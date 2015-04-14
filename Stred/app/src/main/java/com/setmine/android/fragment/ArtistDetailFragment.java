@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,7 +30,6 @@ import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.adapter.ArtistPagerAdapter;
 import com.setmine.android.object.Artist;
-import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
@@ -180,7 +180,9 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .considerExifParams(true)
                 .build();
 
-        ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + artistImageUrl, artistImageView, options);
+        Log.d(TAG, artistImageUrl);
+
+        ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
         artistTextView.setText(artistName);
 
         setSocialMediaListeners();

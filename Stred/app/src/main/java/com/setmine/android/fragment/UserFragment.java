@@ -30,7 +30,7 @@ import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Activity;
-import com.setmine.android.object.Constants;
+import com.setmine.android.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.User;
@@ -59,6 +59,8 @@ public class UserFragment extends Fragment implements ApiCaller {
     public SetMineMainActivity activity;
     public JSONObject jsonUser;
     public User registeredUser;
+
+    private Location userLocation;
 
 
     public View homeView;
@@ -113,15 +115,12 @@ public class UserFragment extends Fragment implements ApiCaller {
         @Override
         public void run() {
             populateMySets();
-            activity = (SetMineMainActivity) getActivity();
-            if (activity.playerService.playerFragment != null) {
-                activity.playerService.playerFragment.handleFavoriteSets(true);
-            }
         }
     };
 
     final Runnable handleRegisteredUser = new Runnable() {
         public void run() {
+            activity.user = registeredUser;
             populateActivities();
             populateMySets();
             kickOffNextEventQuery();
@@ -158,7 +157,6 @@ public class UserFragment extends Fragment implements ApiCaller {
                     }
                 } else if (finalIdentifier.equals("newSets")) {
                     try {
-                        Log.d(TAG, finalJsonObject.getJSONObject("payload").getJSONArray("user").toString());
                         registeredUser.setNewSets(finalJsonObject.getJSONObject("payload").getJSONArray("user"));
                         userHandler.post(updateNewSets);
                     } catch (JSONException e) {
@@ -169,7 +167,6 @@ public class UserFragment extends Fragment implements ApiCaller {
         }).start();
         
     }
-
 
     // Lifecycle Methods
 
@@ -188,7 +185,11 @@ public class UserFragment extends Fragment implements ApiCaller {
         if(savedInstanceState == null) {
             this.activity = (SetMineMainActivity)getActivity();
             modelsCP = activity.modelsCP;
+            userLocation = activity.currentLocation;
         } else {
+            userLocation = new Location("default");
+            userLocation.setLatitude(savedInstanceState.getDouble("latitude"));
+            userLocation.setLongitude(savedInstanceState.getDouble("longitude"));
             String activitiesModel = savedInstanceState.getString("activities");
             try {
                 JSONObject jsonModel = new JSONObject(activitiesModel);
@@ -282,7 +283,10 @@ public class UserFragment extends Fragment implements ApiCaller {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         facebookUiHelper.onSaveInstanceState(outState);
-        outState.putString("activities", activity.modelsCP.jsonMappings.get("activities"));
+        outState.putString("activities", modelsCP.jsonMappings.get("activities"));
+        outState.putDouble("latitude", userLocation.getLatitude());
+        outState.putDouble("longitude", userLocation.getLongitude());
+
     }
 
     // Facebook Session Handling
@@ -415,7 +419,6 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             final List<Activity> userActivities = modelsCP.getActivities();
 
-            Log.d(TAG, userActivities.toString());
 
             // Get the inflater for inflating XML files into Views
 
@@ -442,8 +445,9 @@ public class UserFragment extends Fragment implements ApiCaller {
                 activityTile.findViewById(R.id.activityPlay).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        activity.playerManager.setPlaylist(activitySets);
-//                        activity.playSetWithSetID("random");
+                        activity.startPlayerFragment();
+                        activity.playerService.playerManager.setPlaylist(activitySets);
+                        activity.playSetWithSetID("random");
                     }
                 });
 
@@ -452,10 +456,10 @@ public class UserFragment extends Fragment implements ApiCaller {
                 activityTile.findViewById(R.id.activityViewAllSets).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-//                        activity.playerManager.setPlaylist(activitySets);
+                        activity.startPlayerFragment();
+                        activity.playerService.playerManager.setPlaylist(activitySets);
 //                        activity.playlistFragment.updatePlaylist();
-//                        activity.openPlayer();
-//                        activity.playerContainerFragment.mViewPager.setCurrentItem(0);
+//                        activity.playerService.playerContainerFragment.mViewPager.setCurrentItem(0);
                     }
                 });
 
@@ -481,7 +485,6 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     private void kickOffNextEventQuery() {
         String myNextEventQuery = "user/myNextEvent";
-        Location userLocation = ((SetMineMainActivity) getActivity()).currentLocation;
         if(userLocation != null) {
             myNextEventQuery += "?userID="+registeredUser.getId();
             myNextEventQuery += "&latitude="+userLocation.getLatitude();
@@ -599,16 +602,18 @@ public class UserFragment extends Fragment implements ApiCaller {
             mySetTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    activity.startPlayerFragment();
                     activity.playerService.playerManager.setPlaylist(favoriteSets);
+                    activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
 //                    activity.playlistFragment.updatePlaylist();
-                    activity.playSetWithSetID(((Set) v.getTag()).getId());
+                    activity.playSelectedSet();
                 }
             });
 
             final ImageView artistImage = (ImageView) mySetTile.findViewById(R.id.artistImage);
 
             ImageLoader.getInstance()
-                    .loadImage(Constants.S3_ROOT_URL + set.getArtistImage(),
+                    .loadImage(set.getArtistImage(),
                             options, new SimpleImageLoadingListener() {
                 @Override
                 public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
@@ -626,7 +631,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         try {
             JSONObject jsonUserData = new JSONObject();
             JSONObject jsonPostData = new JSONObject();
-            jsonUserData.put("username", registeredUser.getEmail());
+            jsonUserData.put("username", registeredUser.getId());
             jsonUserData.put("setId", setID);
             jsonPostData.put("userData", jsonUserData);
             SetMineApiPostRequestAsyncTask updateFavoriteSetsTask =
@@ -681,16 +686,18 @@ public class UserFragment extends Fragment implements ApiCaller {
             mySetTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.playerManager.setPlaylist(newSets);
-                    activity.playlistFragment.updatePlaylist();
-                    activity.playSetWithSetID(((Set) v.getTag()).getId());
+                    activity.startPlayerFragment();
+                    activity.playerService.playerManager.setPlaylist(newSets);
+                    activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
+//                    activity.playlistFragment.updatePlaylist();
+                    activity.playSelectedSet();
                 }
             });
 
             final ImageView artistImage = (ImageView) mySetTile.findViewById(R.id.artistImage);
 
             ImageLoader.getInstance()
-                    .loadImage(Constants.S3_ROOT_URL + set.getArtistImage(),
+                    .loadImage(set.getArtistImage(),
                             options, new SimpleImageLoadingListener() {
                                 @Override
                                 public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {

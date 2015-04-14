@@ -26,20 +26,22 @@ import android.widget.Toast;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.setmine.android.ApiCaller;
 import com.setmine.android.CircularSeekBar;
 import com.setmine.android.PlayerManager;
 import com.setmine.android.PlayerService;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.object.Constants;
 import com.setmine.android.object.Set;
+import com.setmine.android.object.User;
+import com.setmine.android.task.SetMineApiPostRequestAsyncTask;
 import com.setmine.android.util.TimeUtils;
 
 import org.json.JSONException;
 import org.json.JSONObject;
 
 public class PlayerFragment extends Fragment implements
-		CircularSeekBar.OnCircularSeekBarChangeListener {
+		CircularSeekBar.OnCircularSeekBarChangeListener, ApiCaller {
 
     private final String TAG = "PlayerFragment";
 
@@ -62,6 +64,8 @@ public class PlayerFragment extends Fragment implements
 	private ImageButton mPlaylistButton;
 	private ImageButton mTracklistButton;
     private ImageView mBackgroundOverlay;
+    private View playerLoader;
+
     public ImageView favoriteSetButton;
 
     private DisplayImageOptions options;
@@ -80,6 +84,8 @@ public class PlayerFragment extends Fragment implements
 	private Set downloadedSet;
 	private String downloadedSetTitle;
 	private Context context;
+
+    private User user;
 
     private final Runnable mUpdateTimeTask = new Runnable() {
         @Override
@@ -112,12 +118,30 @@ public class PlayerFragment extends Fragment implements
     };
 
     @Override
+    public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
+
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
 
-        this.activity = (SetMineMainActivity) getActivity();
-        this.playerService = activity.playerService;
+        if(savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
+            this.playerService = activity.playerService;
+            this.playerManager = playerService.playerManager;
+            ((PlayerContainerFragment)getParentFragment()).playerFragment = this;
+            user = activity.user;
+        } else {
+            String jsonUser = savedInstanceState.getString("user");
+            try {
+                user = new User(new JSONObject(jsonUser));
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 
     @Override
@@ -151,6 +175,7 @@ public class PlayerFragment extends Fragment implements
 				.findViewById(R.id.player_button_tracklist);
         mBackgroundOverlay = (ImageView) rootView.findViewById(R.id.background_overlay);
         favoriteSetButton = (ImageView) rootView.findViewById(R.id.favorite_set_icon);
+        playerLoader = rootView.findViewById(R.id.centered_loader);
 
 
         utils = new TimeUtils();
@@ -172,6 +197,7 @@ public class PlayerFragment extends Fragment implements
 
 //		mTrackLabel.setSelected(true);
 
+
 		setPlayListeners();
 //
 		setPreviousListener();
@@ -184,7 +210,16 @@ public class PlayerFragment extends Fragment implements
 
 		setPagerListeners();
 
-        playSong();
+        updateViewToNewSet();
+
+        updateProgressBar();
+
+        // Set Click Listener for Favorite Set Button
+
+
+
+        playerLoader.setVisibility(View.GONE);
+
 
 //
 //		setShuffleListener();
@@ -206,47 +241,63 @@ public class PlayerFragment extends Fragment implements
     }
 
     @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("user", user.jsonModelString);
+    }
+
+    @Override
     public void onDestroy() {
         super.onDestroy();
         mHandler.removeCallbacks(mUpdateTimeTask);
     }
 
-
-    public void handleFavoriteSets(boolean favoriteSetsUpdated) {
+    public void updateFavoriteSetView() {
 
         // If set is already favorited change the Favorite Set icon
 
         favoriteSetButton.setImageResource(R.drawable.favorite_button_white);
 
-        if(favoriteSetsUpdated) {
-            if(activity.userFragment.registeredUser.isSetFavorited(song)) {
-                Toast.makeText(activity.getApplicationContext(),
-                        "Added to My Sets", Toast.LENGTH_SHORT).show();
-            } else {
-                Toast.makeText(activity.getApplicationContext(),
-                        "Removed from My Sets", Toast.LENGTH_SHORT).show();
-            }
-        }
-
-        if(activity.userIsRegistered) {
-            if(activity.userFragment.registeredUser.isSetFavorited(song)) {
-                favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
-            }
-        }
-
-        // Set Click Listener for Favorite Set Button
-
         favoriteSetButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (activity.userIsRegistered) {
-                    activity.userFragment.updateFavoriteSets(song.getId());
+                if (user.isRegistered()) {
+                    if(user.isSetFavorited(song)) {
+                        Toast.makeText(activity.getApplicationContext(),
+                                "Added to My Sets", Toast.LENGTH_SHORT).show();
+                    } else {
+                        Toast.makeText(activity.getApplicationContext(),
+                                "Removed from My Sets", Toast.LENGTH_SHORT).show();
+                    }
+                    try {
+                        JSONObject jsonUserData = new JSONObject();
+                        JSONObject jsonPostData = new JSONObject();
+                        jsonUserData.put("userID", user.getId());
+                        jsonUserData.put("setId", song.getId());
+                        jsonPostData.put("userData", jsonUserData);
+                        SetMineApiPostRequestAsyncTask updateFavoriteSetsTask =
+                                new SetMineApiPostRequestAsyncTask(activity, activity);
+                        updateFavoriteSetsTask
+                                .executeOnExecutor(SetMineApiPostRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                        "user/updateFavoriteSets", jsonPostData.toString(), "updateUserSets");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
                 } else {
                     activity.openMainViewPager();
                     activity.eventViewPager.setCurrentItem(0);
                 }
             }
         });
+
+        if(user.isRegistered()) {
+            if(user.isSetFavorited(song)) {
+                favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
+            }
+        }
+
+
     }
 
 	public void updateProgressBar() {
@@ -293,8 +344,6 @@ public class PlayerFragment extends Fragment implements
         updateViewToNewSet();
 
         updateProgressBar();
-        handleFavoriteSets(false);
-        rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
         ((PlayerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(1);
     }
 
@@ -389,7 +438,10 @@ public class PlayerFragment extends Fragment implements
         updateProgressBar();
     }
 
-    private void updateViewToNewSet() {
+    public void updateViewToNewSet() {
+
+        Log.d(TAG, "updateViewToNewSet");
+
         song = playerManager.getSelectedSet();
 
         try{
@@ -413,7 +465,7 @@ public class PlayerFragment extends Fragment implements
             e.printStackTrace();
         }
 
-        ImageLoader.getInstance().loadImage(Constants.S3_ROOT_URL + song.getArtistImage(), options, new SimpleImageLoadingListener() {
+        ImageLoader.getInstance().loadImage(song.getArtistImage(), options, new SimpleImageLoadingListener() {
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 2000);
@@ -428,7 +480,7 @@ public class PlayerFragment extends Fragment implements
                 sendIntentToService(notificationIntent);
             }
         });
-        ImageLoader.getInstance().loadImage(Constants.S3_ROOT_URL + song.getEventImage(), options, new SimpleImageLoadingListener() {
+        ImageLoader.getInstance().loadImage(song.getEventImage(), options, new SimpleImageLoadingListener() {
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).imageUtils.fastblur(loadedImage, 4);
@@ -445,13 +497,17 @@ public class PlayerFragment extends Fragment implements
             }
         });
 
+        updateFavoriteSetView();
+
+
         // Displaying Song title
         mTitleLabel.setText(song.getEvent());
         mArtistLabel.setText(song.getArtist());
         mTrackLabel.setText(song.getCurrentTrack(0));
-        ((PlayerContainerFragment)getParentFragment()).mPlayerPagerAdapter
-                .playListFragment.updatePlaylist();
-        updateTracklist(song);
+//        ((PlayerContainerFragment)getParentFragment()).mPlayerPagerAdapter
+//                .playListFragment.updatePlaylist();
+//        updateTracklist(song);
+
     }
 
     private void updatePlayPauseButton() {
@@ -465,8 +521,7 @@ public class PlayerFragment extends Fragment implements
     }
 
     private void updateTracklist(Set song) {
-        ((PlayerContainerFragment)getParentFragment()).mPlayerPagerAdapter
-                .tracklistFragment.updateTracklist(song.getTracklist());
+        ((PlayerContainerFragment) getParentFragment()).tracklistFragment.updateTracklist();
     }
 
 //    private void setSlideTouchGestures() {

@@ -4,7 +4,7 @@ import android.os.AsyncTask;
 
 import com.setmine.android.ApiCaller;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.object.Constants;
+import com.setmine.android.Constants;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONObject;

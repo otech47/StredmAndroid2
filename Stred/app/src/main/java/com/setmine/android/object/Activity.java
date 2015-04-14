@@ -1,6 +1,6 @@
 package com.setmine.android.object;
 
-import android.util.Log;
+import com.setmine.android.Constants;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,9 +26,9 @@ public class Activity extends JSONModel {
     public Activity(JSONObject json) {
         jsonModelString = json.toString();
         try {
-            this.id = json.getInt("id");
-            this.activityName = json.getString("activity");
-            this.imageURL = Constants.S3_ROOT_URL + json.getString("imageURL");
+            setId(json.getInt("id"));
+            setActivityName(json.getString("activity"));
+            setImageURL(json.getString("imageURL"));
             this.setIDs = new ArrayList<Integer>();
             this.sets = new ArrayList<Set>();
             JSONArray setIDsArray = json.getJSONArray("set_ids");
@@ -37,8 +37,6 @@ public class Activity extends JSONModel {
                 setIDs.add(setIDsArray.getInt(i));
             }
             for(int j = 0; j < setsArray.length() ; j++) {
-                Log.d("Activity: ", Integer.toString(j));
-                Log.d("Activity: ", setsArray.getJSONObject(j).toString());
                 sets.add(new Set(setsArray.getJSONObject(j)));
             }
 
@@ -70,7 +68,7 @@ public class Activity extends JSONModel {
     }
 
     public void setImageURL(String imageURL) {
-        this.imageURL = imageURL;
+        this.imageURL = Constants.CLOUDFRONT_URL_FOR_IMAGES + imageURL;
     }
 
     public List<Integer> getSetIDs() {

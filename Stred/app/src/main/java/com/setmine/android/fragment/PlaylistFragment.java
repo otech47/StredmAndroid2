@@ -18,7 +18,7 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.object.Constants;
+import com.setmine.android.Constants;
 import com.setmine.android.object.SearchResultSetViewHolder;
 import com.setmine.android.object.Set;
 
@@ -79,9 +79,10 @@ public class PlaylistFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                activity.playerManager.selectSetByIndex(position);
-                activity.playerFragment.playSong();
-                activity.playerContainerFragment.mViewPager.setCurrentItem(1);
+                activity.startPlayerFragment();
+                activity.playerService.playerManager.setPlaylist(setlist);
+                activity.playerService.playerManager.selectSetById(setlist.get(position).getId());
+                activity.playSelectedSet();
             }
         });
         return rootView;
@@ -97,7 +98,7 @@ public class PlaylistFragment extends Fragment {
 
     public void updatePlaylist() {
         ListView listview = (ListView) rootView.findViewById(R.id.playlist);
-        setlist = activity.playerManager.getPlaylist();
+        setlist = activity.playerService.playerManager.getPlaylist();
         setListAdapter.sets = setlist;
         setListAdapter.notifyDataSetChanged();
         listview.setOnItemClickListener(new ListView.OnItemClickListener() {

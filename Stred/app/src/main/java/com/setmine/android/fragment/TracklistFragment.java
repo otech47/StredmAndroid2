@@ -5,6 +5,7 @@ import android.content.Context;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -33,18 +34,26 @@ import java.util.List;
  */
 public class TracklistFragment extends Fragment {
 
+    private final String TAG = "TracklistFragment";
+
+
     public static final String SONG_ARG_OBJECT = "song";
     public static final String SHUFFLE_ARG_OBJECT = "shuffle";
     public View rootView;
+    public ListView listview;
     public Integer setNum;
     public Set set;
     public Track track;
+    public List<Track> tracklist;
     public Boolean shuffle;
     public Context context;
     public DisplayImageOptions options;
     public TrackAdapter trackAdapter;
     public Bundle savedInstanceState;
     public SetMineMainActivity activity;
+    public PlayerContainerFragment playerContainerFragment;
+
+    public boolean tracklistIsUpdated;
 
     @Override
     public void onAttach(Activity activity) {
@@ -54,55 +63,66 @@ public class TracklistFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        activity = (SetMineMainActivity) getActivity();
-        this.context = activity.getApplicationContext();
-        if(activity.playerManager != null) {
-            this.set = activity.playerManager.getSelectedSet();
+        Log.d(TAG, "onCreate");
+
+        if(savedInstanceState == null) {
+            super.onCreate(savedInstanceState);
+            activity = (SetMineMainActivity) getActivity();
+            this.context = activity.getApplicationContext();
+            if(activity.playerService.playerManager != null) {
+                this.set = activity.playerService.playerManager.getSelectedSet();
+            }
+            playerContainerFragment = ((PlayerContainerFragment)getParentFragment());
+            playerContainerFragment.tracklistFragment = this;
+            tracklistIsUpdated = false;
+
+            options = new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(true)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
         }
 
-        options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.logo_small)
-                .showImageForEmptyUri(R.drawable.logo_small)
-                .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
     }
-    
+
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         rootView = inflater.inflate(R.layout.tracklist, container, false);
         this.savedInstanceState = savedInstanceState;
-        ListView listview = (ListView) rootView.findViewById(R.id.tracklist);
-        List<Track> tracklist = (set != null)? set.getTracklist() : null;
-        trackAdapter = new TrackAdapter(getLayoutInflater(savedInstanceState), tracklist);
-        listview.setAdapter(trackAdapter);
-        listview.setOnItemClickListener(new ListView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-                ((SetMineMainActivity) getActivity()).playerFragment.skipToTrack(position);
-                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(1);
-            }
-        });
+        listview = (ListView) rootView.findViewById(R.id.tracklist);
+        tracklist = (set != null)? set.getTracklist() : null;
+        updateTracklist();
         return rootView;
     }
 
-    public void updateTracklist(List<Track> tracks) {
-        ListView listview = (ListView) rootView.findViewById(R.id.tracklist);
-        trackAdapter = new TrackAdapter(getLayoutInflater(savedInstanceState), tracks);
-        listview.setAdapter(trackAdapter);
-        listview.setOnItemClickListener(new ListView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View v,
-                                    int position, long id) {
-                ((SetMineMainActivity) getActivity()).playerFragment.skipToTrack(position);
-                ((SetMineMainActivity) getActivity()).playerContainerFragment.mViewPager.setCurrentItem(1);
-            }
-        });
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
     }
+
+    public void updateTracklist() {
+        Log.d(TAG, "updateTracklist");
+        if(!tracklistIsUpdated) {
+            trackAdapter = new TrackAdapter(getLayoutInflater(savedInstanceState), tracklist);
+            listview.setAdapter(trackAdapter);
+            listview.setOnItemClickListener(new ListView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View v,
+                                        int position, long id) {
+                    playerContainerFragment.playerFragment.skipToTrack(position);
+                    playerContainerFragment.mViewPager.setCurrentItem(0);
+                }
+            });
+            tracklistIsUpdated = true;
+        }
+
+    }
+
+
 
     private static class TrackViewHolder {
         TextView track;

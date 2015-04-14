@@ -3,7 +3,7 @@ package com.setmine.android.task;
 import android.content.Context;
 import android.os.AsyncTask;
 
-import com.setmine.android.object.Constants;
+import com.setmine.android.Constants;
 import com.setmine.android.util.HttpUtils;
 
 /**

@@ -15,7 +15,6 @@ import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Artist;
-import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.util.DateUtils;
 
@@ -77,7 +76,7 @@ public class DetailUpcomingEventsFragment extends Fragment {
                     .setText(uEvent.getDateFormatted());
             ImageView imageView = (ImageView)eventTile.findViewById(R.id.eventImage);
             ImageLoader.getInstance()
-                    .displayImage(Constants.S3_ROOT_URL + uEvent.getIconImageUrl(),
+                    .displayImage(uEvent.getIconImageUrl(),
                             imageView, options);
             eventTile.setOnClickListener(new View.OnClickListener() {
                 @Override

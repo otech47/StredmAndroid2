@@ -29,7 +29,6 @@ import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Artist;
-import com.setmine.android.object.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Lineup;
 import com.setmine.android.object.LineupSet;
@@ -134,7 +133,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             if(EVENT_TYPE == "recent") {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "festival?search=" + Uri.encode(currentEvent.getEvent()), "sets");
+                                "festival/search/" + Uri.encode(currentEvent.getEvent()), "sets");
             } else {
                 new SetMineApiGetRequestAsyncTask(activity, this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
@@ -300,10 +299,11 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                     v.setPressed(true);
+                    activity.startPlayerFragment();
                     activity.playerService.playerManager.setPlaylist(detailSets);
                     Set s = detailSets.get(position);
                     activity.playerService.playerManager.selectSetById(s.getId());
-                    activity.playSetWithSetID(s.getId());
+                    activity.playSelectedSet();
                 }
             });
         } else {
@@ -473,7 +473,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             holder.artistText.setText(lineupSet.getArtist());
             holder.detailActionButton.setVisibility(View.GONE);
 
-            ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + lineupSet.getArtistImage(), holder.artistImage, options, animateFirstListener);
+            ImageLoader.getInstance().displayImage(lineupSet.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }
@@ -547,7 +547,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             }
             holder.artistText.setText(set.getArtist());
 
-            ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
+            ImageLoader.getInstance().displayImage(set.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }

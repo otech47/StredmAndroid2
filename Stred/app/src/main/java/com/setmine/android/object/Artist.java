@@ -1,6 +1,8 @@
 package com.setmine.android.object;
 
 
+import com.setmine.android.Constants;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -86,7 +88,7 @@ public class Artist  extends JSONModel {
     }
 
     public void setImageUrl(String imageUrl) {
-        this.mImageUrl = imageUrl;
+        this.mImageUrl = Constants.CLOUDFRONT_URL_FOR_IMAGES + imageUrl;
     }
 
 }

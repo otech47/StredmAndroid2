@@ -20,11 +20,14 @@ public class User extends JSONModel {
     private List<Set> favoriteSets;
     private Event nextEvent;
     private List<Set> newSets;
+    private boolean isRegistered = false;
 
-    public User() {}
+    public User() {
+    }
 
     public User(JSONObject json) {
         jsonModelString = json.toString();
+        isRegistered = true;
         try {
             setId(json.getString("id"));
             setEmail(json.getString("username"));
@@ -43,6 +46,14 @@ public class User extends JSONModel {
 
     public void setId(String id) {
         this.id = id;
+    }
+
+    public boolean isRegistered() {
+        return isRegistered;
+    }
+
+    public void isRegistered(boolean isRegistered) {
+        this.isRegistered = isRegistered;
     }
 
     public String getEmail() {
