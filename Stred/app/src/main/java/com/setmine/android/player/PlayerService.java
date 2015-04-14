@@ -29,7 +29,7 @@ import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.Constants;
 import com.setmine.android.set.Set;
-import com.setmine.android.CountPlaysTask;
+import com.setmine.android.task.CountPlaysTask;
 
 import java.io.IOException;
 
@@ -37,6 +37,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
     private final String TAG = "PlayerService";
     private static final String SERVICE_COMMAND = "SERVICE_COMMAND";
+
     private NotificationManager notificationManager;
     public MediaPlayer mediaPlayer;
     private WifiManager.WifiLock wifiLock;
@@ -53,11 +54,11 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     public RemoteControlClient remoteControlClient;
     public Bitmap lockscreenImage;
     public PlayerManager playerManager;
-    public PlayerFragment playerFragment;
+
     public boolean newSong = false;
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand");
+        Log.d(TAG, "onStartCommand " + intent.getAction());
         if(mediaPlayer == null) {
             mediaPlayer = new MediaPlayer();
             acquireLocks();
@@ -169,7 +170,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         playSong();
     }
 
-    private void playSong() {
+    public void playSong() {
         try {
             Set song = playerManager.getSelectedSet();
             mediaPlayer.reset();
@@ -234,12 +235,15 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
 
     @Override
     public void onDestroy() {
+
         Log.d(TAG, "onDestroy");
 
         // Cancel the persistent notification.
         notificationManager.cancel(NOTIFICATION_ID);
         am.unregisterMediaButtonEventReceiver(receiver);
         releaseLocks();
+        super.onDestroy();
+
     }
 
     @Override
@@ -376,7 +380,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 .setContent(remoteViews)
                 .build();
 
-        ImageLoader.getInstance().loadImage(Constants.S3_ROOT_URL + song.getArtistImage(), options, new SimpleImageLoadingListener() {
+        ImageLoader.getInstance().loadImage(song.getArtistImage(), options, new SimpleImageLoadingListener() {
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 remoteViews.setImageViewBitmap(R.id.notification_image, loadedImage);

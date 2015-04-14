@@ -66,7 +66,7 @@ public class SetMineApiGetRequestAsyncTask extends AsyncTask<String, Integer, JS
     @Override
     protected void onPostExecute(JSONObject response) {
         activity.asyncTasksInProgress--;
-        Log.d(TAG, "Task complete: "+ ((Integer)activity.asyncTasksInProgress).toString());
+        Log.d(TAG, identifier + " task complete: "+ ((Integer)activity.asyncTasksInProgress).toString());
         if(response != null) {
             apiCaller.onApiResponseReceived(response, identifier);
         } else {

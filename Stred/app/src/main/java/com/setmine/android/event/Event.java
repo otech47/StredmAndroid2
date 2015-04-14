@@ -107,9 +107,9 @@ public class Event extends JSONModel implements Parcelable {
             setBio(json.getString("bio"));
             setFacebookLink(json.getString("fb_link"));
             setTwitterLink(json.getString("twitter_link"));
-            setIconImageUrl(Constants.S3_ROOT_URL + json.getString("imageURL"));
+            setIconImageUrl(Constants.CLOUDFRONT_URL_FOR_IMAGES + json.getString("imageURL"));
             setWebLink(json.getString("web_link"));
-            setMainImageUrl(Constants.S3_ROOT_URL + json.getString("main_imageURL"));
+            setMainImageUrl(Constants.CLOUDFRONT_URL_FOR_IMAGES + json.getString("main_imageURL"));
             setStartDate(json.getString("start_date"));
             setEndDate(json.getString("end_date"));
             setDateFormatted();

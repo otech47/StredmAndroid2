@@ -76,7 +76,7 @@ public class DetailSetsFragment extends Fragment {
 
             ImageView imageView = (ImageView)setTile.findViewById(R.id.artistImage);
             ImageLoader.getInstance()
-                    .displayImage(Constants.S3_ROOT_URL + set.getEventImage(),
+                    .displayImage(set.getEventImage(),
                             imageView, options);
             if(set.isRadiomix() == 1) {
                 setTile.findViewById(R.id.playsIcon).setVisibility(View.GONE);
@@ -101,9 +101,10 @@ public class DetailSetsFragment extends Fragment {
             setTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
+                    activity.startPlayerFragment();
                     activity.playerService.playerManager.setPlaylist(detailSets);
-//                    activity.playlistFragment.updatePlaylist();
-                    activity.playSetWithSetID(set.getId());
+                    activity.playerService.playerManager.selectSetById(set.getId());
+                    activity.playSelectedSet();
                 }
             });
             ((ViewGroup)detailListContainer).addView(setTile);

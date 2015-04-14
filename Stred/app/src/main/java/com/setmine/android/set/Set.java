@@ -6,6 +6,7 @@ import android.util.Log;
 
 import com.setmine.android.api.JSONModel;
 import com.setmine.android.track.Track;
+import com.setmine.android.Constants;
 import com.setmine.android.util.TimeUtils;
 
 import org.json.JSONException;
@@ -16,7 +17,6 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Set extends JSONModel implements Parcelable {
-    private static final String amazonS3Url = "http://stredm.s3-website-us-east-1.amazonaws.com/namecheap/";
     private String mId;
     private String mArtistImage;
     private String mEventImage;
@@ -171,7 +171,7 @@ public class Set extends JSONModel implements Parcelable {
     }
 
     public void setArtistImage(String image) {
-        this.mArtistImage = image;
+        this.mArtistImage = Constants.CLOUDFRONT_URL_FOR_IMAGES + image;
     }
 
     public String getEventImage() {
@@ -179,7 +179,7 @@ public class Set extends JSONModel implements Parcelable {
     }
 
     public void setEventImage(String mEventImage) {
-        this.mEventImage = mEventImage;
+        this.mEventImage = Constants.CLOUDFRONT_URL_FOR_IMAGES + mEventImage;
     }
 
     public String getSongURL() {
@@ -187,7 +187,7 @@ public class Set extends JSONModel implements Parcelable {
     }
 
     public void setSongURL(String mSongURL) {
-        this.mSongURL = amazonS3Url + mSongURL;
+        this.mSongURL = Constants.S3_ROOT_URL + mSongURL;
     }
 
     public String getEpisode() {

@@ -63,7 +63,6 @@ import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
-import java.util.Random;
 import java.util.TimeZone;
 import java.util.concurrent.RejectedExecutionException;
 
@@ -102,12 +101,11 @@ public class SetMineMainActivity extends FragmentActivity implements
 
 
     public ModelsContentProvider modelsCP;
-    public PlayerManager playerManager;
     public PlayerService playerService;
     public boolean serviceBound = false;
     public Set selectedSet;
 
-    public User registeredUser;
+    public User user;
     public boolean userIsRegistered;
 
     public int asyncTasksInProgress;
@@ -243,15 +241,10 @@ public class SetMineMainActivity extends FragmentActivity implements
                         , "version/" + modelsVersion, "modelsVersion");
     }
 
-    // Activity Handling
+    // Track Application Open Mixpanel Event and Identify People properties
 
-    @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Log.d(TAG, "onCreate");
-
+    public void initializeMixpanel() {
         mixpanel = MixpanelAPI.getInstance(this, Constants.MIXPANEL_TOKEN);
-
         JSONObject mixpanelProperties = new JSONObject();
         try {
             mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
@@ -276,6 +269,18 @@ public class SetMineMainActivity extends FragmentActivity implements
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    // Activity Handling
+
+    @Override
+    public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.d(TAG, "onCreate");
+
+        initializeMixpanel();
+
+        user = new User();
 
         // Create the ServiceConnection to the PlayerService every time the activity is created, regardless of savedInstanceState
 
@@ -538,6 +543,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         try {
             // Remove the splash loader
 
+            Log.d(TAG, "finishOnCreate");
+
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
 
             // Initialize the MainViewPagerFragment
@@ -546,7 +553,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             FragmentTransaction ft = fragmentManager.beginTransaction();
             ft.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
             ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.commit();
+            ft.commitAllowingStateLoss();
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
@@ -590,7 +597,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             super.onBackPressed();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     // Click function for Venue Map Button in Event Detail Pages
@@ -609,10 +616,13 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Click Function for the Play button on the Action Bar
 
     public void playNavigationClick(View v) {
-        if(playerService.mediaPlayer.isPlaying()) {
-            startPlayerFragment();
-        } else {
+        startPlayerFragment();
+
+        if(playerService.playerManager.getPlaylistLength() == 0) {
             playSetWithSetID("random");
+        } else {
+            playerService.playerManager.selectSetByIndex(0);
+            playSelectedSet();
         }
     }
 
@@ -625,56 +635,43 @@ public class SetMineMainActivity extends FragmentActivity implements
             public void run() {
                 playerService.playerManager.clearPlaylist();
                 playerService.playerManager.addToPlaylist(selectedSet);
+                sendIntentToService("START_ALL");
             }
         };
         final HttpUtils httpUtil =
                 new HttpUtils(this.getApplicationContext(), Constants.API_ROOT_URL);
         final String finalSetId = setID;
 
-        if(setID.equals("random")) {
-            playerService.playerManager.setPlaylist(modelsCP.getPopularSets());
-            Random r = new Random();
-            int randomInt = r.nextInt(playerService.playerManager.getPlaylist().size() - 1);
-            selectedSet = playerService.playerManager.getPlaylist().get(randomInt);
-            setID = selectedSet.getId();
-            playerService.playerManager.selectSetById(setID);
-        } else {
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        String apiRequest = "set/id/" + finalSetId;
-                        String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
-                        JSONObject jsonResponse = new JSONObject(jsonString);
-                        if(jsonResponse.get("status").equals("success")) {
-                            JSONObject setJson = jsonResponse
-                                    .getJSONObject("payload")
-                                    .getJSONObject("set");
-                            selectedSet = new Set(setJson);
-                            playHandler.post(playSet);
-                        }
-                    }
-                    catch (Exception e) {
-                        e.printStackTrace();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    String apiRequest = "set/id/" + finalSetId;
+                    String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
+                    JSONObject jsonResponse = new JSONObject(jsonString);
+                    if(jsonResponse.get("status").equals("success")) {
+                        JSONObject setJson = jsonResponse
+                                .getJSONObject("payload")
+                                .getJSONObject("set");
+                        selectedSet = new Set(setJson);
+                        playHandler.post(playSet);
                     }
                 }
-            });
-        }
-        startPlayerFragment();
+                catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
         Log.d(TAG, "playSetFinish");
     }
 
     public void playSelectedSet() {
-        if(playerContainerFragment == null) {
-            Log.d(TAG, "containerfragment is null");
-        }
-        else if(playerContainerFragment.mPlayerPagerAdapter == null) {
-            Log.d(TAG, "adapter is null");
-        }
-        else if(playerContainerFragment.mPlayerPagerAdapter.playerFragment == null) {
-            Log.d(TAG, "playerfragment is null");
-        }
-        playerContainerFragment.mPlayerPagerAdapter.playerFragment.playSong();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                sendIntentToService("START_ALL");
+            }
+        });
     }
 
     public void openMainViewPager() {
@@ -686,7 +683,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     // Open Player Fragment from anywhere in the app
@@ -697,8 +694,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, playerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
-        playSelectedSet();
+        transaction.commitAllowingStateLoss();
     }
 
     // Open Search Fragment from anywhere in the app
@@ -709,7 +705,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, searchSetsFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     // Open Artist Detail Fragment from anywhere in the app given a valid Artist object
@@ -722,7 +718,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, artistDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     // Open Event Detail Fragment from anywhere in the app given a valid Event object
@@ -736,7 +732,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, eventDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commit();
+        transaction.commitAllowingStateLoss();
     }
 
     // Required to intercept intents for handling
@@ -763,6 +759,19 @@ public class SetMineMainActivity extends FragmentActivity implements
                 Log.d(TAG, command);
             }
         }
+    }
+
+    // For communicating with PlayerService
+
+    private void sendIntentToService(String intentAction) {
+        Intent playIntent = new Intent(this, PlayerService.class);
+        playIntent.setAction(intentAction);
+        playIntent.putExtra(intentAction, true);
+        sendIntentToService(playIntent);
+    }
+
+    private void sendIntentToService(Intent intent) {
+        this.startService(intent);
     }
 
     // Location Services

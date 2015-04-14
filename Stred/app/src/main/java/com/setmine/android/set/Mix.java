@@ -3,6 +3,8 @@ package com.setmine.android.set;
 
 import com.setmine.android.api.JSONModel;
 
+import com.setmine.android.Constants;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -85,6 +87,6 @@ public class Mix extends JSONModel {
     }
 
     public void setIconImageUrl(String iconImageUrl) {
-        this.iconImageUrl = iconImageUrl;
+        this.iconImageUrl = Constants.CLOUDFRONT_URL_FOR_IMAGES + iconImageUrl;
     }
 }

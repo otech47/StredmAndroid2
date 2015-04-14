@@ -1,8 +1,9 @@
-package com.setmine.android;
+package com.setmine.android.task;
 
 import android.content.Context;
 import android.os.AsyncTask;
 
+import com.setmine.android.Constants;
 import com.setmine.android.util.HttpUtils;
 
 /**

@@ -23,6 +23,8 @@ public class ModelsContentProvider {
 
     private static final String TAG = "ModelsContentProvider";
 
+    private int readyModels;
+
     private List<Artist> artists;
     private List<Artist> allArtists;
     private List<Event> events;
@@ -163,7 +165,7 @@ public class ModelsContentProvider {
                     }
                 }
                 else if(modelName.equals("searchedSets")) {
-                    JSONArray sets = payload.getJSONArray("search");
+                    JSONArray sets = payload.getJSONObject("search").getJSONArray("sets");
                     searchedSets.clear();
                     for(int i = 0 ; i < sets.length() ; i++) {
                         searchedSets.add(new Set(sets.getJSONObject(i)));
@@ -198,6 +200,8 @@ public class ModelsContentProvider {
                     }
                 }
                 onModelsChange();
+            } else {
+                Log.d(TAG, "Failed: " + modelName);
             }
         } catch (JSONException e) {
             e.printStackTrace();
@@ -205,17 +209,8 @@ public class ModelsContentProvider {
     }
 
     public void onModelsChange() {
-        if(soonestEvents.size() > 0 &&
-                recentEvents.size() > 0 &&
-                searchEvents.size() > 0 &&
-                artists.size() > 0 &&
-                events.size() > 0 &&
-                mixes.size() > 0 &&
-                genres.size() > 0 &&
-                allArtists.size() > 0 &&
-                popularSets.size() > 0 &&
-                recentEvents.size() > 0 &&
-                activities.size() > 0) {
+        readyModels++;
+        if(readyModels == Constants.initialRequiredModels) {
             initialModelsReady = true;
         }
     }
@@ -275,8 +270,9 @@ public class ModelsContentProvider {
         try {
             if(response.getString("status").equals("success")) {
                 payload = response.getJSONObject("payload");
-                String event = payload.getString("event");
-                lineups.put(event, new Lineup(payload));
+                JSONObject lineup = payload.getJSONObject("lineup");
+                String event = lineup.getString("event");
+                lineups.put(event, new Lineup(lineup));
                 jsonMappings.put("detailLineups" + event, response.toString());
             }
         } catch (JSONException e) {
