@@ -28,6 +28,9 @@
     <string name="login_header_2">Access Exclusive SetMine Premium Features</string>
     <string name="login_header_1">Create Account (One Time Login)</string>
     <string name="google_maps_api_key">AIzaSyDNioSTZynd_bvoF7fsBVo_2KwUfZ9B1SA</string>
+    <string name="sets">sets</string>
+    <string name="upcoming_events">upcoming events</string>
+    <string name="tracks">tracks</string>
 
 
 </resources>

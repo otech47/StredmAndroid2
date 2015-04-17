@@ -15,18 +15,18 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Set extends JSONModel implements Parcelable {
-    private String mId;
-    private String mArtistImage;
-    private String mEventImage;
-    private String mArtist;
-    private String mEvent;
-    private String mGenre;
-    private String mSongURL;
-    private String episode;
-    private String setLength;
-    private List<Track> mTracklist;
-    private Integer popularity;
-    private Integer mRadiomix;
+    protected String mId;
+    protected String mArtistImage;
+    protected String mEventImage;
+    protected String mArtist;
+    protected String mEvent;
+    protected String mGenre;
+    protected String mSongURL;
+    protected String episode;
+    protected String setLength;
+    protected List<Track> mTracklist;
+    protected Integer popularity;
+    protected Integer mRadiomix;
 
 //      Parcelable Implementation
 
@@ -40,7 +40,7 @@ public class Set extends JSONModel implements Parcelable {
         }
     };
 
-    private Set(Parcel in) {
+    protected Set(Parcel in) {
         mId = in.readString();
         mArtistImage = in.readString();
         mEventImage = in.readString();
