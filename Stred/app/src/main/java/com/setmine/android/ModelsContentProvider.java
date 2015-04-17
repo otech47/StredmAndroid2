@@ -35,11 +35,13 @@ public class ModelsContentProvider {
     private List<Set> popularSets;
     private List<Set> recentSets;
     private List<Track> tracks = null;
+    public List<TrackResponse> searchedTracks;
     public HashMap<String, Lineup> lineups;
     public List<Event> soonestEvents;
     public List<Event> closestEvents;
     public List<Event> soonestEventsAroundMe;
     public List<Event> upcomingEvents;
+    public List<Event> searchedUpcomingEvents;
     public List<Event> recentEvents;
     public List<Event> searchEvents;
     public List<Activity> activities;
@@ -53,6 +55,8 @@ public class ModelsContentProvider {
         soonestEvents = new ArrayList<Event>();
         closestEvents = new ArrayList<Event>();
         soonestEventsAroundMe = new ArrayList<Event>();
+        upcomingEvents = new ArrayList<Event>();
+        searchedUpcomingEvents = new ArrayList<Event>();
         recentEvents = new ArrayList<Event>();
         searchEvents = new ArrayList<Event>();
         lineups = new HashMap<String, Lineup>();
@@ -68,7 +72,7 @@ public class ModelsContentProvider {
         detailSets = new HashMap<String, List<Set>>();
         detailEvents = new HashMap<String, List<Event>>();
         activities = new ArrayList<Activity>();
-
+        searchedTracks = new ArrayList<TrackResponse>();
         jsonMappings = new HashMap<String, String>();
     }
 
@@ -169,6 +173,16 @@ public class ModelsContentProvider {
                     searchedSets.clear();
                     for(int i = 0 ; i < sets.length() ; i++) {
                         searchedSets.add(new Set(sets.getJSONObject(i)));
+                    }
+                    JSONArray upcomingEvents = payload.getJSONObject("search").getJSONArray("upcomingEvents");
+                    searchedUpcomingEvents.clear();
+                    for(int i = 0 ; i < upcomingEvents.length() ; i++) {
+                        searchedUpcomingEvents.add(new Event(upcomingEvents.getJSONObject(i)));
+                    }
+                    JSONArray tracks = payload.getJSONObject("search").getJSONArray("tracks");
+                    searchedTracks.clear();
+                    for(int i = 0 ; i < tracks.length() ; i++) {
+                        searchedTracks.add(new TrackResponse(tracks.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("popularSets")) {

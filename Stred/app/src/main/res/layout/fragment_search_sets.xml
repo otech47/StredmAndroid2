@@ -96,9 +96,40 @@
             android:padding="@dimen/standard_padding"
             android:visibility="gone" />
 
+        <LinearLayout
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="fill_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:weightSum="3"
+            android:id="@+id/list_option_buttons"
+            android:visibility="gone">
+
+            <Button android:id="@+id/searchResultSets"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:text="@string/sets"
+                android:layout_weight="1"/>
+
+            <Button android:id="@+id/searchResultUpcomingEvents"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:text="@string/upcoming"
+                android:layout_weight="1"/>
+
+            <Button android:id="@+id/searchResultTracks"
+                android:layout_height="wrap_content"
+                android:layout_width="0dp"
+                android:text="@string/tracks"
+                android:layout_weight="1"
+                android:clickable="false" />
+
+        </LinearLayout>
+
         <ListView
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_below="@+id/list_option_buttons"
             android:id="@+id/setSearchResults"
             android:visibility="gone"
             android:footerDividersEnabled="false"
@@ -113,17 +144,17 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/browseListContainer"
-        android:visibility="gone"
+        android:visibility="visible"
         android:layout_toRightOf="@id/browse_container"
         android:layout_below="@id/search_sets">
 
         <ListView
-            android:layout_width="match_parent"
+            android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:id="@+id/browseList"
             android:footerDividersEnabled="false"
             android:headerDividersEnabled="false"
-            android:dividerHeight="0px"/>
+            android:dividerHeight="0px" />
 
     </RelativeLayout>
 
