@@ -27,12 +27,22 @@ import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.Constants;
+<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/search/SearchSetsFragment.java
 import com.setmine.android.event.Event;
 import com.setmine.android.genre.Genre;
 import com.setmine.android.set.Mix;
 import com.setmine.android.set.SearchResultSetViewHolder;
 import com.setmine.android.set.Set;
 import com.setmine.android.set.GetSetsTask;
+=======
+import com.setmine.android.object.Event;
+import com.setmine.android.object.Genre;
+import com.setmine.android.object.Mix;
+import com.setmine.android.object.SearchResultSetViewHolder;
+import com.setmine.android.object.Set;
+import com.setmine.android.task.GetSetsTask;
+import com.setmine.android.util.DateUtils;
+>>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/SearchSetsFragment.java
 
 import org.json.JSONObject;
 
@@ -260,6 +270,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     @Override
     public void onTaskCompleted(List<Set> list) {
         Log.d(TAG, list.toString());
+        searchResultSetAdapter.isRecent = false;
         searchResultSetAdapter.sets = list;
         if(list.size() > 0) {
             searchResultsList.setVisibility(View.VISIBLE);
@@ -272,6 +283,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     Set s = searchResultSetAdapter.sets.get(position);
                     activity.playerService.playerManager.setPlaylist(searchResultSetAdapter.sets);
                     activity.playerService.playerManager.selectSetById(s.getId());
+                    activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
             });
@@ -356,6 +368,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             @Override
             public void onClick(View v) {
                 didSelectPopularRecent(v);
+                searchResultSetAdapter.isRecent = false;
                 searchResultSetAdapter.sets = popularSets;
                 searchResultsList.setVisibility(View.VISIBLE);
                 setsLoading.setVisibility(View.GONE);
@@ -366,7 +379,9 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Set s = searchResultSetAdapter.sets.get(position);
                         activity.playerService.playerManager.setPlaylist(searchResultSetAdapter.sets);
-                        activity.playSetWithSetID(s.getId());
+                        activity.playerService.playerManager.selectSetById(s.getId());
+                        activity.startPlayerFragment();
+                        activity.playSelectedSet();
                     }
                 });
             }
@@ -376,6 +391,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             @Override
             public void onClick(View v) {
                 didSelectPopularRecent(v);
+                searchResultSetAdapter.isRecent = true;
                 searchResultSetAdapter.sets = recentSets;
                 searchResultsList.setVisibility(View.VISIBLE);
                 setsLoading.setVisibility(View.GONE);
@@ -386,7 +402,10 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Set s = searchResultSetAdapter.sets.get(position);
-                        activity.playSetWithSetID(s.getId());
+                        activity.playerService.playerManager.setPlaylist(searchResultSetAdapter.sets);
+                        activity.playerService.playerManager.selectSetById(s.getId());
+                        activity.startPlayerFragment();
+                        activity.playSelectedSet();
                     }
                 });
             }
@@ -608,11 +627,17 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         }
     }
 
+<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/search/SearchSetsFragment.java
     public class SearchResultSetAdapter extends BaseAdapter {
+=======
+
+    class SearchResultSetAdapter extends BaseAdapter {
+>>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/SearchSetsFragment.java
 
         private LayoutInflater inflater;
         private ImageLoadingListener animateFirstListener = new EventDetailFragment.AnimateFirstDisplayListener();
         public List<Set> sets;
+        public boolean isRecent;
 
         SearchResultSetAdapter() {
             inflater = LayoutInflater.from(getActivity());
@@ -659,18 +684,16 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             }
 
             holder.playCount.setText(set.getPopularity() + " plays");
-            holder.playCount.setText(set.getSetLength());
+            int playID = getResources().getIdentifier("com.setmine.android:drawable/ic_action_play", null, null);
+            holder.playButton.setImageResource(playID);
+            if(isRecent) {
+                holder.playCount.setText((new DateUtils()).convertDateToDaysAgo(set.getDatetime()));
+                int timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
+                holder.playButton.setImageResource(timeID);
+            }
+            holder.setLength.setText(set.getSetLength());
             holder.artistText.setText(set.getArtist());
             holder.eventText.setText(set.getEvent());
-            holder.playButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    Set s = sets.get(position);
-                    activity.playerService.playerManager.setPlaylist(sets);
-                    activity.playerService.playerManager.selectSetById(s.getId());
-                    activity.playSelectedSet();
-                }
-            });
 
             options = new DisplayImageOptions.Builder()
                     .showImageOnLoading(R.drawable.logo_small)
@@ -686,5 +709,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             return view;
         }
     }
+
+
 
 }

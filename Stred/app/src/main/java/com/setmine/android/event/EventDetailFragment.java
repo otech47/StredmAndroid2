@@ -298,10 +298,10 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                     v.setPressed(true);
-                    activity.startPlayerFragment();
                     activity.playerService.playerManager.setPlaylist(detailSets);
                     Set s = detailSets.get(position);
                     activity.playerService.playerManager.selectSetById(s.getId());
+                    activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
             });

@@ -29,6 +29,7 @@ public class Set extends JSONModel implements Parcelable {
     private List<Track> mTracklist;
     private Integer popularity;
     private Integer mRadiomix;
+    private String datetime;
 
 //      Parcelable Implementation
 
@@ -54,6 +55,7 @@ public class Set extends JSONModel implements Parcelable {
         setLength = in.readString();
         popularity = in.readInt();
         mRadiomix = in.readInt();
+        datetime = in.readString();
     }
 
     @Override
@@ -74,6 +76,7 @@ public class Set extends JSONModel implements Parcelable {
         out.writeString(setLength);
         out.writeInt(popularity);
         out.writeInt(mRadiomix);
+        out.writeString(datetime);
 
     }
 
@@ -94,6 +97,8 @@ public class Set extends JSONModel implements Parcelable {
             setIsRadiomix(json.getInt("is_radiomix"));
             setEpisode(json.getString("episode"));
             setSetLength(json.getString("set_length"));
+            setDatetime(json.getString("datetime"));
+
             setTracklist(generateTracklist(json.getString("tracklist"), json.getString("starttimes")));
         } catch (JSONException e) {
             e.printStackTrace();
@@ -124,6 +129,14 @@ public class Set extends JSONModel implements Parcelable {
         setSongURL(songURL);
         setIsRadiomix(isRadiomix);
         setTracklist(tracklist);
+    }
+
+    public String getDatetime() {
+        return datetime;
+    }
+
+    public void setDatetime(String datetime) {
+        this.datetime = datetime;
     }
 
     public Integer getPopularity() {

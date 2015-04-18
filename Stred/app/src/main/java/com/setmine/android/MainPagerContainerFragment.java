@@ -1,5 +1,6 @@
-package com.setmine.android;
+package com.setmine.android.fragment;
 
+import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -11,6 +12,8 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.setmine.android.R;
+import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.adapter.MainPagerAdapter;
 import com.viewpagerindicator.TitlePageIndicator;
 
 /**
@@ -23,6 +26,12 @@ public class MainPagerContainerFragment extends Fragment {
     public ViewPager mViewPager;
     public MainPagerAdapter mMainPagerAdapter;
     public FragmentManager fragmentManager;
+    private User user;
+
+    public int purpleColorID;
+    public int blueColorID;
+    public int grayColorID;
+
 
 
     public MainPagerContainerFragment() {
@@ -39,6 +48,16 @@ public class MainPagerContainerFragment extends Fragment {
         fragmentManager = getChildFragmentManager();
 
         mMainPagerAdapter = new MainPagerAdapter(fragmentManager);
+    }
+
+    @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        Log.d(TAG, "onAttach");
+        purpleColorID = getResources().getColor(R.color.setmine_purple);
+        blueColorID = getResources().getColor(R.color.setmine_blue);
+        grayColorID = getResources().getColor(R.color.setmine_gray);
+        user = ((SetMineMainActivity)getActivity()).user;
     }
 
     @Override
@@ -60,19 +79,22 @@ public class MainPagerContainerFragment extends Fragment {
 
         final TitlePageIndicator titlePageIndicator = (TitlePageIndicator)root.findViewById(R.id.titleTabs);
         titlePageIndicator.setOnPageChangeListener(new ViewPager.OnPageChangeListener() {
-            public void onPageScrolled(int i, float v, int i2) {}
-            public void onPageScrollStateChanged(int i) {}
+            public void onPageScrolled(int i, float v, int i2) {
+            }
+
+            public void onPageScrollStateChanged(int i) {
+            }
 
             // Change the footer color of the title tabs
 
             @Override
             public void onPageSelected(int i) {
-                if(i == 1) {
-                    titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_purple));
-                } else if(i == 2) {
-                    titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_blue));
+                if (i == 1) {
+                    titlePageIndicator.setFooterColor(purpleColorID);
+                } else if (i == 2) {
+                    titlePageIndicator.setFooterColor(blueColorID);
                 } else {
-                    titlePageIndicator.setFooterColor(getResources().getColor(R.color.setmine_gray));
+                    titlePageIndicator.setFooterColor(grayColorID);
                 }
 
             }
@@ -82,15 +104,28 @@ public class MainPagerContainerFragment extends Fragment {
 
         titlePageIndicator.setViewPager(mViewPager);
 
-        // Store a reference to the View Pager in the top level activity
-
-        ((SetMineMainActivity) getActivity()).eventViewPager = mViewPager;
-
         // Makes sure all offscreen pages of the pager are loaded right away
 
         mViewPager.setOffscreenPageLimit(3);
 
-        mViewPager.setCurrentItem(1);
+        int pageToScrollTo = getArguments().getInt("page");
+
+        if(savedInstanceState != null) {
+            Log.d(TAG, "savedInstanceState");
+            int lastPosition = savedInstanceState.getInt("lastPosition");
+            mViewPager.setCurrentItem(lastPosition);
+        } else {
+            if(pageToScrollTo == -1) {
+                if(user.isRegistered()) {
+                    mViewPager.setCurrentItem(0);
+                } else {
+                    mViewPager.setCurrentItem(2);
+                }
+            } else {
+                mViewPager.setCurrentItem(pageToScrollTo);
+            }
+        }
+
 
         return root;
     }
@@ -102,5 +137,11 @@ public class MainPagerContainerFragment extends Fragment {
         // Show the action bar after View has been created
 
         ((SetMineMainActivity)getActivity()).actionBar.getCustomView().setVisibility(View.VISIBLE);
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putInt("lastPosition", mViewPager.getCurrentItem());
     }
 }

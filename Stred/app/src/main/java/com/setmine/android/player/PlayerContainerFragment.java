@@ -63,5 +63,8 @@ public class PlayerContainerFragment extends Fragment {
     }
 
 
+<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/player/PlayerContainerFragment.java
     }
+=======
+>>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/PlayerContainerFragment.java
 }

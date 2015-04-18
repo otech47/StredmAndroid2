@@ -114,6 +114,9 @@ public class User extends JSONModel {
     }
 
     public boolean isSetFavorited(Set s) {
+        if(favoriteSets == null) {
+            return false;
+        }
         for(int i = 0 ; i < favoriteSets.size() ; i++) {
             if(s.getId().equals(favoriteSets.get(i).getId())) {
                 return true;

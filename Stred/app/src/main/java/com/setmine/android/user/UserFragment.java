@@ -25,6 +25,7 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/user/UserFragment.java
 import com.setmine.android.MainPagerContainerFragment;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
@@ -36,6 +37,19 @@ import com.setmine.android.event.Event;
 import com.setmine.android.set.Set;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.api.SetMineApiPostRequestAsyncTask;
+=======
+import com.setmine.android.ApiCaller;
+import com.setmine.android.Constants;
+import com.setmine.android.ModelsContentProvider;
+import com.setmine.android.R;
+import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.object.Activity;
+import com.setmine.android.object.Event;
+import com.setmine.android.object.Set;
+import com.setmine.android.object.User;
+import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.task.SetMineApiPostRequestAsyncTask;
+>>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/UserFragment.java
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
 
@@ -44,6 +58,7 @@ import org.json.JSONObject;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by oscarlafarga on 12/12/14.
@@ -168,6 +183,15 @@ public class UserFragment extends Fragment implements ApiCaller {
         
     }
 
+    @Override
+    public void onAttach(android.app.Activity activity) {
+        super.onAttach(activity);
+        this.activity = (SetMineMainActivity)activity;
+        modelsCP = this.activity.modelsCP;
+        userLocation = this.activity.currentLocation;
+        this.activity.userFragment = this;
+    }
+
     // Lifecycle Methods
 
     @Override
@@ -183,17 +207,22 @@ public class UserFragment extends Fragment implements ApiCaller {
         }
 
         if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
-            modelsCP = activity.modelsCP;
-            userLocation = activity.currentLocation;
+            userLocation = new Location("default");
+            registeredUser = new User();
+
         } else {
             userLocation = new Location("default");
             userLocation.setLatitude(savedInstanceState.getDouble("latitude"));
             userLocation.setLongitude(savedInstanceState.getDouble("longitude"));
             String activitiesModel = savedInstanceState.getString("activities");
+            String userModel = savedInstanceState.getString("user");
+
             try {
                 JSONObject jsonModel = new JSONObject(activitiesModel);
+                JSONObject jsonUser = new JSONObject(userModel);
+
                 modelsCP.setModel(jsonModel, "activities");
+                registeredUser = new User(jsonUser);
             } catch(Exception e) {
 
             }
@@ -217,8 +246,6 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         loginButton.setReadPermissions(PERMISSIONS);
 
-        activity = (SetMineMainActivity)getActivity();
-        activity.userFragment = this;
         dateUtils = new DateUtils();
 
         // Options for ImageLoader
@@ -232,10 +259,9 @@ public class UserFragment extends Fragment implements ApiCaller {
                 .considerExifParams(true)
                 .build();
 
-        if(registeredUser != null) {
+        if(registeredUser.isRegistered()) {
             generateUserHomePage();
-        }
-        else {
+        } else {
             generateLoginPage();
         }
         return rootView;
@@ -284,6 +310,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         super.onSaveInstanceState(outState);
         facebookUiHelper.onSaveInstanceState(outState);
         outState.putString("activities", modelsCP.jsonMappings.get("activities"));
+        outState.putString("user", registeredUser.jsonModelString);
         outState.putDouble("latitude", userLocation.getLatitude());
         outState.putDouble("longitude", userLocation.getLongitude());
 
@@ -293,14 +320,15 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     private void onSessionStateChange(Session session, SessionState state, Exception e) {
         Log.d(TAG, "onSessionStateChange");
-        if(state.isOpened() && registeredUser == null) {
+        if(state.isOpened() && !registeredUser.isRegistered()) {
             Log.d(TAG, "Logged in.");
             authenticateFacebookUser();
             generateUserHomePage();
         } else if(state.isClosed()) {
             Log.d(TAG, "Logged out.");
             jsonUser = null;
-            registeredUser = null;
+            registeredUser = new User();
+            activity.user = new User();
             generateLoginPage();
         }
     }
@@ -332,6 +360,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                     HttpUtils apiCallerUtil =
                             new HttpUtils(activity.getApplicationContext(), Constants.API_ROOT_URL);
                     String jsonString = apiCallerUtil.postApiRequest(route, jsonPostDataString);
+                    Log.d(TAG, jsonString);
                     JSONObject jsonResponseObject = new JSONObject(jsonString);
                     if(jsonResponseObject.get("status").equals("success")) {
                         jsonUser = jsonResponseObject
@@ -379,7 +408,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         ((MainPagerContainerFragment)getParentFragment()).mMainPagerAdapter.TITLES[0] = "Home";
 
-        if(registeredUser != null) {
+        if(registeredUser.isRegistered()) {
             populateMySets();
             populateActivities();
             populateMyNextEvent();
@@ -445,9 +474,12 @@ public class UserFragment extends Fragment implements ApiCaller {
                 activityTile.findViewById(R.id.activityPlay).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        activity.startPlayerFragment();
+                        Random rand = new Random();
+                        int randomIndex = rand.nextInt(activitySets.size());
                         activity.playerService.playerManager.setPlaylist(activitySets);
-                        activity.playSetWithSetID("random");
+                        activity.playerService.playerManager.selectSetByIndex(randomIndex);
+                        activity.startPlayerFragment();
+                        activity.playSelectedSet();
                     }
                 });
 
@@ -456,8 +488,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 activityTile.findViewById(R.id.activityViewAllSets).setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        activity.startPlayerFragment();
-                        activity.playerService.playerManager.setPlaylist(activitySets);
+                        activity.openPlaylistFragment(activitySets);
 //                        activity.playlistFragment.updatePlaylist();
 //                        activity.playerService.playerContainerFragment.mViewPager.setCurrentItem(0);
                     }
@@ -602,10 +633,10 @@ public class UserFragment extends Fragment implements ApiCaller {
             mySetTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.startPlayerFragment();
                     activity.playerService.playerManager.setPlaylist(favoriteSets);
                     activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
 //                    activity.playlistFragment.updatePlaylist();
+                    activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
             });
@@ -677,19 +708,22 @@ public class UserFragment extends Fragment implements ApiCaller {
             ((TextView) mySetTile.findViewById(R.id.eventText))
                     .setText(set.getEvent());
             ((TextView) mySetTile.findViewById(R.id.playCount))
-                    .setText(set.getPopularity() + " plays");
+                    .setText((new DateUtils()).convertDateToDaysAgo(set.getDatetime()));
             ((TextView) mySetTile.findViewById(R.id.setLength))
                     .setText(set.getSetLength());
+
+            int timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
+            ((ImageView) mySetTile.findViewById(R.id.playsIcon)).setImageResource(timeID);
 
             mySetTile.setTag(set);
 
             mySetTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.startPlayerFragment();
                     activity.playerService.playerManager.setPlaylist(newSets);
                     activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
 //                    activity.playlistFragment.updatePlaylist();
+                    activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
             });

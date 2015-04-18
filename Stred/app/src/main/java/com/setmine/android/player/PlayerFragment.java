@@ -59,7 +59,7 @@ public class PlayerFragment extends Fragment implements
 	private RelativeLayout mHeader;
 	private ImageButton mPlaylistButton;
 	private ImageButton mTracklistButton;
-    private ImageView mBackgroundOverlay;
+    private ImageView mBackgroundImage;
     private View playerLoader;
 
     public ImageView favoriteSetButton;
@@ -77,6 +77,13 @@ public class PlayerFragment extends Fragment implements
     public PlayerManager playerManager;
 
     private User user;
+
+    private final Runnable updateFavoriteSets = new Runnable() {
+        @Override
+        public void run() {
+            updateFavoriteSetView();
+        }
+    };
 
     private final Runnable mUpdateTimeTask = new Runnable() {
         @Override
@@ -108,8 +115,30 @@ public class PlayerFragment extends Fragment implements
         }
     };
 
+
     @Override
     public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
+        final JSONObject finalJsonObject = jsonObject;
+        final String finalIdentifier = identifier;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "onApiResponseReceived: ");
+                if(finalIdentifier.equals("updateUserSets")) {
+                    Log.d(TAG, "favorite sets updated");
+                    Log.d(TAG, finalJsonObject.toString());
+                    try {
+                        JSONObject payload = finalJsonObject.getJSONObject("payload");
+                        JSONObject userJSON = payload.getJSONObject("user");
+                        user = new User(userJSON);
+                    } catch(JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                    mHandler.post(updateFavoriteSets);
+                }
+            }
+        }).start();
 
     }
 
@@ -164,9 +193,10 @@ public class PlayerFragment extends Fragment implements
 		mHeader = (RelativeLayout) rootView.findViewById(R.id.player_header);
 		mTracklistButton = (ImageButton) rootView
 				.findViewById(R.id.player_button_tracklist);
-        mBackgroundOverlay = (ImageView) rootView.findViewById(R.id.background_overlay);
+        mBackgroundImage = (ImageView) rootView.findViewById(R.id.background_image);
         favoriteSetButton = (ImageView) rootView.findViewById(R.id.favorite_set_icon);
-        playerLoader = rootView.findViewById(R.id.centered_loader);
+        playerLoader = rootView.findViewById(R.id.centered_loader_container);
+        playerLoader.setVisibility(View.VISIBLE);
 
 
         utils = new TimeUtils();
@@ -184,9 +214,6 @@ public class PlayerFragment extends Fragment implements
                 .cacheOnDisk(true)
                 .considerExifParams(true)
                 .build();
-
-
-//		mTrackLabel.setSelected(true);
 
 
 		setPlayListeners();
@@ -207,11 +234,6 @@ public class PlayerFragment extends Fragment implements
 
         // Set Click Listener for Favorite Set Button
 
-
-
-        playerLoader.setVisibility(View.GONE);
-
-
 //
 //		setShuffleListener();
 //
@@ -220,7 +242,6 @@ public class PlayerFragment extends Fragment implements
 //		setDownloadBroadcastReceiver();
 		// setPlayingNotification();
 
-//        setRetainInstance(true);
 
 		return this.rootView;
 
@@ -243,53 +264,6 @@ public class PlayerFragment extends Fragment implements
         mHandler.removeCallbacks(mUpdateTimeTask);
     }
 
-    public void updateFavoriteSetView() {
-
-        // If set is already favorited change the Favorite Set icon
-
-        favoriteSetButton.setImageResource(R.drawable.favorite_button_white);
-
-        favoriteSetButton.setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (user.isRegistered()) {
-                    if(user.isSetFavorited(song)) {
-                        Toast.makeText(activity.getApplicationContext(),
-                                "Added to My Sets", Toast.LENGTH_SHORT).show();
-                    } else {
-                        Toast.makeText(activity.getApplicationContext(),
-                                "Removed from My Sets", Toast.LENGTH_SHORT).show();
-                    }
-                    try {
-                        JSONObject jsonUserData = new JSONObject();
-                        JSONObject jsonPostData = new JSONObject();
-                        jsonUserData.put("userID", user.getId());
-                        jsonUserData.put("setId", song.getId());
-                        jsonPostData.put("userData", jsonUserData);
-                        SetMineApiPostRequestAsyncTask updateFavoriteSetsTask =
-                                new SetMineApiPostRequestAsyncTask(activity, activity);
-                        updateFavoriteSetsTask
-                                .executeOnExecutor(SetMineApiPostRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                        "user/updateFavoriteSets", jsonPostData.toString(), "updateUserSets");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                } else {
-                    activity.openMainViewPager();
-                    activity.eventViewPager.setCurrentItem(0);
-                }
-            }
-        });
-
-        if(user.isRegistered()) {
-            if(user.isSetFavorited(song)) {
-                favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
-            }
-        }
-
-
-    }
 
 	public void updateProgressBar() {
 		mHandler.postDelayed(mUpdateTimeTask, 100);
@@ -327,23 +301,27 @@ public class PlayerFragment extends Fragment implements
 
     @TargetApi(Build.VERSION_CODES.JELLY_BEAN)
 
-    public void playSong() {
-        Log.d(TAG, "playSong");
+    private void playPrevious() {
 
+        playerManager.selectSetByIndex((playerManager.selectedSetIndex == 0) ?
+                playerManager.getPlaylistLength() - 1 :
+                playerManager.selectedSetIndex - 1);
+        updateViewToNewSet();
+        updateTracklist();
         sendIntentToService("START_ALL");
 
-        updateViewToNewSet();
 
-        updateProgressBar();
-        ((PlayerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(1);
-    }
-
-    private void playPrevious() {
-        sendIntentToService("PREVIOUS");
     }
 
     private void playNext() {
-        sendIntentToService("NEXT");
+
+        playerManager.selectSetByIndex(
+                ((playerManager.selectedSetIndex + 1) >= playerManager.getPlaylistLength()) ? 0
+                        : playerManager.selectedSetIndex + 1);
+        updateViewToNewSet();
+        updateTracklist();
+        sendIntentToService("START_ALL");
+
     }
 
     private void sendIntentToService(String intentAction) {
@@ -354,7 +332,7 @@ public class PlayerFragment extends Fragment implements
     }
 
     private void sendIntentToService(Intent intent) {
-        getActivity().startService(intent);
+        ((SetMineMainActivity)getActivity()).sendIntentToService(intent);
     }
 
     private void setPagerListeners() {
@@ -362,7 +340,7 @@ public class PlayerFragment extends Fragment implements
 
             @Override
             public void onClick(View v) {
-                ((PlayerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(2, true);
+                ((PlayerContainerFragment) getParentFragment()).mViewPager.setCurrentItem(2, true);
             }
         });
     }
@@ -429,54 +407,126 @@ public class PlayerFragment extends Fragment implements
         updateProgressBar();
     }
 
-    public void updateViewToNewSet() {
+    public void updateFavoriteSetView() {
 
+        // If set is already favorited change the Favorite Set icon
+
+        final ApiCaller superThis = this;
+
+
+        if (user.isSetFavorited(song)) {
+            favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
+        } else {
+            favoriteSetButton.setImageResource(R.drawable.favorite_button_white);
+        }
+
+
+        favoriteSetButton.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (user.isRegistered()) {
+                    if (user.isSetFavorited(song)) {
+                        Toast.makeText(activity.getApplicationContext(),
+                                "Removed from My Sets", Toast.LENGTH_SHORT).show();
+                        favoriteSetButton.setImageResource(R.drawable.favorite_button_white);
+                    } else {
+                        Toast.makeText(activity.getApplicationContext(),
+                                "Added to My Sets", Toast.LENGTH_SHORT).show();
+                        favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
+                    }
+                    try {
+                        JSONObject jsonUserData = new JSONObject();
+                        JSONObject jsonPostData = new JSONObject();
+                        jsonUserData.put("userID", Integer.parseInt(user.getId()));
+                        jsonUserData.put("setId", Integer.parseInt(song.getId()));
+                        jsonPostData.put("userData", jsonUserData);
+                        Log.d(TAG, jsonPostData.toString());
+
+                        SetMineApiPostRequestAsyncTask updateFavoriteSetsTask =
+                                new SetMineApiPostRequestAsyncTask(activity, superThis);
+                        updateFavoriteSetsTask
+                                .executeOnExecutor(SetMineApiPostRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                        "user/updateFavoriteSets", jsonPostData.toString(), "updateUserSets");
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+                } else {
+                    activity.openMainViewPager(0);
+                }
+            }
+        });
+
+
+    }
+
+
+    public void updateViewToNewSet() {
         Log.d(TAG, "updateViewToNewSet");
+
+        playerLoader.setVisibility(View.VISIBLE);
 
         song = playerManager.getSelectedSet();
 
-        try{
-            JSONObject mixpanelProperties = new JSONObject();
-            mixpanelProperties.put("id", song.getId());
-            mixpanelProperties.put("artist", song.getArtist());
-            mixpanelProperties.put("event", song.getEvent());
-            activity.mixpanel.track("Specific Set Played", mixpanelProperties);
-            activity.mixpanel.getPeople().increment("play_count", 1);
-            activity.mixpanel.getPeople().append("sets_played_ids", song.getId());
-            if(song.getEpisode().length() > 0) {
-                activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent()+" - "+song.getEpisode());
-            } else {
-                activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent());
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    JSONObject mixpanelProperties = new JSONObject();
+                    mixpanelProperties.put("id", song.getId());
+                    mixpanelProperties.put("artist", song.getArtist());
+                    mixpanelProperties.put("event", song.getEvent());
+                    activity.mixpanel.track("Specific Set Played", mixpanelProperties);
+                    activity.mixpanel.getPeople().increment("play_count", 1);
+                    activity.mixpanel.getPeople().append("sets_played_ids", song.getId());
+                    if(song.getEpisode().length() > 0) {
+                        activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent()+" - "+song.getEpisode());
+                    } else {
+                        activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent());
+                    }
+                    activity.mixpanel.getPeople().append("sets_played_names", song.getId());
+                    activity.mixpanel.getPeople().append("sets_played_artists", song.getArtist());
+                    activity.mixpanel.getPeople().append("sets_played_events", song.getEvent());
+                    activity.mixpanel.getPeople().append("sets_played_genres", song.getGenre());
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
             }
-            activity.mixpanel.getPeople().append("sets_played_names", song.getId());
-            activity.mixpanel.getPeople().append("sets_played_artists", song.getArtist());
-            activity.mixpanel.getPeople().append("sets_played_events", song.getEvent());
-            activity.mixpanel.getPeople().append("sets_played_genres", song.getGenre());
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
+        }).start();
+
+
 
         ImageLoader.getInstance().loadImage(song.getArtistImage(), options, new SimpleImageLoadingListener() {
+
+            @Override
+            public void onLoadingStarted(String imageUri, View view) {
+                super.onLoadingStarted(imageUri, view);
+                playerLoader.setVisibility(View.VISIBLE);
+            }
+
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 2000);
+                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 5000);
                 mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
-
-                playerService.lockscreenImage = loadedImage;
 
                 Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
                 notificationIntent.setAction("UPDATE_REMOTE");
                 notificationIntent.putExtra("ARTIST", song.getArtist());
                 notificationIntent.putExtra("EVENT", song.getEvent());
                 sendIntentToService(notificationIntent);
+                playerService.artistImage = loadedImage;
+
+                playerLoader.setVisibility(View.GONE);
+
             }
         });
         ImageLoader.getInstance().loadImage(song.getEventImage(), options, new SimpleImageLoadingListener() {
+
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).imageUtils.fastblur(loadedImage, 4);
-                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 2000);
-                mBackgroundOverlay.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
+                mBackgroundImage.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
 
                 playerService.lockscreenImage = loadedImage;
 
@@ -485,6 +535,7 @@ public class PlayerFragment extends Fragment implements
                 notificationIntent.putExtra("ARTIST", song.getArtist());
                 notificationIntent.putExtra("EVENT", song.getEvent());
                 sendIntentToService(notificationIntent);
+
             }
         });
 
@@ -497,7 +548,8 @@ public class PlayerFragment extends Fragment implements
         mTrackLabel.setText(song.getCurrentTrack(0));
 //        ((PlayerContainerFragment)getParentFragment()).mPlayerPagerAdapter
 //                .playListFragment.updatePlaylist();
-//        updateTracklist(song);
+
+
 
     }
 
@@ -511,7 +563,7 @@ public class PlayerFragment extends Fragment implements
         }
     }
 
-    private void updateTracklist(Set song) {
+    private void updateTracklist() {
         ((PlayerContainerFragment) getParentFragment()).tracklistFragment.updateTracklist();
     }
 

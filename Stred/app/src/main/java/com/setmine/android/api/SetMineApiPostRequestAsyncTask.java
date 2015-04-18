@@ -2,9 +2,14 @@ package com.setmine.android.api;
 
 import android.os.AsyncTask;
 
+<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/api/SetMineApiPostRequestAsyncTask.java
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.SetMineMainActivity;
+=======
+import com.setmine.android.ApiCaller;
+>>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/task/SetMineApiPostRequestAsyncTask.java
 import com.setmine.android.Constants;
+import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONObject;
@@ -20,7 +25,7 @@ public class SetMineApiPostRequestAsyncTask extends AsyncTask<String, Integer, J
     String identifier;
     ApiCaller apiCaller;
 
-    final String TAG = "SetMineApiPostRequestAsyncTask";
+    final String TAG = "SetMineApiPostRequest";
 
     // Create the Task by passing in the activity and the ApiCaller that is creating the task
 
