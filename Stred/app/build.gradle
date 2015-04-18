@@ -7,8 +7,8 @@ android {
         applicationId "com.setmine.android"
         minSdkVersion 15
         targetSdkVersion 20
-        versionCode 12
-        versionName "4.0"
+        versionCode 13
+        versionName "5.0"
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
 }
@@ -22,5 +22,6 @@ dependencies {
     compile 'com.mixpanel.android:mixpanel-android:4.3.1@aar'
     compile 'com.facebook.android:facebook-android-sdk:3.20.0'
     compile 'com.viewpagerindicator:library:2.4.1@aar'
+    compile 'net.danlew:android.joda:2.7.2'
     compile fileTree(dir: 'libs', include: ['*.jar'])
 }

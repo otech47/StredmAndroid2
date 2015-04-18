@@ -61,9 +61,5 @@ public class PlayerContainerFragment extends Fragment {
         return root;
     }
 
-    public void configureViewPager() {
-        if(mPlayerPagerAdapter == null) {
 
-        }
-    }
 }

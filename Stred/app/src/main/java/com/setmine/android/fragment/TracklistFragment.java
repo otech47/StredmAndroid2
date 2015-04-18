@@ -19,6 +19,8 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.setmine.android.PlayerManager;
+import com.setmine.android.PlayerService;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Set;
@@ -53,7 +55,9 @@ public class TracklistFragment extends Fragment {
     public SetMineMainActivity activity;
     public PlayerContainerFragment playerContainerFragment;
 
-    public boolean tracklistIsUpdated;
+    public PlayerService playerService;
+    public PlayerManager playerManager;
+
 
     @Override
     public void onAttach(Activity activity) {
@@ -68,13 +72,11 @@ public class TracklistFragment extends Fragment {
         if(savedInstanceState == null) {
             super.onCreate(savedInstanceState);
             activity = (SetMineMainActivity) getActivity();
+            playerService = activity.playerService;
+            playerManager = playerService.playerManager;
             this.context = activity.getApplicationContext();
-            if(activity.playerService.playerManager != null) {
-                this.set = activity.playerService.playerManager.getSelectedSet();
-            }
             playerContainerFragment = ((PlayerContainerFragment)getParentFragment());
             playerContainerFragment.tracklistFragment = this;
-            tracklistIsUpdated = false;
 
             options = new DisplayImageOptions.Builder()
                     .showImageOnLoading(R.drawable.logo_small)
@@ -94,7 +96,6 @@ public class TracklistFragment extends Fragment {
         rootView = inflater.inflate(R.layout.tracklist, container, false);
         this.savedInstanceState = savedInstanceState;
         listview = (ListView) rootView.findViewById(R.id.tracklist);
-        tracklist = (set != null)? set.getTracklist() : null;
         updateTracklist();
         return rootView;
     }
@@ -106,19 +107,20 @@ public class TracklistFragment extends Fragment {
 
     public void updateTracklist() {
         Log.d(TAG, "updateTracklist");
-        if(!tracklistIsUpdated) {
-            trackAdapter = new TrackAdapter(getLayoutInflater(savedInstanceState), tracklist);
-            listview.setAdapter(trackAdapter);
-            listview.setOnItemClickListener(new ListView.OnItemClickListener() {
-                @Override
-                public void onItemClick(AdapterView<?> parent, View v,
-                                        int position, long id) {
-                    playerContainerFragment.playerFragment.skipToTrack(position);
-                    playerContainerFragment.mViewPager.setCurrentItem(0);
-                }
-            });
-            tracklistIsUpdated = true;
-        }
+
+        set = playerManager.getSelectedSet();
+        tracklist = (set != null)? set.getTracklist() : null;
+
+        trackAdapter = new TrackAdapter(getLayoutInflater(savedInstanceState), tracklist);
+        listview.setAdapter(trackAdapter);
+        listview.setOnItemClickListener(new ListView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View v,
+                                    int position, long id) {
+                playerContainerFragment.playerFragment.skipToTrack(position);
+                playerContainerFragment.mViewPager.setCurrentItem(0);
+            }
+        });
 
     }
 

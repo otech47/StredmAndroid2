@@ -19,12 +19,9 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.v4.app.NotificationCompat;
 import android.util.Log;
-import android.view.View;
 import android.widget.RemoteViews;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.object.Set;
 import com.setmine.android.task.CountPlaysTask;
 
@@ -50,6 +47,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     private float LOW_VOLUME = 0.2f;
     public RemoteControlClient remoteControlClient;
     public Bitmap lockscreenImage;
+    public Bitmap artistImage;
+
     public PlayerManager playerManager;
 
     public boolean newSong = false;
@@ -62,11 +61,11 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             mediaPlayer.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
                 @Override
                 public void onCompletion(MediaPlayer mp) {
-                    playNext();
+                    play();
                 }
             });
         }
-        if (intent != null && intent.getAction() != null) {
+        if (intent.getAction() != null) {
             if(intent.getAction().equals("PLAY_PAUSE")) {
                 playPause();
             } else if(intent.getAction().equals("START_ALL")) {
@@ -82,12 +81,6 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             } else if(intent.getAction().equals("NOTIFICATION_OFF")) {
                 pause();
                 removeNotification();
-            } else if(intent.getAction().equals("NEXT")) {
-                playNext();
-                showNotification();
-            } else if(intent.getAction().equals("PREVIOUS")) {
-                playPrevious();
-                showNotification();
             }
         }
         return START_STICKY;
@@ -153,19 +146,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         }
     }
 
-    private void playNext() {
-        playerManager.selectSetByIndex(
-                ((playerManager.selectedSetIndex + 1) >= playerManager.getPlaylistLength()) ? 0
-                        : playerManager.selectedSetIndex + 1);
-        playSong();
-    }
 
-    private void playPrevious() {
-        playerManager.selectSetByIndex((playerManager.selectedSetIndex == 0)?
-                playerManager.getPlaylistLength() - 1 :
-                playerManager.selectedSetIndex - 1);
-        playSong();
-    }
 
     public void playSong() {
         try {
@@ -299,7 +280,6 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                             | RemoteControlClient.FLAG_KEY_MEDIA_PLAY
                             | RemoteControlClient.FLAG_KEY_MEDIA_PAUSE
             );
-            am.registerRemoteControlClient(remoteControlClient);
         }
         if(artist != null && event != null && lockscreenImage != null) {
             remoteControlClient.editMetadata(true)
@@ -308,12 +288,15 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                     .putString(MediaMetadataRetriever.METADATA_KEY_ARTIST, artist)
                     .apply();
             remoteControlClient.setPlaybackState(RemoteControlClient.PLAYSTATE_PLAYING);
-            am.registerRemoteControlClient(remoteControlClient);
         }
+        am.registerRemoteControlClient(remoteControlClient);
+
     }
 
     @TargetApi(16)
     private void showNotification() {
+
+        Log.d(TAG, "showNotification");
 
         // reusable variables
         PendingIntent pendingIntent = null;
@@ -370,6 +353,9 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         remoteViews.setOnClickPendingIntent(R.id.button_close,
                 pendingIntent);
 
+        remoteViews.setImageViewBitmap(R.id.notification_image, artistImage);
+
+
         //Create the notification instance.
         notification = new NotificationCompat.Builder(getApplicationContext())
                 .setSmallIcon(R.drawable.logo_small_white).setOngoing(true)
@@ -377,17 +363,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 .setContent(remoteViews)
                 .build();
 
-        ImageLoader.getInstance().loadImage(song.getArtistImage(), options, new SimpleImageLoadingListener() {
-            @Override
-            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                remoteViews.setImageViewBitmap(R.id.notification_image, loadedImage);
-                try {
-                    notificationManager.notify(NOTIFICATION_ID, notification);
-                } catch(Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+
 
         // Show the notification in the notification bar.
 

@@ -18,7 +18,6 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.Constants;
 import com.setmine.android.object.SearchResultSetViewHolder;
 import com.setmine.android.object.Set;
 
@@ -51,6 +50,10 @@ public class PlaylistFragment extends Fragment {
         this.activity = (SetMineMainActivity) getActivity();
         this.context = activity.getApplicationContext();
 
+        Bundle arguments = getArguments();
+        ArrayList<Set> playlistlistParcel = arguments.getParcelableArrayList("playlist");
+        setlist = new ArrayList<Set>(playlistlistParcel);
+
         options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
@@ -65,9 +68,7 @@ public class PlaylistFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         Log.d(TAG, "onCreateView");
         rootView = inflater.inflate(R.layout.playlist, container, false);
-        if(savedInstanceState == null) {
-            setlist = activity.searchSetsFragment.searchResultSetAdapter.sets;
-        } else {
+        if(savedInstanceState != null) {
             ArrayList<Set> setlistParcel = savedInstanceState.getParcelableArrayList("setlist");
             setlist = new ArrayList<Set>(setlistParcel);
         }
@@ -79,9 +80,9 @@ public class PlaylistFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                activity.startPlayerFragment();
                 activity.playerService.playerManager.setPlaylist(setlist);
                 activity.playerService.playerManager.selectSetById(setlist.get(position).getId());
+                activity.startPlayerFragment();
                 activity.playSelectedSet();
             }
         });
@@ -151,21 +152,23 @@ public class PlaylistFragment extends Fragment {
                 view = inflater.inflate(R.layout.set_tile, parent, false);
                 holder = new SearchResultSetViewHolder();
                 holder.playCount = (TextView) view.findViewById(R.id.playCount);
+                holder.setLength = (TextView) view.findViewById(R.id.setLength);
                 holder.artistText = (TextView) view.findViewById(R.id.artistText);
                 holder.eventText = (TextView) view.findViewById(R.id.eventText);
                 holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.playButton = (ImageView) view.findViewById(R.id.playsIcon);
                 view.setTag(holder);
                 view.setId(Integer.valueOf(set.getId()).intValue());
             } else {
                 holder = (SearchResultSetViewHolder) view.getTag();
             }
 
+
             holder.playCount.setText(set.getPopularity() + " plays");
+            holder.setLength.setText(set.getSetLength());
             holder.artistText.setText(set.getArtist());
             holder.eventText.setText(set.getEvent());
 
-            ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + set.getArtistImage(), holder.artistImage, options, animateFirstListener);
+            ImageLoader.getInstance().displayImage(set.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }

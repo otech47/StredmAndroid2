@@ -1,11 +1,23 @@
 package com.setmine.android.util;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 
 public class DateUtils {
+
+
+    public String convertDateToDaysAgo(String dateString) {
+        DateTime date = new DateTime(dateString);
+        DateTime today = new DateTime();
+
+        int days = Days.daysBetween(new DateTime(date), new DateTime(today)).getDays();
+        return Integer.toString(days) + "d ago";
+    }
 
     public Date stringToDate(String dateString) {
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'");

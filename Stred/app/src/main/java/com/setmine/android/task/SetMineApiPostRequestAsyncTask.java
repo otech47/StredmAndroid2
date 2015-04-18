@@ -3,8 +3,8 @@ package com.setmine.android.task;
 import android.os.AsyncTask;
 
 import com.setmine.android.ApiCaller;
-import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.Constants;
+import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONObject;
@@ -20,7 +20,7 @@ public class SetMineApiPostRequestAsyncTask extends AsyncTask<String, Integer, J
     String identifier;
     ApiCaller apiCaller;
 
-    final String TAG = "SetMineApiPostRequestAsyncTask";
+    final String TAG = "SetMineApiPostRequest";
 
     // Create the Task by passing in the activity and the ApiCaller that is creating the task
 

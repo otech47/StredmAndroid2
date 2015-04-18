@@ -100,9 +100,9 @@ public class DetailSetsFragment extends Fragment {
             setTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.startPlayerFragment();
                     activity.playerService.playerManager.setPlaylist(detailSets);
                     activity.playerService.playerManager.selectSetById(set.getId());
+                    activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
             });

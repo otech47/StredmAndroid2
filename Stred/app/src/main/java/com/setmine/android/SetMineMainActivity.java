@@ -17,7 +17,6 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -33,8 +32,6 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.setmine.android.adapter.MainPagerAdapter;
-import com.setmine.android.adapter.PlayerPagerAdapter;
 import com.setmine.android.fragment.ArtistDetailFragment;
 import com.setmine.android.fragment.EventDetailFragment;
 import com.setmine.android.fragment.MainPagerContainerFragment;
@@ -53,6 +50,8 @@ import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
 import com.setmine.android.util.ImageUtils;
 
+import net.danlew.android.joda.JodaTimeAndroid;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -60,7 +59,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Locale;
 import java.util.TimeZone;
 import java.util.concurrent.RejectedExecutionException;
@@ -82,11 +83,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     public static String APP_VERSION;
 
     public String MODELS_VERSION;
-
-
-    public MainPagerAdapter mMainPagerAdapter;
-    public ViewPager eventViewPager;
-    public PlayerPagerAdapter mPlayerPagerAdapter;
 
     public FragmentManager fragmentManager;
     public PlayerContainerFragment playerContainerFragment;
@@ -278,6 +274,10 @@ public class SetMineMainActivity extends FragmentActivity implements
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
 
+        // Initialize Date Utils
+
+        JodaTimeAndroid.init(this);
+
         initializeMixpanel();
 
         user = new User();
@@ -300,7 +300,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
         };
 
-//        checkModelsVersion();
+        // checkModelsVersion();
 
         // Fragment Manager handles all fragments and the navigation between them
 
@@ -548,11 +548,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             // Initialize the MainViewPagerFragment
 
-            mainPagerContainerFragment = new MainPagerContainerFragment();
-            FragmentTransaction ft = fragmentManager.beginTransaction();
-            ft.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
-            ft.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-            ft.commitAllowingStateLoss();
+            openMainViewPager(-1);
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
@@ -585,7 +581,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Click Function for the Home button on the Action Bar
 
     public void homeButtonPress(View v) {
-        openMainViewPager();
+        openMainViewPager(-1);
     }
 
     // Click Function for the Back button on the Action Bar
@@ -615,14 +611,12 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Click Function for the Play button on the Action Bar
 
     public void playNavigationClick(View v) {
-        startPlayerFragment();
-
-        if(playerService.playerManager.getPlaylistLength() == 0) {
-            playSetWithSetID("random");
+        if(playerService.playerManager.getSelectedSet() == null) {
+            playSetWithSetID("5");
         } else {
-            playerService.playerManager.selectSetByIndex(0);
-            playSelectedSet();
+            startPlayerFragment();
         }
+
     }
 
     // Start the Player Fragment from anywhere in the App given the set ID
@@ -634,7 +628,9 @@ public class SetMineMainActivity extends FragmentActivity implements
             public void run() {
                 playerService.playerManager.clearPlaylist();
                 playerService.playerManager.addToPlaylist(selectedSet);
-                sendIntentToService("START_ALL");
+                playerService.playerManager.selectSetByIndex(0);
+                startPlayerFragment();
+                playSelectedSet();
             }
         };
         final HttpUtils httpUtil =
@@ -645,13 +641,14 @@ public class SetMineMainActivity extends FragmentActivity implements
             @Override
             public void run() {
                 try {
-                    String apiRequest = "set/id/" + finalSetId;
+                    String apiRequest = "set/id?setID=" + finalSetId;
                     String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
                     JSONObject jsonResponse = new JSONObject(jsonString);
                     if(jsonResponse.get("status").equals("success")) {
                         JSONObject setJson = jsonResponse
                                 .getJSONObject("payload")
-                                .getJSONObject("set");
+                                .getJSONArray("set")
+                                .getJSONObject(0);
                         selectedSet = new Set(setJson);
                         playHandler.post(playSet);
                     }
@@ -660,27 +657,37 @@ public class SetMineMainActivity extends FragmentActivity implements
                     e.printStackTrace();
                 }
             }
-        });
-        Log.d(TAG, "playSetFinish");
+        }).start();
     }
 
     public void playSelectedSet() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                sendIntentToService("START_ALL");
-            }
-        });
+        Log.d(TAG, "playSelectedSet");
+        sendIntentToService("START_ALL");
     }
 
-    public void openMainViewPager() {
+    public void openMainViewPager(int pageToScrollTo) {
         Log.d(TAG, "openMainViewPager");
         if(mainPagerContainerFragment == null) {
         }
         mainPagerContainerFragment = new MainPagerContainerFragment();
-
+        Bundle args = new Bundle();
+        args.putInt("page", pageToScrollTo);
+        mainPagerContainerFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.commitAllowingStateLoss();
+    }
+
+    public void openPlaylistFragment(List<Set> playlist) {
+        Log.d(TAG, "openPlaylistFragment");
+        playlistFragment = new PlaylistFragment();
+        Bundle args = new Bundle();
+        ArrayList<Set> playlistBundle = new ArrayList<Set>(playlist);
+        args.putParcelableArrayList("playlist", playlistBundle);
+        playlistFragment.setArguments(args);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.currentFragmentContainer, playlistFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.commitAllowingStateLoss();
     }
@@ -769,8 +776,14 @@ public class SetMineMainActivity extends FragmentActivity implements
         sendIntentToService(playIntent);
     }
 
-    private void sendIntentToService(Intent intent) {
-        this.startService(intent);
+    public void sendIntentToService(final Intent intent) {
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                startService(intent);
+            }
+        }).start();
     }
 
     // Location Services

@@ -1,5 +1,7 @@
 package com.setmine.android;
 
+import android.util.Log;
+
 import com.setmine.android.object.Set;
 
 import org.json.JSONArray;
@@ -13,11 +15,18 @@ import java.util.List;
  */
 public class PlayerManager {
 
+    private static final String TAG = "PlayerManager";
+
+
     private List<Set> playlist = new ArrayList<Set>();
     private List<Set> playlistShuffled;
     private int playlistLength = 0;
     public Set selectedSet;
     public int selectedSetIndex;
+
+    public PlayerManager() {
+        selectedSet = null;
+    }
 
     public List<Set> getPlaylist() {
         return this.playlist;
@@ -41,6 +50,7 @@ public class PlayerManager {
     }
 
     public void setPlaylist(List<Set> pl) {
+        Log.d(TAG, "setPlaylist");
         this.playlist = pl;
         this.playlistShuffled = new ArrayList<Set>(pl);
         Collections.shuffle(this.playlistShuffled);
@@ -48,6 +58,7 @@ public class PlayerManager {
     }
 
     public void selectSetById(String setid) {
+        Log.d(TAG, "selectSetById: " + setid);
         for(int i = 0; i < playlist.size(); i++) {
             if(playlist.get(i).getId().equals(setid)) {
                 selectedSetIndex = i;
@@ -57,16 +68,13 @@ public class PlayerManager {
     }
 
     public void selectSetByIndex(int index) {
-        this.selectedSetIndex = index;
-        this.selectedSet = this.playlist.get(this.selectedSetIndex);
+        selectedSetIndex = index;
+        selectedSet = this.playlist.get(this.selectedSetIndex);
+
     }
 
     public Set getSelectedSet() {
         return this.selectedSet;
-    }
-
-    public void playSelectedSet() {
-
     }
 
     public int getPlaylistLength() {
