@@ -54,7 +54,6 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     public boolean newSong = false;
 
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(TAG, "onStartCommand " + intent.getAction());
         if(mediaPlayer == null) {
             mediaPlayer = new MediaPlayer();
             acquireLocks();
@@ -66,6 +65,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
             });
         }
         if (intent.getAction() != null) {
+            Log.d(TAG, "onStartCommand " + intent.getAction());
             if(intent.getAction().equals("PLAY_PAUSE")) {
                 playPause();
             } else if(intent.getAction().equals("START_ALL")) {

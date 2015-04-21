@@ -612,7 +612,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void playNavigationClick(View v) {
         if(playerService.playerManager.getSelectedSet() == null) {
-            playSetWithSetID("5");
+            playSetWithSetID("random");
         } else {
             startPlayerFragment();
         }
