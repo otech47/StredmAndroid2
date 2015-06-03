@@ -21,32 +21,20 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
+import com.setmine.android.Constants;
 import com.setmine.android.ModelsContentProvider;
-import com.setmine.android.event.EventDetailFragment;
-import com.setmine.android.interfaces.OnTaskCompleted;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.artist.Artist;
-import com.setmine.android.Constants;
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/search/SearchSetsFragment.java
 import com.setmine.android.event.Event;
+import com.setmine.android.event.EventDetailFragment;
 import com.setmine.android.genre.Genre;
+import com.setmine.android.interfaces.OnTaskCompleted;
+import com.setmine.android.object.TrackResponse;
+import com.setmine.android.set.GetSetsTask;
 import com.setmine.android.set.Mix;
 import com.setmine.android.set.SearchResultSetViewHolder;
 import com.setmine.android.set.Set;
-import com.setmine.android.set.GetSetsTask;
-=======
-import com.setmine.android.object.Event;
-import com.setmine.android.object.Genre;
-import com.setmine.android.object.Mix;
-import com.setmine.android.object.SearchResultEventHolder;
-import com.setmine.android.object.SearchResultSetViewHolder;
-import com.setmine.android.object.SearchResultTrackHolder;
-import com.setmine.android.object.Set;
-import com.setmine.android.object.TrackResponse;
-import com.setmine.android.task.GetSetsTask;
-import com.setmine.android.util.DateUtils;
->>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/SearchSetsFragment.java
 
 import org.json.JSONObject;
 
@@ -298,13 +286,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             searchedSetsList.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/search/SearchSetsFragment.java
-                    Set s = searchResultSetAdapter.sets.get(position);
-                    activity.playerService.playerManager.setPlaylist(searchResultSetAdapter.sets);
-                    activity.playerService.playerManager.selectSetById(s.getId());
-                    activity.startPlayerFragment();
-                    activity.playSelectedSet();
-=======
                     switch (searchResultSetAdapter.listState) {
                         case SETS:
                             Set s = searchResultSetAdapter.sets.get(position);
@@ -327,7 +308,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                             activity.playSelectedSet();
                             break;
                     }
->>>>>>> f2c2fb7... WIP search by track:Stred/app/src/main/java/com/setmine/android/fragment/SearchSetsFragment.java
                 }
             });
         }
@@ -695,23 +675,15 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         }
     }
 
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/search/SearchSetsFragment.java
     public class SearchResultSetAdapter extends BaseAdapter {
-=======
-
-    class SearchResultSetAdapter extends BaseAdapter {
->>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/SearchSetsFragment.java
 
         private LayoutInflater inflater;
         private ImageLoadingListener animateFirstListener = new EventDetailFragment.AnimateFirstDisplayListener();
         public List<Set> sets;
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/search/SearchSetsFragment.java
         public boolean isRecent;
-=======
         public List<Event> upcomingEvents;
         public List<TrackResponse> tracks;
         public ListOptions listState = ListOptions.SETS;
->>>>>>> f2c2fb7... WIP search by track:Stred/app/src/main/java/com/setmine/android/fragment/SearchSetsFragment.java
 
         SearchResultSetAdapter() {
             inflater = LayoutInflater.from(getActivity());
@@ -854,32 +826,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     break;
             }
 
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/search/SearchSetsFragment.java
-            holder.playCount.setText(set.getPopularity() + " plays");
-            int playID = getResources().getIdentifier("com.setmine.android:drawable/ic_action_play", null, null);
-            holder.playButton.setImageResource(playID);
-            if(isRecent) {
-                holder.playCount.setText((new DateUtils()).convertDateToDaysAgo(set.getDatetime()));
-                int timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
-                holder.playButton.setImageResource(timeID);
-            }
-            holder.setLength.setText(set.getSetLength());
-            holder.artistText.setText(set.getArtist());
-            holder.eventText.setText(set.getEvent());
-
-            options = new DisplayImageOptions.Builder()
-                    .showImageOnLoading(R.drawable.logo_small)
-                    .showImageForEmptyUri(R.drawable.logo_small)
-                    .showImageOnFail(R.drawable.logo_small)
-                    .cacheInMemory(true)
-                    .cacheOnDisk(true)
-                    .considerExifParams(true)
-                    .build();
-
-            ImageLoader.getInstance().displayImage(set.getArtistImage(), holder.artistImage, options, animateFirstListener);
-
-=======
->>>>>>> f2c2fb7... WIP search by track:Stred/app/src/main/java/com/setmine/android/fragment/SearchSetsFragment.java
             return view;
         }
     }
