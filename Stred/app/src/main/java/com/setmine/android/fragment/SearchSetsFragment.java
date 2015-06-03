@@ -36,7 +36,6 @@ import com.setmine.android.object.SearchResultTrackHolder;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.TrackResponse;
 import com.setmine.android.task.GetSetsTask;
-import com.setmine.android.util.DateUtils;
 
 import org.json.JSONObject;
 
