@@ -64,7 +64,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
                 }
             });
         }
-        if (intent.getAction() != null) {
+        if (intent != null && intent.getAction() != null) {
             Log.d(TAG, "onStartCommand " + intent.getAction());
             if(intent.getAction().equals("PLAY_PAUSE")) {
                 playPause();

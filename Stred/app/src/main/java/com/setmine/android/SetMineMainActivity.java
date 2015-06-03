@@ -533,7 +533,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             serviceBound = false;
         }
         playerService.stopSelf();
-
+        super.onDestroy();
     }
 
     // Executed after all initial models are loaded

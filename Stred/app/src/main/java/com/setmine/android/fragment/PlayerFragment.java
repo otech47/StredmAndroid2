@@ -1,6 +1,7 @@
 package com.setmine.android.fragment;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.app.DownloadManager;
 import android.content.Context;
 import android.content.Intent;
@@ -35,6 +36,7 @@ import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.object.Set;
 import com.setmine.android.object.User;
 import com.setmine.android.task.SetMineApiPostRequestAsyncTask;
+import com.setmine.android.util.ImageUtils;
 import com.setmine.android.util.TimeUtils;
 
 import org.json.JSONException;
@@ -152,23 +154,30 @@ public class PlayerFragment extends Fragment implements
     }
 
     @Override
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        this.activity = (SetMineMainActivity)activity;
+        this.playerService = this.activity.playerService;
+        this.playerManager = playerService.playerManager;
+        ((PlayerContainerFragment)getParentFragment()).playerFragment = this;
+        user = this.activity.user;
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.d(TAG, "onCreate");
 
-        if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
-            this.playerService = activity.playerService;
-            this.playerManager = playerService.playerManager;
-            ((PlayerContainerFragment)getParentFragment()).playerFragment = this;
-            user = activity.user;
-        } else {
+        if(savedInstanceState != null) {
             String jsonUser = savedInstanceState.getString("user");
             try {
                 user = new User(new JSONObject(jsonUser));
             } catch (JSONException e) {
                 e.printStackTrace();
             }
+
+        } else {
+
         }
 
     }
@@ -516,8 +525,9 @@ public class PlayerFragment extends Fragment implements
 
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                Bitmap roundedBitmap = ((SetMineMainActivity) getActivity()).imageUtils.getRoundedCornerBitmap(loadedImage, 5000);
-                mImageView.setImageDrawable(new BitmapDrawable(activity.getResources(), roundedBitmap));
+                ImageUtils imageUtils = new ImageUtils();
+                Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 5000);
+                mImageView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
 
                 Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
                 notificationIntent.setAction("UPDATE_REMOTE");
@@ -534,8 +544,9 @@ public class PlayerFragment extends Fragment implements
 
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                Bitmap blurredBitmap = ((SetMineMainActivity) getActivity()).imageUtils.fastblur(loadedImage, 4);
-                mBackgroundImage.setImageDrawable(new BitmapDrawable(activity.getResources(), blurredBitmap));
+                ImageUtils imageUtils = new ImageUtils();
+                Bitmap blurredBitmap = imageUtils.fastblur(loadedImage, 4);
+                mBackgroundImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
 
                 playerService.lockscreenImage = loadedImage;
 

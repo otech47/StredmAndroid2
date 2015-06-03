@@ -62,6 +62,7 @@ public class UserFragment extends Fragment implements ApiCaller {
     public User registeredUser;
 
     private Location userLocation;
+    private int timeID;
 
 
     public View homeView;
@@ -121,13 +122,16 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     final Runnable handleRegisteredUser = new Runnable() {
         public void run() {
-            activity.user = registeredUser;
-            populateActivities();
-            populateMySets();
-            kickOffNextEventQuery();
-            kickOffNewSetsQuery();
-            registerMixpanelUser();
-            ((MainPagerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(0);
+            if(activity != null) {
+                activity.user = registeredUser;
+                populateActivities();
+                populateMySets();
+                kickOffNextEventQuery();
+                kickOffNewSetsQuery();
+                registerMixpanelUser();
+                ((MainPagerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(0);
+            }
+
         }
     };
 
@@ -176,6 +180,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         modelsCP = this.activity.modelsCP;
         userLocation = this.activity.currentLocation;
         this.activity.userFragment = this;
+        timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
     }
 
     // Lifecycle Methods
@@ -507,14 +512,14 @@ public class UserFragment extends Fragment implements ApiCaller {
             myNextEventQuery += "&latitude="+userLocation.getLatitude();
             myNextEventQuery += "&longitude="+userLocation.getLongitude();
         }
-        new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), runnableUserFragmentTarget)
+        new SetMineApiGetRequestAsyncTask(activity, runnableUserFragmentTarget)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         myNextEventQuery, "myNextEvent");
     }
 
     private void kickOffNewSetsQuery() {
         String myNewSetsQuery = "user/newSets?userID="+registeredUser.getId();
-        new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), runnableUserFragmentTarget)
+        new SetMineApiGetRequestAsyncTask(activity, runnableUserFragmentTarget)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         myNewSetsQuery, "newSets");
     }
@@ -698,7 +703,7 @@ public class UserFragment extends Fragment implements ApiCaller {
             ((TextView) mySetTile.findViewById(R.id.setLength))
                     .setText(set.getSetLength());
 
-            int timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
+
             ((ImageView) mySetTile.findViewById(R.id.playsIcon)).setImageResource(timeID);
 
             mySetTile.setTag(set);
