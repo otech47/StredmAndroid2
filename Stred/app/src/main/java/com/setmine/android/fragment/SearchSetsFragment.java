@@ -12,6 +12,7 @@ import android.widget.AdapterView;
 import android.widget.BaseAdapter;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.ProgressBar;
 import android.widget.SearchView;
@@ -29,8 +30,11 @@ import com.setmine.android.Constants;
 import com.setmine.android.object.Event;
 import com.setmine.android.object.Genre;
 import com.setmine.android.object.Mix;
+import com.setmine.android.object.SearchResultEventHolder;
 import com.setmine.android.object.SearchResultSetViewHolder;
+import com.setmine.android.object.SearchResultTrackHolder;
 import com.setmine.android.object.Set;
+import com.setmine.android.object.TrackResponse;
 import com.setmine.android.task.GetSetsTask;
 import com.setmine.android.util.DateUtils;
 
@@ -50,11 +54,13 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
 
     public ModelsContentProvider modelsCP;
     public boolean modelsReady;
+    private enum ListOptions {SETS, EVENTS, TRACKRESPONSES};
 
     public View rootView;
     public SearchView searchView;
     public ListView browseItemList;
-    public ListView searchResultsList;
+    public ListView searchedSetsList;
+    public LinearLayout listOptionButtons;
     public TextView noResults;
     public ProgressBar setsLoading;
     public ViewGroup browseNavContainer;
@@ -137,13 +143,14 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         browseItemList = (ListView)rootView.findViewById(R.id.browseList);
         browseNavContainer = (ViewGroup)rootView.findViewById(R.id.browse_container);
         browseItemListContainer = rootView.findViewById(R.id.browseListContainer);
-        searchResultsList = (ListView)rootView.findViewById(R.id.setSearchResults);
+        searchedSetsList = (ListView)rootView.findViewById(R.id.setSearchResults);
         searchView = (SearchView) rootView.findViewById(R.id.search_sets);
+        listOptionButtons = (LinearLayout) rootView.findViewById(R.id.list_option_buttons);
 
         // Initialize search results list adapter
 
-        searchResultSetAdapter = new SearchResultSetAdapter(new ArrayList<Set>());
-        searchResultsList.setAdapter(searchResultSetAdapter);
+        searchResultSetAdapter = new SearchResultSetAdapter(new ArrayList<Set>(), new ArrayList<Event>(), new ArrayList<TrackResponse>());
+        searchedSetsList.setAdapter(searchResultSetAdapter);
 
         // Style search box
 
@@ -227,7 +234,8 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             browseNavContainer.getChildAt(i).setSelected(false);
         }
         rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.VISIBLE);
-        searchResultsList.setVisibility(View.GONE);
+        searchedSetsList.setVisibility(View.GONE);
+        listOptionButtons.setVisibility(View.GONE);
         setsLoading.setVisibility(View.VISIBLE);
         startTask();
     }
@@ -243,7 +251,8 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             } else {
                 setsLoading.setVisibility(View.GONE);
                 noResults.setVisibility(View.GONE);
-                searchResultsList.setVisibility(View.GONE);
+                searchedSetsList.setVisibility(View.GONE);
+                listOptionButtons.setVisibility(View.GONE);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -262,24 +271,32 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         Log.d(TAG, list.toString());
         searchResultSetAdapter.isRecent = false;
         searchResultSetAdapter.sets = list;
+        List<Event> upcomingEvents = modelsCP.upcomingEvents;
+        if(upcomingEvents.size() > 0) {
+            searchResultSetAdapter.upcomingEvents = upcomingEvents;
+        }
+        List<TrackResponse> trackResponses = modelsCP.searchedTracks;
+        if(trackResponses.size() > 0) {
+            searchResultSetAdapter.tracks = trackResponses;
+        }
         if(list.size() > 0) {
-            searchResultsList.setVisibility(View.VISIBLE);
+            listOptionButtons.setVisibility(View.VISIBLE);
+            searchedSetsList.setVisibility(View.VISIBLE);
             setsLoading.setVisibility(View.GONE);
             noResults.setVisibility(View.GONE);
             searchResultSetAdapter.notifyDataSetChanged();
-            searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
+            searchedSetsList.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                     Set s = searchResultSetAdapter.sets.get(position);
                     activity.playerService.playerManager.setPlaylist(searchResultSetAdapter.sets);
                     activity.playerService.playerManager.selectSetById(s.getId());
-                    activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
             });
         }
         else {
-            searchResultsList.setVisibility(View.GONE);
+            searchedSetsList.setVisibility(View.GONE);
             setsLoading.setVisibility(View.GONE);
             noResults.setVisibility(View.VISIBLE);
         }
@@ -360,11 +377,11 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 didSelectPopularRecent(v);
                 searchResultSetAdapter.isRecent = false;
                 searchResultSetAdapter.sets = popularSets;
-                searchResultsList.setVisibility(View.VISIBLE);
+                searchedSetsList.setVisibility(View.VISIBLE);
                 setsLoading.setVisibility(View.GONE);
                 noResults.setVisibility(View.GONE);
                 searchResultSetAdapter.notifyDataSetChanged();
-                searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                searchedSetsList.setOnItemClickListener(new ListView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Set s = searchResultSetAdapter.sets.get(position);
@@ -383,12 +400,12 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 didSelectPopularRecent(v);
                 searchResultSetAdapter.isRecent = true;
                 searchResultSetAdapter.sets = recentSets;
-                searchResultsList.setVisibility(View.VISIBLE);
+                searchedSetsList.setVisibility(View.VISIBLE);
                 setsLoading.setVisibility(View.GONE);
                 noResults.setVisibility(View.GONE);
                 searchResultSetAdapter.notifyDataSetChanged();
 //                  activity.playerManager.setPlaylist(searchResultSetAdapter.sets);
-                searchResultsList.setOnItemClickListener(new ListView.OnItemClickListener() {
+                searchedSetsList.setOnItemClickListener(new ListView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
                         Set s = searchResultSetAdapter.sets.get(position);
@@ -400,6 +417,31 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 });
             }
         });
+
+        rootView.findViewById(R.id.searchResultSets).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchResultSetAdapter.listState = ListOptions.SETS;
+                searchResultSetAdapter.notifyDataSetChanged();
+            }
+        });
+
+        rootView.findViewById(R.id.searchResultUpcomingEvents).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchResultSetAdapter.listState = ListOptions.EVENTS;
+                searchResultSetAdapter.notifyDataSetChanged();
+            }
+        });
+
+        rootView.findViewById(R.id.searchResultTracks).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                searchResultSetAdapter.listState = ListOptions.TRACKRESPONSES;
+                searchResultSetAdapter.notifyDataSetChanged();
+            }
+        });
+
     }
 
     public void didSelectCategory(View v) {
@@ -624,19 +666,41 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         private ImageLoadingListener animateFirstListener = new EventDetailFragment.AnimateFirstDisplayListener();
         public List<Set> sets;
         public boolean isRecent;
+        public List<Event> upcomingEvents;
+        public List<TrackResponse> tracks;
+        public ListOptions listState = ListOptions.SETS;
 
         SearchResultSetAdapter() {
             inflater = LayoutInflater.from(getActivity());
         }
 
-        SearchResultSetAdapter(List<Set> Sets) {
+        SearchResultSetAdapter(List<Set> Sets, List<Event> Events, List<TrackResponse> TrackResponses) {
             this();
             sets = Sets;
+            upcomingEvents = Events;
+            tracks = TrackResponses;
+        }
+
+        public void changeListType(ListOptions option) {
+            this.listState = option;
+            this.notifyDataSetChanged();
         }
 
         @Override
         public int getCount() {
-            return sets.size();
+            int size = 0;
+            switch (listState) {
+                case SETS:
+                    size = sets.size();
+                    break;
+                case EVENTS:
+                    size = upcomingEvents.size();
+                    break;
+                case TRACKRESPONSES:
+                    size = tracks.size();
+                    break;
+            }
+            return size;
         }
 
         @Override
@@ -652,45 +716,100 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         @Override
         public View getView(final int position, View convertView, ViewGroup parent) {
             View view = convertView;
-            final SearchResultSetViewHolder holder;
-            final Set set = sets.get(position);
-            if (convertView == null) {
-                view = inflater.inflate(R.layout.set_tile, parent, false);
-                holder = new SearchResultSetViewHolder();
-                holder.playCount = (TextView) view.findViewById(R.id.playCount);
-                holder.setLength = (TextView) view.findViewById(R.id.setLength);
-                holder.artistText = (TextView) view.findViewById(R.id.artistText);
-                holder.eventText = (TextView) view.findViewById(R.id.eventText);
-                holder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
-                holder.playButton = (ImageView) view.findViewById(R.id.playsIcon);
-                view.setTag(holder);
-                view.setId(Integer.valueOf(set.getId()).intValue());
-            } else {
-                holder = (SearchResultSetViewHolder) view.getTag();
+            final SearchResultSetViewHolder setViewHolder;
+            final SearchResultEventHolder eventHolder;
+            final SearchResultTrackHolder trackHolder;
+            switch (listState) {
+                case SETS:
+                    final Set set = sets.get(position);
+                    if (convertView != null && view.getTag() instanceof SearchResultSetViewHolder) {
+                        setViewHolder = (SearchResultSetViewHolder) view.getTag();
+                    } else {
+                        view = inflater.inflate(R.layout.set_tile, parent, false);
+                        setViewHolder = new SearchResultSetViewHolder();
+                        setViewHolder.playCount = (TextView) view.findViewById(R.id.playCount);
+                        setViewHolder.setLength = (TextView) view.findViewById(R.id.setLength);
+                        setViewHolder.artistText = (TextView) view.findViewById(R.id.artistText);
+                        setViewHolder.eventText = (TextView) view.findViewById(R.id.eventText);
+                        setViewHolder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
+                        setViewHolder.playButton = (ImageView) view.findViewById(R.id.playsIcon);
+                        view.setTag(setViewHolder);
+                        view.setId(Integer.valueOf(set.getId()).intValue());
+                    }
+                    setViewHolder.playCount.setText(set.getPopularity() + " plays");
+                    setViewHolder.playCount.setText(set.getSetLength());
+                    setViewHolder.artistText.setText(set.getArtist());
+                    setViewHolder.eventText.setText(set.getEvent());
+
+                    options = new DisplayImageOptions.Builder()
+                            .showImageOnLoading(R.drawable.logo_small)
+                            .showImageForEmptyUri(R.drawable.logo_small)
+                            .showImageOnFail(R.drawable.logo_small)
+                            .cacheInMemory(true)
+                            .cacheOnDisk(true)
+                            .considerExifParams(true)
+                            .build();
+
+                    ImageLoader.getInstance().displayImage(set.getArtistImage(), setViewHolder.artistImage, options, animateFirstListener);
+                    break;
+                case EVENTS:
+                    final Event event = upcomingEvents.get(position);
+                    if (convertView != null && view.getTag() instanceof SearchResultEventHolder) {
+                        eventHolder = (SearchResultEventHolder) view.getTag();
+                    } else {
+                        view = inflater.inflate(R.layout.event_tile_upcoming_small, parent, false);
+                        eventHolder = new SearchResultEventHolder();
+                        eventHolder.dates = (TextView) view.findViewById(R.id.dates);
+                        eventHolder.eventText = (TextView) view.findViewById(R.id.eventText);
+                        eventHolder.eventImage = (ImageView) view.findViewById(R.id.eventImage);
+                        view.setTag(eventHolder);
+                        view.setId(Integer.valueOf(event.getId()).intValue());
+                    }
+                    eventHolder.dates.setText(event.getStartDate()+ "-"+event.getEndDate());
+                    eventHolder.eventText.setText(event.getEvent());
+
+                    options = new DisplayImageOptions.Builder()
+                            .showImageOnLoading(R.drawable.logo_small)
+                            .showImageForEmptyUri(R.drawable.logo_small)
+                            .showImageOnFail(R.drawable.logo_small)
+                            .cacheInMemory(true)
+                            .cacheOnDisk(true)
+                            .considerExifParams(true)
+                            .build();
+
+                    ImageLoader.getInstance().displayImage(event.getIconImageUrl(), eventHolder.eventImage, options, animateFirstListener);
+
+                    break;
+                case TRACKRESPONSES:
+                    final TrackResponse track = tracks.get(position);
+                    if (convertView != null && view.getTag() instanceof SearchResultTrackHolder) {
+                        trackHolder = (SearchResultTrackHolder) view.getTag();
+                    } else {
+                        view = inflater.inflate(R.layout.set_tile, parent, false);
+                        trackHolder = new SearchResultTrackHolder();
+                        trackHolder.setLength = (TextView) view.findViewById(R.id.setLength);
+                        trackHolder.artistText = (TextView) view.findViewById(R.id.artistText);
+                        trackHolder.eventText = (TextView) view.findViewById(R.id.eventText);
+                        trackHolder.artistImage = (ImageView) view.findViewById(R.id.artistImage);
+                        view.setTag(trackHolder);
+                        view.setId(Integer.valueOf(track.getId()).intValue());
+                    }
+                    trackHolder.setLength.setText(track.getSetLength());
+                    trackHolder.artistText.setText(track.getArtist());
+                    trackHolder.eventText.setText(track.getEvent());
+
+                    options = new DisplayImageOptions.Builder()
+                            .showImageOnLoading(R.drawable.logo_small)
+                            .showImageForEmptyUri(R.drawable.logo_small)
+                            .showImageOnFail(R.drawable.logo_small)
+                            .cacheInMemory(true)
+                            .cacheOnDisk(true)
+                            .considerExifParams(true)
+                            .build();
+
+                    ImageLoader.getInstance().displayImage(track.getArtistImage(), trackHolder.artistImage, options, animateFirstListener);
+                    break;
             }
-
-            holder.playCount.setText(set.getPopularity() + " plays");
-            int playID = getResources().getIdentifier("com.setmine.android:drawable/ic_action_play", null, null);
-            holder.playButton.setImageResource(playID);
-            if(isRecent) {
-                holder.playCount.setText((new DateUtils()).convertDateToDaysAgo(set.getDatetime()));
-                int timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
-                holder.playButton.setImageResource(timeID);
-            }
-            holder.setLength.setText(set.getSetLength());
-            holder.artistText.setText(set.getArtist());
-            holder.eventText.setText(set.getEvent());
-
-            options = new DisplayImageOptions.Builder()
-                    .showImageOnLoading(R.drawable.logo_small)
-                    .showImageForEmptyUri(R.drawable.logo_small)
-                    .showImageOnFail(R.drawable.logo_small)
-                    .cacheInMemory(true)
-                    .cacheOnDisk(true)
-                    .considerExifParams(true)
-                    .build();
-
-            ImageLoader.getInstance().displayImage(set.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
             return view;
         }
