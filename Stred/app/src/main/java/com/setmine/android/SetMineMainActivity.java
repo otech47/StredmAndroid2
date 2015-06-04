@@ -17,6 +17,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -32,23 +33,26 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.setmine.android.fragment.ArtistDetailFragment;
-import com.setmine.android.fragment.EventDetailFragment;
-import com.setmine.android.fragment.MainPagerContainerFragment;
-import com.setmine.android.fragment.PlayerContainerFragment;
-import com.setmine.android.fragment.PlayerFragment;
-import com.setmine.android.fragment.PlaylistFragment;
-import com.setmine.android.fragment.SearchSetsFragment;
-import com.setmine.android.fragment.TracklistFragment;
-import com.setmine.android.fragment.UserFragment;
-import com.setmine.android.object.Artist;
-import com.setmine.android.object.Event;
-import com.setmine.android.object.Set;
-import com.setmine.android.object.User;
-import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.player.PlayerPagerAdapter;
+import com.setmine.android.artist.ArtistDetailFragment;
+import com.setmine.android.event.EventDetailFragment;
+import com.setmine.android.player.PlayerContainerFragment;
+import com.setmine.android.player.PlayerFragment;
+import com.setmine.android.player.PlaylistFragment;
+import com.setmine.android.search.SearchSetsFragment;
+import com.setmine.android.player.TracklistFragment;
+import com.setmine.android.user.UserFragment;
+import com.setmine.android.interfaces.ApiCaller;
+import com.setmine.android.artist.Artist;
+import com.setmine.android.event.Event;
+import com.setmine.android.player.PlayerManager;
+import com.setmine.android.player.PlayerService;
+import com.setmine.android.set.Set;
+import com.setmine.android.user.User;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
-import com.setmine.android.util.ImageUtils;
+import com.setmine.android.image.ImageUtils;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
@@ -83,6 +87,10 @@ public class SetMineMainActivity extends FragmentActivity implements
     public static String APP_VERSION;
 
     public String MODELS_VERSION;
+
+
+    public ViewPager eventViewPager;
+    public PlayerPagerAdapter mPlayerPagerAdapter;
 
     public FragmentManager fragmentManager;
     public PlayerContainerFragment playerContainerFragment;
@@ -519,6 +527,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     protected void onDestroy() {
+        super.onDestroy();
 
         Log.d(TAG, "onDestroy");
 

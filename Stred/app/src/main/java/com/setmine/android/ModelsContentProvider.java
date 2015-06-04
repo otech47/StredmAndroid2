@@ -2,14 +2,14 @@ package com.setmine.android;
 
 import android.util.Log;
 
-import com.setmine.android.object.Activity;
-import com.setmine.android.object.Artist;
-import com.setmine.android.object.Event;
-import com.setmine.android.object.Genre;
-import com.setmine.android.object.Lineup;
-import com.setmine.android.object.Mix;
-import com.setmine.android.object.Set;
-import com.setmine.android.object.Track;
+import com.setmine.android.api.Activity;
+import com.setmine.android.artist.Artist;
+import com.setmine.android.event.Event;
+import com.setmine.android.genre.Genre;
+import com.setmine.android.event.Lineup;
+import com.setmine.android.set.Mix;
+import com.setmine.android.set.Set;
+import com.setmine.android.track.Track;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,11 +35,13 @@ public class ModelsContentProvider {
     private List<Set> popularSets;
     private List<Set> recentSets;
     private List<Track> tracks = null;
+    public List<TrackResponse> searchedTracks;
     public HashMap<String, Lineup> lineups;
     public List<Event> soonestEvents;
     public List<Event> closestEvents;
     public List<Event> soonestEventsAroundMe;
     public List<Event> upcomingEvents;
+    public List<Event> searchedUpcomingEvents;
     public List<Event> recentEvents;
     public List<Event> searchEvents;
     public List<Activity> activities;
@@ -53,6 +55,8 @@ public class ModelsContentProvider {
         soonestEvents = new ArrayList<Event>();
         closestEvents = new ArrayList<Event>();
         soonestEventsAroundMe = new ArrayList<Event>();
+        upcomingEvents = new ArrayList<Event>();
+        searchedUpcomingEvents = new ArrayList<Event>();
         recentEvents = new ArrayList<Event>();
         searchEvents = new ArrayList<Event>();
         lineups = new HashMap<String, Lineup>();
@@ -68,7 +72,7 @@ public class ModelsContentProvider {
         detailSets = new HashMap<String, List<Set>>();
         detailEvents = new HashMap<String, List<Event>>();
         activities = new ArrayList<Activity>();
-
+        searchedTracks = new ArrayList<TrackResponse>();
         jsonMappings = new HashMap<String, String>();
     }
 
@@ -169,6 +173,16 @@ public class ModelsContentProvider {
                     searchedSets.clear();
                     for(int i = 0 ; i < sets.length() ; i++) {
                         searchedSets.add(new Set(sets.getJSONObject(i)));
+                    }
+                    JSONArray upcomingEvents = payload.getJSONObject("search").getJSONArray("upcomingEvents");
+                    searchedUpcomingEvents.clear();
+                    for(int i = 0 ; i < upcomingEvents.length() ; i++) {
+                        searchedUpcomingEvents.add(new Event(upcomingEvents.getJSONObject(i)));
+                    }
+                    JSONArray tracks = payload.getJSONObject("search").getJSONArray("tracks");
+                    searchedTracks.clear();
+                    for(int i = 0 ; i < tracks.length() ; i++) {
+                        searchedTracks.add(new TrackResponse(tracks.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("popularSets")) {
