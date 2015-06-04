@@ -14,6 +14,7 @@ import android.view.ViewGroup;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.adapter.MainPagerAdapter;
+import com.setmine.android.object.User;
 import com.viewpagerindicator.TitlePageIndicator;
 
 /**

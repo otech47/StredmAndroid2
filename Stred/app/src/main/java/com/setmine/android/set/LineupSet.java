@@ -4,6 +4,8 @@ import com.setmine.android.api.JSONModel;
 
 import com.setmine.android.Constants;
 
+import com.setmine.android.Constants;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 
