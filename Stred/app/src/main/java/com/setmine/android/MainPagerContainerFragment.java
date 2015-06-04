@@ -1,4 +1,4 @@
-package com.setmine.android.fragment;
+package com.setmine.android;
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -11,10 +11,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.setmine.android.R;
-import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.adapter.MainPagerAdapter;
-import com.setmine.android.object.User;
+import com.setmine.android.user.User;
 import com.viewpagerindicator.TitlePageIndicator;
 
 /**

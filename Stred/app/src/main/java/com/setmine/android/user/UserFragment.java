@@ -25,7 +25,6 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/user/UserFragment.java
 import com.setmine.android.MainPagerContainerFragment;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
@@ -37,19 +36,6 @@ import com.setmine.android.event.Event;
 import com.setmine.android.set.Set;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.api.SetMineApiPostRequestAsyncTask;
-=======
-import com.setmine.android.ApiCaller;
-import com.setmine.android.Constants;
-import com.setmine.android.ModelsContentProvider;
-import com.setmine.android.R;
-import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.object.Activity;
-import com.setmine.android.object.Event;
-import com.setmine.android.object.Set;
-import com.setmine.android.object.User;
-import com.setmine.android.task.SetMineApiGetRequestAsyncTask;
-import com.setmine.android.task.SetMineApiPostRequestAsyncTask;
->>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/UserFragment.java
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
 

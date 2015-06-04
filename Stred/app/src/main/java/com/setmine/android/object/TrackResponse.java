@@ -3,6 +3,9 @@ package com.setmine.android.object;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.setmine.android.set.Set;
+import com.setmine.android.track.Track;
+
 import org.json.JSONException;
 import org.json.JSONObject;
 

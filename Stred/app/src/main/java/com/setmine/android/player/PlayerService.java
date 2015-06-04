@@ -22,17 +22,10 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/player/PlayerService.java
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.Constants;
 import com.setmine.android.set.Set;
-=======
-import com.setmine.android.object.Set;
->>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/PlayerService.java
-import com.setmine.android.task.CountPlaysTask;
+import com.setmine.android.CountPlaysTask;
 
 import java.io.IOException;
 

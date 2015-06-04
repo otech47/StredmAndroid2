@@ -30,6 +30,8 @@ import com.setmine.android.event.Event;
 import com.setmine.android.event.EventDetailFragment;
 import com.setmine.android.genre.Genre;
 import com.setmine.android.interfaces.OnTaskCompleted;
+import com.setmine.android.object.SearchResultEventHolder;
+import com.setmine.android.object.SearchResultTrackHolder;
 import com.setmine.android.object.TrackResponse;
 import com.setmine.android.set.GetSetsTask;
 import com.setmine.android.set.Mix;

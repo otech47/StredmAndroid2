@@ -11,8 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.setmine.android.R;
-import com.setmine.android.adapter.PlayerPagerAdapter;
-import com.setmine.android.SetMineMainActivity;
 import com.viewpagerindicator.TitlePageIndicator;
 
 /**
@@ -62,9 +60,4 @@ public class PlayerContainerFragment extends Fragment {
         return root;
     }
 
-
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/player/PlayerContainerFragment.java
-    }
-=======
->>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/PlayerContainerFragment.java
 }

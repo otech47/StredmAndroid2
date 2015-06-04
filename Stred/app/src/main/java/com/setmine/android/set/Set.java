@@ -17,21 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class Set extends JSONModel implements Parcelable {
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/set/Set.java
-    private String mId;
-    private String mArtistImage;
-    private String mEventImage;
-    private String mArtist;
-    private String mEvent;
-    private String mGenre;
-    private String mSongURL;
-    private String episode;
-    private String setLength;
-    private List<Track> mTracklist;
-    private Integer popularity;
-    private Integer mRadiomix;
-    private String datetime;
-=======
+
     protected String mId;
     protected String mArtistImage;
     protected String mEventImage;
@@ -44,7 +30,8 @@ public class Set extends JSONModel implements Parcelable {
     protected List<Track> mTracklist;
     protected Integer popularity;
     protected Integer mRadiomix;
->>>>>>> f2c2fb7... WIP search by track:Stred/app/src/main/java/com/setmine/android/object/Set.java
+    protected String datetime;
+
 
 //      Parcelable Implementation
 

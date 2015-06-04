@@ -18,15 +18,9 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/player/PlaylistFragment.java
 import com.setmine.android.event.EventDetailFragment;
-import com.setmine.android.Constants;
 import com.setmine.android.set.SearchResultSetViewHolder;
 import com.setmine.android.set.Set;
-=======
-import com.setmine.android.object.SearchResultSetViewHolder;
-import com.setmine.android.object.Set;
->>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/fragment/PlaylistFragment.java
 
 import java.util.ArrayList;
 import java.util.List;

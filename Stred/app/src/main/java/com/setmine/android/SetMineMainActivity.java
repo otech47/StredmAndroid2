@@ -33,26 +33,25 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
-import com.setmine.android.player.PlayerPagerAdapter;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.artist.Artist;
 import com.setmine.android.artist.ArtistDetailFragment;
+import com.setmine.android.event.Event;
 import com.setmine.android.event.EventDetailFragment;
+import com.setmine.android.image.ImageUtils;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.player.PlayerContainerFragment;
 import com.setmine.android.player.PlayerFragment;
-import com.setmine.android.player.PlaylistFragment;
-import com.setmine.android.search.SearchSetsFragment;
-import com.setmine.android.player.TracklistFragment;
-import com.setmine.android.user.UserFragment;
-import com.setmine.android.interfaces.ApiCaller;
-import com.setmine.android.artist.Artist;
-import com.setmine.android.event.Event;
-import com.setmine.android.player.PlayerManager;
+import com.setmine.android.player.PlayerPagerAdapter;
 import com.setmine.android.player.PlayerService;
+import com.setmine.android.player.PlaylistFragment;
+import com.setmine.android.player.TracklistFragment;
+import com.setmine.android.search.SearchSetsFragment;
 import com.setmine.android.set.Set;
 import com.setmine.android.user.User;
-import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.user.UserFragment;
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
-import com.setmine.android.image.ImageUtils;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
@@ -340,6 +339,16 @@ public class SetMineMainActivity extends FragmentActivity implements
                 currentLocation = new Location("default");
                 currentLocation.setLatitude(29.652175);
                 currentLocation.setLongitude(-82.325856);
+                String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
+                        +currentLocation.getLongitude();
+                new SetMineApiGetRequestAsyncTask(this, this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                eventSearchUrl,
+                                "searchEvents");
+                new SetMineApiGetRequestAsyncTask(this, this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                "upcoming",
+                                "upcomingEvents");
             }
 
             new SetMineApiGetRequestAsyncTask(this, this)
@@ -893,6 +902,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onDisconnected() {
+        Log.d(TAG, "onDisconnected");
     }
 
     // Google Play Services connection failed
@@ -901,6 +911,9 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void onConnectionFailed(ConnectionResult connectionResult) {
 
         // Use Gainesville as location
+
+        Log.d(TAG, "onConnectionFailed");
+
 
         locationClient.disconnect();
         currentLocation = new Location("default");

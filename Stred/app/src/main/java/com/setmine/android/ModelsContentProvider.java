@@ -5,8 +5,9 @@ import android.util.Log;
 import com.setmine.android.api.Activity;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.event.Event;
-import com.setmine.android.genre.Genre;
 import com.setmine.android.event.Lineup;
+import com.setmine.android.genre.Genre;
+import com.setmine.android.object.TrackResponse;
 import com.setmine.android.set.Mix;
 import com.setmine.android.set.Set;
 import com.setmine.android.track.Track;
@@ -95,6 +96,7 @@ public class ModelsContentProvider {
     public void setModel(JSONObject model, String modelName) {
         JSONObject payload;
         try {
+
             if(model.getString("status").equals("success")) {
                 payload = model.getJSONObject("payload");
                 if(modelName.equals("upcomingEvents")) {
@@ -224,6 +226,8 @@ public class ModelsContentProvider {
 
     public void onModelsChange() {
         readyModels++;
+        Log.d(TAG, Integer.toString(readyModels));
+
         if(readyModels == Constants.initialRequiredModels) {
             initialModelsReady = true;
         }

@@ -1,14 +1,8 @@
 package com.setmine.android.player;
 
-<<<<<<< HEAD:Stred/app/src/main/java/com/setmine/android/player/PlayerManager.java
-import com.setmine.android.set.Set;
-=======
 import android.util.Log;
 
-import com.setmine.android.object.Set;
-
-import org.json.JSONArray;
->>>>>>> 9aef18e... Lifecycle refactoring complete:Stred/app/src/main/java/com/setmine/android/PlayerManager.java
+import com.setmine.android.set.Set;
 
 import java.util.ArrayList;
 import java.util.Collections;
