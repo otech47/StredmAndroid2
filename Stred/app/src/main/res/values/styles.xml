@@ -1,11 +1,12 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="SetMine" parent="android:Theme.Holo">
+    <style name="SetMine" parent="android:Theme.Holo.Light">
         <!-- Customize your theme here. -->
         <item name="android:windowActionBarOverlay">false</item>
         <item name="android:actionBarStyle">@style/CustomActionBar</item>
         <item name="android:windowActionBar">true</item>
+
     </style>
 
     <style name="CustomActionBar" parent="@android:style/Widget.Holo.Light.ActionBar.Solid.Inverse">

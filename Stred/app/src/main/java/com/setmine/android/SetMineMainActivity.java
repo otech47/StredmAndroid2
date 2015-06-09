@@ -448,7 +448,9 @@ public class SetMineMainActivity extends FragmentActivity implements
         // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
         // button depending on if the user is at the top level
 
+        Log.d(TAG, "getActionbar before");
         actionBar = getActionBar();
+        Log.d(TAG, "getActionbar after");
 
         // Handles showing or hiding the back button in the action bar
 
@@ -568,6 +570,8 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             openMainViewPager(-1);
 
+
+
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
         }
@@ -581,6 +585,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         // Use a custom action bar view
 
         View customView = inflater.inflate(R.layout.custom_action_bar, null);
+        Log.d(TAG, "customview:  " + customView.toString());
+   //     Log.d(TAG, "action bar  " + actionBar.toString());
         actionBar.setCustomView(customView);
         actionBar.setDisplayShowCustomEnabled(true);
 
