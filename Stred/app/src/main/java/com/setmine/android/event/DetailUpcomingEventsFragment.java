@@ -3,6 +3,7 @@ package com.setmine.android.event;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,12 +12,12 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.setmine.android.Constants;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.artist.ArtistDetailFragment;
 import com.setmine.android.artist.Artist;
-import com.setmine.android.Constants;
+import com.setmine.android.artist.ArtistDetailFragment;
 import com.setmine.android.util.DateUtils;
 
 import java.util.List;
@@ -68,6 +69,9 @@ public class DetailUpcomingEventsFragment extends Fragment {
         else {
             rootView.findViewById(R.id.noResults).setVisibility(View.GONE);
             rootView.findViewById(R.id.message).setVisibility(View.GONE);
+            detailListContainer.setBackgroundColor(R.drawable.top_bottom_border_purple_transparent);
+            Log.d(null, "set sdfsdfsdfsdfsdfdsf");
+
         }
 
         for(final Event uEvent : detailEvents) {

@@ -6,6 +6,8 @@ package com.setmine.android.artist;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.ColorMatrix;
+import android.graphics.ColorMatrixColorFilter;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -177,8 +179,17 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .considerExifParams(true)
                 .build();
 
-        ImageLoader.getInstance().displayImage( artistImageUrl, artistImageView, options);
+
+        ColorMatrix matrix = new ColorMatrix();
+        matrix.setSaturation(0);
+
+        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
+        artistImageView.setColorFilter(filter);
+
+        ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
         artistTextView.setText(artistName);
+
+
 
         setSocialMediaListeners();
 

@@ -1,38 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:layout_width="fill_parent"
-    android:layout_height="match_parent"
-    android:id="@+id/action_bar_container"
-    android:background="@color/setmine_blue"
-    android:visibility="gone">
-
-
-    <ImageView
-        android:layout_width="?android:actionBarSize"
-        android:layout_height="?android:actionBarSize"
-        android:src="@drawable/ic_action_search"
-        android:background="@drawable/pressable_actionbar_button"
-        android:layout_marginRight="10dp"
-        android:layout_marginLeft="10dp"
-        android:layout_marginEnd="10dp"
-        android:layout_marginStart="10dp"
-        android:onClick="startSearchFragment"/>
-
-    <ImageView
-        android:layout_width="wrap_content"
-        android:layout_height="?android:actionBarSize"
-        android:id="@+id/player_nav"
-        android:src="@drawable/ic_action_play_white"
-        android:background="@drawable/pressable_actionbar_button"
-        android:layout_alignParentRight="false"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="10dp"
-        android:onClick="playNavigationClick"
-        android:layout_alignParentBottom="false"
-        android:layout_alignParentTop="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"/>
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:id="@+id/action_bar_container"
+                android:background="@color/setmine_black"
+                android:visibility="gone">
 
     <RelativeLayout
         android:layout_width="wrap_content"
@@ -42,23 +15,48 @@
 
         <ImageView
             android:layout_width="20dp"
-            android:layout_height="match_parent"
+            android:layout_height="?android:actionBarSize"
             android:id="@+id/backButton"
             android:src="@drawable/ic_action_previous_item"
             android:visibility="invisible"/>
 
         <ImageView
-
-            android:layout_height="match_parent"
-            android:layout_width="wrap_content"
+            android:layout_width="?android:actionBarSize"
+            android:layout_height="?android:actionBarSize"
             android:id="@+id/homeIcon"
+            android:layout_toRightOf="@id/backButton"
             android:padding="7dp"
             android:src="@drawable/logo"
-            android:background="@drawable/pressable_home_button"
-            android:visibility="visible"
-            android:layout_alignParentTop="true"
-            android:layout_alignParentLeft="true"/>
+            android:background="@drawable/pressable_home_button"/>
 
     </RelativeLayout>
+
+
+
+
+    <ImageView
+        android:layout_width="?android:actionBarSize"
+        android:layout_height="?android:actionBarSize"
+        android:id="@+id/player_nav"
+        android:src="@drawable/ic_action_play_white"
+        android:background="@drawable/pressable_button_transparent_to_blue"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_marginRight="10dp"
+        android:onClick="playNavigationClick"/>
+
+    <ImageView
+        android:layout_width="?android:actionBarSize"
+        android:layout_height="?android:actionBarSize"
+        android:id="@+id/search_nav"
+        android:src="@drawable/ic_action_search"
+        android:background="@drawable/pressable_button_transparent_to_blue"
+        android:layout_toStartOf="@id/player_nav"
+        android:layout_toLeftOf="@id/player_nav"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:layout_marginEnd="10dp"
+        android:layout_marginStart="10dp"
+        android:onClick="startSearchFragment"/>
 
 </RelativeLayout>
