@@ -95,7 +95,7 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/imageView3"
                         android:layout_gravity="center"
-                        android:src="@drawable/facebook_circle_icon" />
+                        android:src="@mipmap/facebook_circle_icon" />
                 </FrameLayout>
 
                 <FrameLayout
@@ -116,7 +116,7 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/imageView4"
                         android:layout_gravity="center"
-                        android:src="@drawable/twitter_circle_icon" />
+                        android:src="@mipmap/twitter_circle_icon" />
 
                 </FrameLayout>
 
@@ -138,7 +138,7 @@
                         android:layout_height="wrap_content"
                         android:id="@+id/imageView5"
                         android:layout_gravity="center"
-                        android:src="@drawable/world_icon2" />
+                        android:src="@mipmap/world_icon1" />
 
                 </FrameLayout>
 
