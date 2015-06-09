@@ -6,11 +6,11 @@ package com.setmine.android.artist;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.ColorMatrix;
-import android.graphics.ColorMatrixColorFilter;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -29,10 +29,12 @@ import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.event.Event;
+import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.player.PlayerManager;
 import com.setmine.android.set.Set;
 import com.setmine.android.util.DateUtils;
+import com.setmine.android.util.ImageFilter;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import org.json.JSONException;
@@ -180,11 +182,10 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .build();
 
 
-        ColorMatrix matrix = new ColorMatrix();
-        matrix.setSaturation(0);
+        artistImageView = ImageUtils.grayscale(artistImageView);
 
-        ColorMatrixColorFilter filter = new ColorMatrixColorFilter(matrix);
-        artistImageView.setColorFilter(filter);
+        Bitmap bitmap = MediaStore.Images.Media.getBitmap(, artistImageUrl);
+
 
         ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
         artistTextView.setText(artistName);
