@@ -6,11 +6,9 @@ package com.setmine.android.artist;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
-import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -34,7 +32,6 @@ import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.player.PlayerManager;
 import com.setmine.android.set.Set;
 import com.setmine.android.util.DateUtils;
-import com.setmine.android.util.ImageFilter;
 import com.viewpagerindicator.TitlePageIndicator;
 
 import org.json.JSONException;
@@ -46,8 +43,8 @@ import java.util.List;
 public class ArtistDetailFragment extends Fragment implements ApiCaller {
 
     private static final String TAG = "ArtistDetailFragment";
+    private Context context;
 
-    public Context context;
     public SetMineMainActivity activity;
     public ModelsContentProvider modelsCP;
 
@@ -164,6 +161,8 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
 
     }
 
+
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -182,9 +181,31 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .build();
 
 
+
+
+
+
         artistImageView = ImageUtils.grayscale(artistImageView);
 
-        Bitmap bitmap = MediaStore.Images.Media.getBitmap(, artistImageUrl);
+
+
+// //////////////       ATTEMPT AT BLUR   ////////////////////
+
+//        Uri temp = Uri.parse(artistImageUrl);
+//        Bitmap bitmap = null;
+//
+//       context = this.getActivity();
+//
+//
+//        try {
+//            bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), temp);
+//            bitmap = ImageUtils.fastblur(bitmap, 10);
+//
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//        artistImageView.setImageBitmap(bitmap);
+
 
 
         ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
