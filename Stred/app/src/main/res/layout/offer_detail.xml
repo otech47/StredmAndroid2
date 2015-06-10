@@ -11,9 +11,18 @@
         android:id="@+id/offerBackgroundImage"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginRight="19dp"
-        android:layout_marginEnd="19dp"/>
+        android:layout_alignParentEnd="true"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Artist Name"
+        android:id="@+id/offerDetailArtistName"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textSize="40sp"
+        android:paddingTop="10dp"
+        />
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -48,7 +57,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="___ many miles"
+        android:text="___  miles"
         android:id="@+id/distanceText"
         android:layout_below="@+id/exclusiveContentText"
         android:layout_centerHorizontal="true"
@@ -78,7 +87,7 @@
         android:id="@+id/unlockedLayout"
         android:layout_margin="50dp"
         android:background="@color/setmine_white"
-        android:visibility="visible">
+        android:visibility="invisible">
 
         <ImageButton
             android:layout_width="68dp"
