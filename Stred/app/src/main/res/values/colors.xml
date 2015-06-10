@@ -20,8 +20,10 @@
     <color name="tab_background">#F7F7F7</color>
     <color name="main_background">#FF000000</color>
     <color name="setmine_white">#FFEEEEEE</color>
+    <color name="setmine_white_95_alpha">#EEEEEEEE</color>
     <color name="setmine_black">#FF000000</color>
     <color name="setmine_gray">#FF333333</color>
+    <color name="setmine_dark_gray">#af000000</color>
     <color name="setmine_gray_50_alpha">#77333333</color>
     <color name="setmine_light_gray">#FFCCCCCC</color>
     <color name="facebook_blue">#FF3B5998</color>
