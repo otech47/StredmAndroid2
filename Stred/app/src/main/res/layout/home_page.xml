@@ -160,73 +160,17 @@
 
     </LinearLayout>
 
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_alignParentBottom="true"
-        android:layout_below="@id/iconsLayout"
-        android:background="#f0ecf6"
-        android:id="@+id/relativeLayout3">
 
-        <LinearLayout
-            android:orientation="vertical"
+
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:weightSum="3"
-            android:gravity="center"
-            android:id="@+id/linearLayout2">
+            android:layout_height="wrap_content"
+            android:id="@+id/facebookLogoutContainer"
+            android:padding="10dp"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@id/iconsLayout"
+            android:background="#f0ecf6">
 
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:weightSum="4"
-                android:gravity="center">
-
-                <RelativeLayout
-                    android:layout_width="0dp"
-                    android:layout_weight="2"
-                    android:layout_height="match_parent">
-
-                    <ImageView
-                        android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:id="@+id/imageView3"
-                        android:layout_centerVertical="true"
-                        android:layout_centerHorizontal="true"
-                        android:src="@drawable/com_facebook_button_like_background"
-                        android:layout_gravity="center_horizontal"
-                        android:scaleType="fitXY"/>
-
-                    <ImageView
-                        android:scaleType="fitCenter"
-                        android:adjustViewBounds="true"
-                        android:layout_width="wrap_content"
-                        android:layout_height="fill_parent"
-                        android:id="@+id/imageView2"
-                        android:src="@drawable/com_facebook_inverse_icon"
-                        android:layout_alignLeft="@id/imageView3"
-
-
-                        android:layout_marginLeft="10dp"/>
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="Log In"
-                        android:id="@+id/facebookLoginLogoutText"
-                        android:layout_centerVertical="true"
-                        android:layout_centerHorizontal="true"
-                        android:typeface="normal"
-                        android:textStyle="bold"
-                        android:textSize="15dp"
-                        android:textColor="#f0ecf6"/>
-                </RelativeLayout>
-
-            </LinearLayout>
-
-        </LinearLayout>
 
     </RelativeLayout>
 
