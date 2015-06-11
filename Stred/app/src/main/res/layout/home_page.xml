@@ -52,7 +52,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/activitiesImage"
-                android:src="@mipmap/setmine_star"
+                android:src="@mipmap/setmine_activities_icon"
                 android:adjustViewBounds="true"
                 android:scaleType="fitXY"
                 android:background="#2cb7a7"/>
@@ -62,9 +62,10 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/eventsImage"
-                android:src="@mipmap/setmine_music_bars"
+                android:src="@mipmap/setmine_globe"
                 android:adjustViewBounds="true"
-                android:background="#9242b0"/>
+                android:background="#9242b0"
+                android:scaleType="fitXY"/>
         </LinearLayout>
 
 
