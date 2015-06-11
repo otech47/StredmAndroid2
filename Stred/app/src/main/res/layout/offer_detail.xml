@@ -187,6 +187,35 @@
             android:layout_below="@+id/relativeLayout2"
             android:layout_centerHorizontal="true"/>
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentBottom="true"
+            android:gravity="center"
+            android:id="@+id/vendorMessageLayout"
+
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="The vendor message goes here.\n If you&apos;re seeing this someone fucked up."
+                android:id="@+id/vendorMessage"
+                android:layout_centerHorizontal="true"
+                android:gravity="clip_vertical|center_horizontal"
+                android:textSize="15dp"
+                android:textColor="@color/setmine_dark_gray"
+                android:paddingLeft="35dp"
+                android:paddingRight="35dp"
+                android:paddingBottom="15dp"
+                android:paddingTop="15dp"
+
+                />
+
+        </RelativeLayout>
+
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="3dp"
@@ -217,34 +246,6 @@
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
                 android:scaleType="fitCenter"/>
-        </RelativeLayout>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
-            android:layout_alignParentBottom="true"
-            android:gravity="center"
-            android:id="@+id/vendorMessageLayout"
-           >
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="The vendor message goes here.\n If you&apos;re seeing this someone fucked up."
-                android:id="@+id/vendorMessage"
-                android:layout_centerHorizontal="true"
-                android:gravity="clip_vertical|center_horizontal"
-                android:textSize="15dp"
-                android:textColor="@color/setmine_dark_gray"
-                android:paddingLeft="35dp"
-                android:paddingRight="35dp"
-                android:paddingBottom="15dp"
-                android:paddingTop="15dp"
-
-                />
-
         </RelativeLayout>
 
     </RelativeLayout>
