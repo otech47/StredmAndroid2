@@ -3,7 +3,8 @@
               android:orientation="vertical"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-                android:background="@android:color/black">
+                android:background="@android:color/black"
+                android:id="@+id/relativeLayout1">
 
     <ImageView
         android:layout_width="match_parent"
@@ -109,10 +110,10 @@
                 <ImageView
 
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
+                    android:layout_height="match_parent"
                     android:id="@+id/offerButton1"
                     android:layout_centerHorizontal="true"
-                    android:src="@mipmap/setmine_offer_button"
+                    android:src="@mipmap/setmine_bar_button"
                     android:scaleType="centerCrop"
                     android:alpha=".95"/>
 
@@ -171,7 +172,7 @@
                     android:layout_height="wrap_content"
                     android:id="@+id/offerButton2"
                     android:layout_centerHorizontal="true"
-                    android:src="@mipmap/setmine_offer_button"
+                    android:src="@mipmap/setmine_bar_button"
                     android:scaleType="centerCrop"
                     android:alpha=".95"/>
 
