@@ -11,7 +11,8 @@
         android:id="@+id/offerBackgroundImage"
         android:layout_alignParentTop="true"
         android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"/>
+        android:layout_alignParentEnd="true"
+        android:background="@color/setmine_dark_gray"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -22,7 +23,7 @@
         android:layout_centerHorizontal="true"
         android:textSize="40sp"
         android:paddingTop="10dp"
-        />
+        android:textColor="#ffd5d5d5"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -44,7 +45,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="Exclusive Content"
         android:id="@+id/exclusiveContentText"
-        android:textColor="@android:color/white"
+        android:textColor="#ffd5d5d5"
         android:textAlignment="center"
         android:singleLine="true"
         android:layout_centerVertical="true"
@@ -62,7 +63,7 @@
         android:layout_below="@+id/exclusiveContentText"
         android:layout_centerHorizontal="true"
         android:textStyle="bold"
-        android:textColor="@android:color/white"
+        android:textColor="#ffd5d5d5"
         android:layout_marginTop="14dp"
         android:textSize="15dp"/>
 
@@ -77,9 +78,137 @@
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textColor="@android:color/white"
+        android:textColor="#ffd5d5d5"
         android:paddingLeft="60dp"
         android:paddingRight="60dp"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/distanceText"
+        android:layout_above="@id/redemptionText"
+        android:layout_gravity="center"
+        android:orientation="vertical"
+        android:weightSum="2">
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="2"
+            android:gravity="center_horizontal"
+            android:layout_weight="1">
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:id="@+id/offerButton1Layout"
+                android:layout_weight="1"
+                android:layout_gravity="center_vertical">
+
+                <ImageView
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/offerButton1"
+                    android:layout_centerHorizontal="true"
+                    android:src="@mipmap/setmine_offer_button"
+                    android:scaleType="centerCrop"
+                    android:alpha=".95"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/offerButton1"
+                    android:layout_alignTop="@id/offerButton1"
+                    android:id="@+id/lockIcon"
+                    android:adjustViewBounds="true"
+                    android:src="@android:drawable/ic_lock_lock"
+                    android:scaleType="centerCrop"
+                    android:layout_marginLeft="18dp"
+
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginBottom="13dp"
+                    android:tint="#ff4f4f4f"
+                    android:tintMode="multiply"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Exclusive Stuff"
+                    android:id="@+id/offerText1"
+                    android:singleLine="true"
+                    android:layout_alignWithParentIfMissing="false"
+                    android:layout_alignTop="@+id/lockIcon"
+                    android:layout_alignBottom="@+id/lockIcon"
+                    android:textColor="@color/setmine_dark_gray"
+                    android:layout_marginRight="20dp"
+                    android:gravity="center"
+                    android:textSize="13dp"
+                    android:layout_alignLeft="@+id/lockIcon"
+                    android:layout_alignStart="@+id/lockIcon"
+                    android:paddingLeft="14dp"/>
+            </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:weightSum="2"
+            android:gravity="center_horizontal">
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:id="@+id/offerButton2Layout"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/offerButton2"
+                    android:layout_centerHorizontal="true"
+                    android:src="@mipmap/setmine_offer_button"
+                    android:scaleType="centerCrop"
+                    android:alpha=".95"/>
+
+                <ImageView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignBottom="@id/offerButton2"
+                    android:layout_alignTop="@id/offerButton2"
+                    android:id="@+id/vendorImageSmall"
+                    android:adjustViewBounds="true"
+                    android:src="@drawable/artist_icon"
+                    android:scaleType="centerCrop"
+                    android:layout_marginLeft="18dp"
+                    android:layout_centerVertical="true"
+                    android:layout_marginTop="14dp"
+                    android:layout_marginBottom="13dp"/>
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Free Stuff"
+                    android:id="@+id/offerText2"
+                    android:singleLine="true"
+                    android:layout_alignWithParentIfMissing="false"
+                    android:layout_alignTop="@+id/vendorImageSmall"
+                    android:layout_alignBottom="@+id/vendorImageSmall"
+                    android:textColor="@color/setmine_dark_gray"
+                    android:layout_marginRight="20dp"
+                    android:gravity="center"
+                    android:textSize="13dp"
+                    android:layout_alignLeft="@+id/vendorImageSmall"
+                    android:layout_alignStart="@+id/vendorImageSmall"
+                    android:paddingLeft="14dp"/>
+            </RelativeLayout>
+        </LinearLayout>
+
+    </LinearLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -87,7 +216,7 @@
         android:id="@+id/unlockedLayout"
         android:layout_margin="50dp"
         android:background="@color/setmine_white"
-        android:visibility="invisible">
+        android:visibility="gone">
 
         <ImageButton
             android:layout_width="68dp"
@@ -245,7 +374,8 @@
                 android:src="@drawable/logo"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
-                android:scaleType="fitCenter"/>
+                android:scaleType="fitCenter"
+                />
         </RelativeLayout>
 
     </RelativeLayout>
