@@ -132,7 +132,7 @@
                     android:layout_marginTop="14dp"
                     android:layout_marginBottom="13dp"
                     android:tint="#ff4f4f4f"
-                    android:tintMode="multiply"/>
+                    />
 
                 <TextView
                     android:layout_width="match_parent"
