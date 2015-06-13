@@ -769,6 +769,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Handles incoming intents for opening parts of the app
 
     public void handleIntent(Intent intent) {
+
         if(intent != null && intent.getAction() != null) {
 
             // Remote Controls and the Notification player send in this intent
@@ -780,8 +781,14 @@ public class SetMineMainActivity extends FragmentActivity implements
                 // Intent for deep linking
 
                 String command = intent.getDataString();
-                Log.d(TAG, command);
+                Log.d(TAG, command );
             }
+            else if(intent.getAction().equals("android.intent.action.VIEW")){
+                String command = intent.getDataString();
+                Log.d(TAG, command);
+                startPlayerFragment();
+            }
+
         }
     }
 

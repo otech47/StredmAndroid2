@@ -52,6 +52,16 @@
             android:label="@string/app_name" >
 
             <intent-filter>
+                <data android:scheme="http"
+                      android:host="setmine.com"
+                    />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+            </intent-filter>
+
+            <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
@@ -67,14 +77,14 @@
                 <action android:name="com.setmine.android.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Accepts URIs that begin with "http://www.example.com/gizmos” -->
-                <data android:scheme="http"
-                    android:host="setmine.com"/>
-            </intent-filter>
+            <!--<intent-filter>-->
+                <!--<action android:name="android.intent.action.VIEW" />-->
+                <!--<category android:name="android.intent.category.DEFAULT" />-->
+                <!--<category android:name="android.intent.category.BROWSABLE" />-->
+                <!--&lt;!&ndash; Accepts URIs that begin with "http://www.example.com/gizmos” &ndash;&gt;-->
+                <!--<data android:scheme="http"-->
+                    <!--android:host="setmine.com"/>-->
+            <!--</intent-filter>-->
         </activity>
         <activity
             android:name="com.mixpanel.android.surveys.SurveyActivity" />
@@ -82,15 +92,16 @@
             android:name="com.facebook.LoginActivity"
             android:label="@string/facebook_login"/>
 
-        <activity android:name=".ParseDeepLinkActivity">
+        <activity android:name="com.setmine.android.ParseDeepLinkActivity">
             <intent-filter>
-                <action android:name="android.intent.action.VIEW"/>
+                <data android:scheme="setmine"
+                      android:host="setmine.com"
+                      android:pathPrefix="/play"
+                    />
+                <action android:name="com.setmine.android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
 
-                <!-- Handles any vnd.urbanairship.sample://deeplink URI's -->
-                <data android:scheme="vnd.urbanairship.sample" android:host="deeplink" />
-
-                <category android:name="android.intent.category.DEFAULT"/>
-                <category android:name="android.intent.category.BROWSABLE"/>
             </intent-filter>
         </activity>
 
