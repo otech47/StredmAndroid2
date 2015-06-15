@@ -773,16 +773,22 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void handleIntent(Intent intent) {
 
+        String command;
+        String[] segments;
+        try {
+            command = intent.getDataString();
+            Log.d(TAG, command);
+            segments = command.split("/", 0);
+        }catch(Exception e){segments = null;}
+
             // Remote Controls and the Notification player send in this intent
 
             if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
                 startPlayerFragment();
             }
 
-            else if(intent.getAction().equals("android.intent.action.VIEW")){
-                String command = intent.getDataString();
-                Log.d(TAG, command);
-                String[] segments = command.split("/", 0);
+            else if(intent.getAction().equals("android.intent.action.VIEW")&& segments[segments.length-2].equals("?play")){
+
                 Log.d("track id: ", segments[segments.length-1]);
 
                 if(segments[segments.length-2].equals("?play")) {
@@ -795,7 +801,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         else{ openMainViewPager(-1);}
 
 
-        
+
 
     }
 
