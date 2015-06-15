@@ -477,7 +477,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             // Remove all views inside the layout container
 
-            ((ViewGroup)activitiesContainer).removeAllViews();
+//            ((ViewGroup)activitiesContainer).removeAllViews();
 
             // Remove the loader
 
@@ -530,7 +530,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
                 // Add each activity tile to the parent container
 
-                ((ViewGroup)activitiesContainer).addView(activityTile);
+//                ((ViewGroup)activitiesContainer).addView(activityTile);
             }
         }
 
@@ -566,7 +566,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-        ((ViewGroup)myNextEventContainer).removeAllViews();
+//        ((ViewGroup)myNextEventContainer).removeAllViews();
 
         // Remove the loader
 
@@ -608,7 +608,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Add the event tile to the container
 
-        ((ViewGroup)myNextEventContainer).addView(myNextEventTile);
+//        ((ViewGroup)myNextEventContainer).addView(myNextEventTile);
 
     }
 
@@ -623,7 +623,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-        ((ViewGroup)mySetsContainer).removeAllViews();
+//        ((ViewGroup)mySetsContainer).removeAllViews();
 
         // Remove the loader
 
@@ -635,7 +635,7 @@ public class UserFragment extends Fragment implements ApiCaller {
             Log.d(TAG, "No Favorite Sets");
             TextView noFavoriteSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
             noFavoriteSets.setText("You haven't favorited any sets yet! To add one to the list, search for a set and click the star icon while it's playing.");
-            ((ViewGroup) mySetsContainer).addView(noFavoriteSets);
+//            ((ViewGroup) mySetsContainer).addView(noFavoriteSets);
         }
         for(int i = 0 ; i < favoriteSets.size() ; i++) {
             Set set = favoriteSets.get(i);
@@ -674,7 +674,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 }
             });
 
-            ((ViewGroup)mySetsContainer).addView(mySetTile);
+//            ((ViewGroup)mySetsContainer).addView(mySetTile);
         }
     }
 
@@ -707,7 +707,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-        ((ViewGroup)newSetsContainer).removeAllViews();
+//        ((ViewGroup)newSetsContainer).removeAllViews();
 
         // Remove the loader
 
@@ -719,7 +719,7 @@ public class UserFragment extends Fragment implements ApiCaller {
             Log.d(TAG, "No New Sets");
             TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
             noNewSets.setText("You have no new sets yet! Hang on, we'll find some for you.");
-            ((ViewGroup) newSetsContainer).addView(noNewSets);
+//            ((ViewGroup) newSetsContainer).addView(noNewSets);
         }
         for(int i = 0 ; i < newSets.size() ; i++) {
             Set set = newSets.get(i);
@@ -761,7 +761,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                                 }
                             });
 
-            ((ViewGroup)newSetsContainer).addView(mySetTile);
+//            ((ViewGroup)newSetsContainer).addView(mySetTile);
         }
     }
 }
