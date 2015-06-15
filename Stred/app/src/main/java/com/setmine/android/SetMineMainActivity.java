@@ -568,9 +568,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             handleIntent(getIntent());
 
-            if(getIntent().getAction().equals("android.intent.action.MAIN")) {
-                openMainViewPager(-1);
-            }
+
 
 
         } catch (RejectedExecutionException r) {
@@ -775,8 +773,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void handleIntent(Intent intent) {
 
-        if(intent != null && intent.getAction() != null) {
-
             // Remote Controls and the Notification player send in this intent
 
             if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
@@ -793,9 +789,13 @@ public class SetMineMainActivity extends FragmentActivity implements
                     playSetWithSetID(segments[segments.length-1]);
                 }
             }
+//           else if(getIntent().getAction().equals("android.intent.action.MAIN")) {
+//                openMainViewPager(-1);
+//            }
+        else{ openMainViewPager(-1);}
 
 
-        }
+        
 
     }
 
