@@ -786,6 +786,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             else if(intent.getAction().equals("android.intent.action.VIEW")){
                 String command = intent.getDataString();
                 Log.d(TAG, command);
+                startPlayerFragment();
             }
 
         }
