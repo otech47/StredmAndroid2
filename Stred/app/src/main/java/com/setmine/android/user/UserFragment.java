@@ -68,10 +68,10 @@ public class UserFragment extends Fragment implements ApiCaller {
     public View homeView;
     public View loginView;
     public View rootView;
-    public View mySetsContainer;
-    public View activitiesContainer;
-    public View myNextEventContainer;
-    public View newSetsContainer;
+    public View mySetsButton;
+    public View activitiesButton;
+    public View myNextEventsButton;
+    public View newSetsButton;
 
 
     public DisplayImageOptions options;
@@ -124,10 +124,10 @@ public class UserFragment extends Fragment implements ApiCaller {
         public void run() {
             if(activity != null) {
                 activity.user = registeredUser;
-                populateActivities();
-                populateMySets();
-                kickOffNextEventQuery();
-                kickOffNewSetsQuery();
+//                populateActivities();
+//                populateMySets();
+//                kickOffNextEventQuery();
+//                kickOffNewSetsQuery();
                 registerMixpanelUser();
                 ((MainPagerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(0);
             }
@@ -227,10 +227,10 @@ public class UserFragment extends Fragment implements ApiCaller {
         rootView = inflater.inflate(R.layout.fragment_user, container, false);
         loginView = rootView.findViewById(R.id.loginContainer);
         homeView = rootView.findViewById(R.id.homeContainer);
-        mySetsContainer = rootView.findViewById(R.id.mySetTilesContainer);
-        activitiesContainer = rootView.findViewById(R.id.activityTilesContainer);
-        myNextEventContainer = rootView.findViewById(R.id.myNextEventContainer);
-        newSetsContainer = rootView.findViewById(R.id.newSetsTilesContainer);
+        mySetsButton = rootView.findViewById(R.id.mySetsButton);
+        activitiesButton = rootView.findViewById(R.id.activitiesButton);
+        myNextEventsButton = rootView.findViewById(R.id.myNextEventsButton);
+        newSetsButton = rootView.findViewById(R.id.newSetsButton);
         loginButton = (LoginButton)rootView.findViewById(R.id.facebookLoginButton);
 
         // Set permissions necessary for Facebook Login Prompt
@@ -397,17 +397,21 @@ public class UserFragment extends Fragment implements ApiCaller {
         rootView.findViewById(R.id.loginContainer).setVisibility(View.GONE);
         rootView.findViewById(R.id.homeContainer).setVisibility(View.VISIBLE);
 
+        // For changing the title from "Login" to "Home"
+
         ((MainPagerContainerFragment)getParentFragment()).mMainPagerAdapter.TITLES[0] = "Home";
 
-        if(registeredUser.isRegistered()) {
-            populateMySets();
-            populateActivities();
-            populateMyNextEvent();
-        }
+//        if(registeredUser.isRegistered()) {
+//            populateMySets();
+//            populateActivities();
+//            populateMyNextEvent();
+//        }
 
         // Scroll to top of view
 
         ((ScrollView)rootView.findViewById(R.id.homeScroll)).smoothScrollTo(0, 0);
+
+        assignClickListeners();
     }
 
     public void generateLoginPage() {
@@ -427,6 +431,33 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         ((MainPagerContainerFragment)getParentFragment()).mMainPagerAdapter.TITLES[0] = "Login";
 
+    }
+
+    public void assignClickListeners() {
+        mySetsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Show My Sets
+            }
+        });
+        newSetsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Show New Sets
+            }
+        });
+        activitiesButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Show Activities
+            }
+        });
+        myNextEventsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Show My Next Events
+            }
+        });
     }
 
     // Create the Activity tiles after activities have been stored in the Models Content Provider
@@ -450,7 +481,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             // Remove the loader
 
-            rootView.findViewById(R.id.activitiesLoading).setVisibility(View.GONE);
+//            rootView.findViewById(R.id.activitiesLoading).setVisibility(View.GONE);
 
             // Inflate a activity tile for every activity
 
@@ -539,7 +570,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove the loader
 
-        rootView.findViewById(R.id.myNextEventLoading).setVisibility(View.GONE);
+//        rootView.findViewById(R.id.myNextEventLoading).setVisibility(View.GONE);
 
         // Inflate an upcoming event tile for My Next Event
 
@@ -596,7 +627,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove the loader
 
-        rootView.findViewById(R.id.mySetsLoading).setVisibility(View.GONE);
+//        rootView.findViewById(R.id.mySetsLoading).setVisibility(View.GONE);
 
         // If the user has not favorited any sets
 
@@ -680,7 +711,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove the loader
 
-        rootView.findViewById(R.id.newSetsLoading).setVisibility(View.GONE);
+//        rootView.findViewById(R.id.newSetsLoading).setVisibility(View.GONE);
 
         // If the user has not favorited any sets
 

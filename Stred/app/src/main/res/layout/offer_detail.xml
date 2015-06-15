@@ -127,12 +127,9 @@
                     android:src="@android:drawable/ic_lock_lock"
                     android:scaleType="centerCrop"
                     android:layout_marginLeft="18dp"
-
                     android:layout_centerVertical="true"
                     android:layout_marginTop="14dp"
-                    android:layout_marginBottom="13dp"
-                    android:tint="#ff4f4f4f"
-                    android:tintMode="multiply"/>
+                    android:layout_marginBottom="13dp"/>
 
                 <TextView
                     android:layout_width="match_parent"

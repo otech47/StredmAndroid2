@@ -31,7 +31,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/starImage"
-                    android:src="@mipmap/setmine_star"
+                    android:src="@drawable/setmine_star"
                     android:adjustViewBounds="true"
                     android:scaleType="fitXY"
                     android:background="#e9444b"
@@ -162,7 +162,7 @@
 
 
 
-        <RelativeLayout
+    <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/facebookLogoutContainer"
