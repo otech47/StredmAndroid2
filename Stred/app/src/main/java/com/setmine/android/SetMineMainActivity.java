@@ -469,7 +469,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // See each method for documentation
 
-        handleIntent(getIntent());
+
         applyCustomViewStyles();
 //        createSecondLevelFragments();
 
@@ -566,7 +566,12 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             // Initialize the MainViewPagerFragment
 
-            openMainViewPager(-1);
+            handleIntent(getIntent());
+
+            if(getIntent().getAction().equals("android.intent.action.MAIN")) {
+                openMainViewPager(-1);
+            }
+
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
@@ -776,19 +781,22 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
                 startPlayerFragment();
-            } else if(intent.getAction().equals("com.setmine.android.VIEW")) {
-
-                // Intent for deep linking
-
-                String command = intent.getDataString();
-                Log.d(TAG, command );
             }
+
             else if(intent.getAction().equals("android.intent.action.VIEW")){
                 String command = intent.getDataString();
                 Log.d(TAG, command);
+                String[] segments = command.split("/", 0);
+                Log.d("track id: ", segments[segments.length-1]);
+
+                if(segments[segments.length-2].equals("?play")) {
+                    playSetWithSetID(segments[segments.length-1]);
+                }
             }
 
+
         }
+
     }
 
     // For communicating with PlayerService
