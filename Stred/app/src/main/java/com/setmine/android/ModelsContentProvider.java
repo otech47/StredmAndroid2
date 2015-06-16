@@ -28,7 +28,7 @@ public class ModelsContentProvider {
 
     private List<Artist> artists;
     private List<Artist> allArtists;
-    private List<Event> events;
+    private List<Event> events; //all past events
     private List<Mix> mixes;
     private List<Genre> genres;
     public List<Set> searchedSets;
@@ -38,7 +38,7 @@ public class ModelsContentProvider {
     private List<Track> tracks = null;
     public List<TrackResponse> searchedTracks;
     public HashMap<String, Lineup> lineups;
-    public List<Event> soonestEvents;
+    public List<Event> soonestEvents;//upcoming events
     public List<Event> closestEvents;
     public List<Event> soonestEventsAroundMe;
     public List<Event> upcomingEvents;
