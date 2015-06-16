@@ -765,7 +765,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             segments = null;
         }
 
-        // Remote Controls and the Notification player send in this intent
+        // Intents for Playing Sets, Artist Details, Event Details, Remote Controls and the Notification player
 
         if (intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
             startPlayerFragment();
