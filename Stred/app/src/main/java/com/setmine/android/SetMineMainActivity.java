@@ -84,10 +84,13 @@ public class SetMineMainActivity extends FragmentActivity implements
     private static final String TAG = "SetMineMainActivity";
 
     public static String APP_VERSION;
-    final Handler handler = new Handler();
+
     public String MODELS_VERSION;
+
+
     public ViewPager eventViewPager;
     public PlayerPagerAdapter mPlayerPagerAdapter;
+
     public FragmentManager fragmentManager;
     public PlayerContainerFragment playerContainerFragment;
     public PlaylistFragment playlistFragment;
@@ -98,30 +101,42 @@ public class SetMineMainActivity extends FragmentActivity implements
     public UserFragment userFragment;
     public EventDetailFragment eventDetailFragment;
     public ArtistDetailFragment artistDetailFragment;
+
+
     public ModelsContentProvider modelsCP;
     public PlayerService playerService;
     public boolean serviceBound = false;
     public Set selectedSet;
+
+    public User user;
+    public boolean userIsRegistered;
+
+    public int asyncTasksInProgress;
+
+
+    public MixpanelAPI mixpanel;
+    public LocationClient locationClient;
+    public Location currentLocation;
+
+    public Menu menu;
+    public ActionBar actionBar;
+
+    public ImageUtils imageUtils;
+    public DateUtils dateUtils;
+
+
+    // Create the Service Connection to start and bind at onStart()
+
+    public ServiceConnection playerServiceConnection;
+
+    final Handler handler = new Handler();
+
     final Runnable updateUI = new Runnable() {
         @Override
         public void run() {
             finishOnCreate();
         }
     };
-    public User user;
-    public boolean userIsRegistered;
-    public int asyncTasksInProgress;
-    public MixpanelAPI mixpanel;
-    public LocationClient locationClient;
-    public Location currentLocation;
-    public Menu menu;
-    public ActionBar actionBar;
-
-
-    // Create the Service Connection to start and bind at onStart()
-    public ImageUtils imageUtils;
-    public DateUtils dateUtils;
-    public ServiceConnection playerServiceConnection;
 
     @Override
     public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
@@ -131,12 +146,12 @@ public class SetMineMainActivity extends FragmentActivity implements
             @Override
             public void run() {
                 Log.d(TAG, "onApiResponseReceived: ");
-                if (finalIdentifier.equals("modelsVersion")) {
+                if(finalIdentifier.equals("modelsVersion")) {
                     try {
                         boolean modelsVersionMatches = finalJsonObject.getJSONObject("payload").getBoolean("version");
                         Log.d(TAG, Boolean.toString(modelsVersionMatches));
-                        if (modelsVersionMatches) {
-                        } else {
+                        if(modelsVersionMatches) {}
+                        else {
                             String newModelsVersion = finalJsonObject.getString("models_version");
                             Log.d(TAG, newModelsVersion);
                             updateModelsVersion(newModelsVersion);
@@ -147,7 +162,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                     }
                 } else {
                     modelsCP.setModel(finalJsonObject, finalIdentifier);
-                    if (modelsCP.initialModelsReady) {
+                    if(modelsCP.initialModelsReady) {
                         handler.post(updateUI);
                     }
                 }
@@ -175,13 +190,13 @@ public class SetMineMainActivity extends FragmentActivity implements
         // IF modelsVersionMatches is true, models are stored on device
 
         modelsCP = new ModelsContentProvider();
-        if (modelsAreStored) {
+        if(modelsAreStored) {
             try {
                 FileInputStream fis = openFileInput("stored_models_file");
                 int c;
                 String jsonString = "";
-                while ((c = fis.read()) != -1) {
-                    jsonString = jsonString + Character.toString((char) c);
+                while( (c = fis.read()) != -1){
+                    jsonString = jsonString + Character.toString((char)c);
                 }
                 fis.close();
                 Log.d(TAG, "stored models: " + jsonString);
@@ -202,12 +217,12 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         try {
             File file = getBaseContext().getFileStreamPath("models_version_file");
-            if (file.exists()) {
+            if(file.exists()) {
                 FileInputStream fis = openFileInput("models_version_file");
                 int c;
                 MODELS_VERSION = "";
-                while ((c = fis.read()) != -1) {
-                    MODELS_VERSION = MODELS_VERSION + Character.toString((char) c);
+                while( (c = fis.read()) != -1) {
+                    MODELS_VERSION = MODELS_VERSION + Character.toString((char)c);
                 }
                 fis.close();
                 Log.d(TAG, "MODELS_VERSION Found: " + MODELS_VERSION);
@@ -235,7 +250,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         mixpanel = MixpanelAPI.getInstance(this, Constants.MIXPANEL_TOKEN);
         JSONObject mixpanelProperties = new JSONObject();
         try {
-            mixpanelProperties.put("App Version", "SetMine v" + APP_VERSION);
+            mixpanelProperties.put("App Version", "SetMine v" +APP_VERSION);
             mixpanel.track("Application Opened", mixpanelProperties);
             MixpanelAPI.People people = mixpanel.getPeople();
             String id = mixpanel.getDistinctId();
@@ -252,7 +267,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             people.setOnce("user_id", id);
             people.set("SetMine Upgrade", "Yes");
             people.set("Client", "SetMine");
-            people.set("Version", "SetMine v" + APP_VERSION);
+            people.set("Version", "SetMine v"+APP_VERSION);
             people.setOnce("date_tracked", nowAsISO);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -298,7 +313,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         fragmentManager = getSupportFragmentManager();
 
-        if (modelsCP == null) {
+        if(modelsCP == null) {
             modelsCP = new ModelsContentProvider();
         }
 
@@ -308,7 +323,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 //            playerManager = new PlayerManager();
 //        }
 
-        if (savedInstanceState == null) {
+        if(savedInstanceState == null) {
             userIsRegistered = false;
 
             // Check for Google Play Services for Location
@@ -318,13 +333,14 @@ public class SetMineMainActivity extends FragmentActivity implements
                 Log.d(TAG, "servicesConnected");
                 locationClient = new LocationClient(this, this, this);
                 locationClient.connect();
-            } else {
+            }
+            else {
                 Log.d(TAG, "services NOT Connected");
                 currentLocation = new Location("default");
                 currentLocation.setLatitude(29.652175);
                 currentLocation.setLongitude(-82.325856);
-                String eventSearchUrl = "upcoming?latitude=" + currentLocation.getLatitude() + "&longitude="
-                        + currentLocation.getLongitude();
+                String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
+                        +currentLocation.getLongitude();
                 new SetMineApiGetRequestAsyncTask(this, this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                                 eventSearchUrl,
@@ -453,7 +469,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // See each method for documentation
 
-
         applyCustomViewStyles();
 //        createSecondLevelFragments();
 
@@ -474,7 +489,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Start and Bind the PlayerService
 
-        if (!serviceBound) {
+        if(!serviceBound) {
             Intent intent = new Intent(this, PlayerService.class);
             startService(intent);
             bindService(intent, playerServiceConnection, Context.BIND_AUTO_CREATE);
@@ -530,7 +545,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Stop and Unbind the PlayerService
 
-        if (serviceBound) {
+        if(serviceBound) {
             unbindService(playerServiceConnection);
             serviceBound = false;
         }
@@ -551,7 +566,6 @@ public class SetMineMainActivity extends FragmentActivity implements
             // Initialize the MainViewPagerFragment
 
             handleIntent(getIntent());
-
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
@@ -591,7 +605,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onBackPressed() {
-        if (fragmentManager.getBackStackEntryCount() > 0)
+        if(fragmentManager.getBackStackEntryCount() > 0)
             super.onBackPressed();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -601,20 +615,20 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Click function for Venue Map Button in Event Detail Pages
 
     public void googleMapsAddressLookup(View v) {
-        String address = ((TextView) ((ViewGroup) v.getParent()).findViewById(R.id.locationText))
+        String address = ((TextView)((ViewGroup)v.getParent()).findViewById(R.id.locationText))
                 .getText().toString();
 
         // Use an Intent to launch the Google Maps activity
 
-        String url = "http://maps.google.com/maps?daddr=" + address;
-        Intent intent = new Intent(android.content.Intent.ACTION_VIEW, Uri.parse(url));
+        String url = "http://maps.google.com/maps?daddr="+address;
+        Intent intent = new Intent(android.content.Intent.ACTION_VIEW,  Uri.parse(url));
         startActivity(intent);
     }
 
     // Click Function for the Play button on the Action Bar
 
     public void playNavigationClick(View v) {
-        if (playerService.playerManager.getSelectedSet() == null) {
+        if(playerService.playerManager.getSelectedSet() == null) {
             playSetWithSetID("random");
         } else {
             startPlayerFragment();
@@ -655,7 +669,8 @@ public class SetMineMainActivity extends FragmentActivity implements
                         selectedSet = new Set(setJson);
                         playHandler.post(playSet);
                     }
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -669,7 +684,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void openMainViewPager(int pageToScrollTo) {
         Log.d(TAG, "openMainViewPager");
-        if (mainPagerContainerFragment == null) {
+        if(mainPagerContainerFragment == null) {
         }
         mainPagerContainerFragment = new MainPagerContainerFragment();
         Bundle args = new Bundle();
@@ -857,6 +872,29 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     // Location Services
 
+    public static class ErrorDialogFragment extends DialogFragment {
+        // Global field to contain the error dialog
+        private Dialog mDialog;
+        // Default constructor. Sets the dialog field to null
+        public ErrorDialogFragment() {
+            super();
+            mDialog = null;
+        }
+        // Set the dialog to display
+        public void setDialog(Dialog dialog) {
+            mDialog = dialog;
+        }
+        // Return a Dialog to the DialogFragment.
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            return mDialog;
+        }
+    }
+    /*
+     * Handle results returned to the FragmentActivity
+     * by Google Play services
+     */
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
@@ -878,7 +916,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     private boolean servicesConnected() {
         // Check that Google Play services is available
         int resultCode = GooglePlayServicesUtil.
-                isGooglePlayServicesAvailable(this);
+                        isGooglePlayServicesAvailable(this);
         // If Google Play services is available
         if (ConnectionResult.SUCCESS == resultCode) {
             Log.v("Location Updates", "Google Play services is available.");
@@ -907,9 +945,10 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Default to Gainesville coordinates if location not available and disconnect
 
-        if (locationClient.getLastLocation() != null) {
+        if(locationClient.getLastLocation() != null) {
             currentLocation = locationClient.getLastLocation();
-        } else {
+        }
+        else {
             currentLocation = new Location("default");
             currentLocation.setLatitude(29.652175);
             currentLocation.setLongitude(-82.325856);
@@ -927,14 +966,12 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     }
 
-    // Google Play Services listeners
-
-    // Google Play Services successfully connected
-
     @Override
     public void onDisconnected() {
         Log.d(TAG, "onDisconnected");
     }
+
+    // Google Play Services connection failed
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
