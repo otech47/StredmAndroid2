@@ -68,11 +68,15 @@ public class UserFragment extends Fragment implements ApiCaller {
     public View homeView;
     public View loginView;
     public View rootView;
+    public View featureButtonsContainer;
     public View mySetsButton;
     public View activitiesButton;
     public View myNextEventsButton;
     public View newSetsButton;
-
+    public View mySetsDetailContainer;
+    public View activitiesDetailContainer;
+    public View myNextEventsDetailContainer;
+    public View newSetsDetailContainer;
 
     public DisplayImageOptions options;
 
@@ -227,11 +231,20 @@ public class UserFragment extends Fragment implements ApiCaller {
         rootView = inflater.inflate(R.layout.fragment_user, container, false);
         loginView = rootView.findViewById(R.id.loginContainer);
         homeView = rootView.findViewById(R.id.homeContainer);
+
+        // Feature Buttons
+        featureButtonsContainer = rootView.findViewById(R.id.iconsLayout);
         mySetsButton = rootView.findViewById(R.id.mySetsButton);
         activitiesButton = rootView.findViewById(R.id.activitiesButton);
         myNextEventsButton = rootView.findViewById(R.id.myNextEventsButton);
         newSetsButton = rootView.findViewById(R.id.newSetsButton);
         loginButton = (LoginButton)rootView.findViewById(R.id.facebookLoginButton);
+
+        //Feature Detail Containers
+        mySetsDetailContainer = rootView.findViewById(R.id.mySetsDetail);
+        activitiesDetailContainer = rootView.findViewById(R.id.activitiesDetail);
+        myNextEventsDetailContainer = rootView.findViewById(R.id.myEventsDetail);
+        newSetsDetailContainer = rootView.findViewById(R.id.newSetsDetail);
 
         // Set permissions necessary for Facebook Login Prompt
 
@@ -401,11 +414,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         ((MainPagerContainerFragment)getParentFragment()).mMainPagerAdapter.TITLES[0] = "Home";
 
-//        if(registeredUser.isRegistered()) {
-//            populateMySets();
-//            populateActivities();
-//            populateMyNextEvent();
-//        }
+        if(registeredUser.isRegistered()) {
+            populateMySets();
+            populateActivities();
+            populateMyNextEvent();
+        }
 
         // Scroll to top of view
 
@@ -437,7 +450,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         mySetsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Show My Sets
+
             }
         });
         newSetsButton.setOnClickListener(new View.OnClickListener() {
