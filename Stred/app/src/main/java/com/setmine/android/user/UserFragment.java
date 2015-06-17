@@ -74,9 +74,13 @@ public class UserFragment extends Fragment implements ApiCaller {
     public View myNextEventsButton;
     public View newSetsButton;
     public View mySetsDetailContainer;
+    public View mySetsTilesContainer;
     public View activitiesDetailContainer;
+    public View activitiesTileContainer;
     public View myNextEventsDetailContainer;
+    public View myNextEventTilesContainer;
     public View newSetsDetailContainer;
+    public View newSetsTileContainer;
 
     public DisplayImageOptions options;
 
@@ -242,9 +246,16 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         //Feature Detail Containers
         mySetsDetailContainer = rootView.findViewById(R.id.mySetsDetail);
+        mySetsTilesContainer = rootView.findViewById((R.id.mySetsTilesContainer));
+
         activitiesDetailContainer = rootView.findViewById(R.id.activitiesDetail);
+        activitiesTileContainer = rootView.findViewById(R.id.activitiesTileContainer);
+
         myNextEventsDetailContainer = rootView.findViewById(R.id.myEventsDetail);
+        myNextEventTilesContainer = rootView.findViewById(R.id.myEventsTileContainer);
+
         newSetsDetailContainer = rootView.findViewById(R.id.newSetsDetail);
+        newSetsTileContainer = rootView.findViewById(R.id.newSetsTileContainer);
 
         // Set permissions necessary for Facebook Login Prompt
 
@@ -450,6 +461,11 @@ public class UserFragment extends Fragment implements ApiCaller {
         mySetsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+            //when play is clicked show stop button and hide play button
+                featureButtonsContainer.setVisibility(View.GONE);
+                mySetsDetailContainer.setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                populateMySets();
 
             }
         });
@@ -457,18 +473,36 @@ public class UserFragment extends Fragment implements ApiCaller {
             @Override
             public void onClick(View v) {
                 // Show New Sets
+                featureButtonsContainer.setVisibility(View.GONE);
+                newSetsDetailContainer.setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                kickOffNewSetsQuery();
+
+
+
             }
         });
         activitiesButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Show Activities
+                featureButtonsContainer.setVisibility(View.GONE);
+                activitiesDetailContainer.setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                populateActivities();
+
             }
         });
         myNextEventsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 // Show My Next Events
+                featureButtonsContainer.setVisibility(View.GONE);
+                myNextEventsDetailContainer.setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
+                kickOffNextEventQuery();
+
+
             }
         });
     }
@@ -490,11 +524,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             // Remove all views inside the layout container
 
-//            ((ViewGroup)activitiesContainer).removeAllViews();
+            ((ViewGroup)activitiesTileContainer).removeAllViews();
 
             // Remove the loader
 
-//            rootView.findViewById(R.id.activitiesLoading).setVisibility(View.GONE);
+            rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
 
             // Inflate a activity tile for every activity
 
@@ -543,7 +577,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
                 // Add each activity tile to the parent container
 
-//                ((ViewGroup)activitiesContainer).addView(activityTile);
+                ((ViewGroup)activitiesTileContainer).addView(activityTile);
             }
         }
 
@@ -579,11 +613,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-//        ((ViewGroup)myNextEventContainer).removeAllViews();
+        ((ViewGroup)myNextEventTilesContainer).removeAllViews();
 
         // Remove the loader
 
-//        rootView.findViewById(R.id.myNextEventLoading).setVisibility(View.GONE);
+        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
 
         // Inflate an upcoming event tile for My Next Event
 
@@ -621,7 +655,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Add the event tile to the container
 
-//        ((ViewGroup)myNextEventContainer).addView(myNextEventTile);
+        ((ViewGroup)myNextEventTilesContainer).addView(myNextEventTile);
 
     }
 
@@ -636,11 +670,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-//        ((ViewGroup)mySetsContainer).removeAllViews();
+        ((ViewGroup)mySetsTilesContainer).removeAllViews();
 
         // Remove the loader
 
-//        rootView.findViewById(R.id.mySetsLoading).setVisibility(View.GONE);
+        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
 
         // If the user has not favorited any sets
 
@@ -648,7 +682,7 @@ public class UserFragment extends Fragment implements ApiCaller {
             Log.d(TAG, "No Favorite Sets");
             TextView noFavoriteSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
             noFavoriteSets.setText("You haven't favorited any sets yet! To add one to the list, search for a set and click the star icon while it's playing.");
-//            ((ViewGroup) mySetsContainer).addView(noFavoriteSets);
+            ((ViewGroup) mySetsTilesContainer).addView(noFavoriteSets);
         }
         for(int i = 0 ; i < favoriteSets.size() ; i++) {
             Set set = favoriteSets.get(i);
@@ -670,7 +704,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 public void onClick(View v) {
                     activity.playerService.playerManager.setPlaylist(favoriteSets);
                     activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
-//                    activity.playlistFragment.updatePlaylist();
+                    activity.playlistFragment.updatePlaylist();
                     activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
@@ -687,7 +721,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 }
             });
 
-//            ((ViewGroup)mySetsContainer).addView(mySetTile);
+            ((ViewGroup)mySetsTilesContainer).addView(mySetTile);
         }
     }
 
@@ -720,11 +754,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-//        ((ViewGroup)newSetsContainer).removeAllViews();
+        ((ViewGroup)newSetsTileContainer).removeAllViews();
 
         // Remove the loader
 
-//        rootView.findViewById(R.id.newSetsLoading).setVisibility(View.GONE);
+        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
 
         // If the user has not favorited any sets
 
@@ -732,7 +766,7 @@ public class UserFragment extends Fragment implements ApiCaller {
             Log.d(TAG, "No New Sets");
             TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
             noNewSets.setText("You have no new sets yet! Hang on, we'll find some for you.");
-//            ((ViewGroup) newSetsContainer).addView(noNewSets);
+            ((ViewGroup) newSetsTileContainer).addView(noNewSets);
         }
         for(int i = 0 ; i < newSets.size() ; i++) {
             Set set = newSets.get(i);
@@ -757,7 +791,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 public void onClick(View v) {
                     activity.playerService.playerManager.setPlaylist(newSets);
                     activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
-//                    activity.playlistFragment.updatePlaylist();
+                    activity.playlistFragment.updatePlaylist();
                     activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
@@ -774,7 +808,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                                 }
                             });
 
-//            ((ViewGroup)newSetsContainer).addView(mySetTile);
+            ((ViewGroup)newSetsTileContainer).addView(mySetTile);
         }
     }
 }

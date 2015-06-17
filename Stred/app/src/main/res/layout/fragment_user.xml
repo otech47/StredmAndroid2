@@ -20,22 +20,15 @@
 
             <RelativeLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
-                <ProgressBar
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/detailLoader"
-                    android:layout_margin="@dimen/progress_padding"
-                    android:gravity="center|bottom"
-                    android:indeterminate="true" />
+                android:layout_height="match_parent"
+                android:id="@+id/abcd">
 
                 <LinearLayout
                     android:orientation="vertical"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/iconsLayout"
-                    >
+                    android:visibility="visible">
 
                     <LinearLayout
                         android:orientation="horizontal"
@@ -242,7 +235,8 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:id="@+id/mySetsTilesContainer"
-                        android:background="@color/setmine_white" >
+                        android:background="@color/setmine_white"
+                        >
                     </LinearLayout>
 
                 </LinearLayout>
@@ -389,6 +383,17 @@
 
                 </LinearLayout>
 
+                <ProgressBar
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/progressBar"
+                    android:layout_margin="@dimen/progress_padding"
+                    android:gravity="center|bottom"
+                    android:indeterminate="true"
+                    android:layout_gravity="center"
+                    android:layout_alignParentBottom="true"
+                    android:visibility="gone"/>
+
             </RelativeLayout>
 
         </ScrollView>
@@ -410,7 +415,8 @@
             android:paddingBottom="5dp"
             android:paddingTop="5dp"
             android:textColor="@color/setmine_black"
-            android:gravity="center"/>
+            android:gravity="center"
+            />
 
         <TextView
             android:layout_width="match_parent"
