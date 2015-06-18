@@ -51,7 +51,7 @@
                                 android:src="@mipmap/setmine_star2"
                                 android:adjustViewBounds="true"
                                 android:scaleType="fitXY"
-                                android:background="#e9444b"
+                                android:background="@drawable/pressable_button_red_to_gray"
                                 android:paddingLeft="30dp"
                                 android:paddingTop="25dp"
                                 android:paddingRight="30dp"
@@ -86,7 +86,7 @@
                                 android:id="@+id/newSetImage"
                                 android:src="@mipmap/setmine_music_bars"
                                 android:adjustViewBounds="true"
-                                android:background="#4777e1"
+                                android:background="@drawable/pressable_button_blue_to_gray"
                                 android:padding="30dp"/>
 
                             <TextView
@@ -124,7 +124,7 @@
                                 android:id="@+id/activitiesButtonImage"
                                 android:src="@mipmap/setmine_activities_icon"
                                 android:adjustViewBounds="true"
-                                android:background="#2cb7a7"
+                                android:background="@drawable/pressable_button_green_to_gray"
                                 android:scaleType="fitCenter"
                                 android:paddingBottom="34dp"
                                 android:paddingLeft="27dp"
@@ -159,7 +159,7 @@
                                 android:id="@+id/eventsImage"
                                 android:src="@mipmap/setmine_event_flag"
                                 android:adjustViewBounds="true"
-                                android:background="#9242b0"
+                                android:background="@drawable/pressable_button_purple_to_gray"
                                 android:scaleType="fitXY"/>
 
                             <TextView

@@ -24,7 +24,6 @@ import android.view.Menu;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ShareActionProvider;
 import android.widget.TextView;
 
 import com.google.android.gms.common.ConnectionResult;
@@ -83,8 +82,6 @@ public class SetMineMainActivity extends FragmentActivity implements
             FACEBOOK_LOGIN = 64206;
 
     private static final String TAG = "SetMineMainActivity";
-
-    private ShareActionProvider mShareActionProvider;
 
     public static String APP_VERSION;
 
@@ -482,7 +479,6 @@ public class SetMineMainActivity extends FragmentActivity implements
     public boolean onCreateOptionsMenu(Menu menu) {
         super.onCreateOptionsMenu(menu);
         this.menu = menu;
-
         return true;
     }
 

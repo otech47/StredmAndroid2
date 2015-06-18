@@ -29,5 +29,14 @@
     <color name="facebook_blue">#FF3B5998</color>
     <color name="twitter_blue">#FF4099FF</color>
     <color name="transparent">#00000000</color>
+    <color name="setmine_home_gray">#ff4a4a4a</color>
+    <color name="setmine_home_blue">#4777e1</color>
+    <color name="setmine_home_red">#e9444b</color>
+    <color name="setmine_home_green">#2cb7a7</color>
+    <color name="setmine_home_purple">#9242b0</color>
+
+
+
+
 
 </resources>

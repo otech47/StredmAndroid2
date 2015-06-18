@@ -379,7 +379,7 @@ public class PlayerFragment extends Fragment implements
                 sendIntent.setAction(Intent.ACTION_SEND);
                 sendIntent.putExtra(Intent.EXTRA_TEXT, "This is my text to send.");
                 sendIntent.setType("text/plain");
-                startActivity(Intent.createChooser(sendIntent, null));
+                startActivity(Intent.createChooser(sendIntent, "http://setmine.com/?play/"+playerManager.getSelectedSet().getId()));
 
             }
         });
