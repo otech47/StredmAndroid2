@@ -26,7 +26,8 @@
         android:layout_height="wrap_content"
         android:background="@drawable/border_blue"
         android:padding="5dp"
-        android:layout_alignParentTop="true">
+        android:layout_alignParentTop="true"
+        >
 
 
 
@@ -261,6 +262,19 @@
             android:indeterminate="true" />
 
     </RelativeLayout>
+
+    <ImageButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/player_button_share"
+        android:src="@android:drawable/ic_menu_share"
+        android:layout_alignParentRight="true"
+        android:layout_below="@id/player_header"
+        android:layout_marginRight="10dp"
+        android:layout_marginTop="10dp"
+        android:actionProviderClass=
+            "android.widget.ShareActionProvider"
+        android:clickable="true"/>
 
 
 </RelativeLayout>

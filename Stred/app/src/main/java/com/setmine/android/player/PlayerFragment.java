@@ -21,6 +21,7 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -47,6 +48,7 @@ public class PlayerFragment extends Fragment implements
 
     private View rootView;
 	public ImageButton mButtonPlay;
+    public ImageButton mButtonShare;
 	public ImageButton mButtonPlayTop;
 	private ImageButton mButtonRewind;
 	private ImageButton mButtonFastForward;
@@ -65,6 +67,7 @@ public class PlayerFragment extends Fragment implements
 	private ImageButton mTracklistButton;
     private ImageView mBackgroundImage;
     private View playerLoader;
+    private ShareActionProvider mShareActionProvider;
 
     public ImageView favoriteSetButton;
 
@@ -178,6 +181,8 @@ public class PlayerFragment extends Fragment implements
 
         }
 
+
+
     }
 
     @Override
@@ -190,6 +195,8 @@ public class PlayerFragment extends Fragment implements
 
 		// All player buttons
 
+        mButtonShare = (ImageButton) rootView
+                .findViewById(R.id.player_button_share);
 		mButtonPlay = (ImageButton) rootView
 				.findViewById(R.id.player_button_play);
 		mButtonRewind = (ImageButton) rootView
@@ -237,6 +244,8 @@ public class PlayerFragment extends Fragment implements
 		setPreviousListener();
 //
 		setNextListener();
+
+        setShareListeners();
 //
 //		setSlideTouchGestures();
 //
@@ -257,6 +266,7 @@ public class PlayerFragment extends Fragment implements
 //
 //		setDownloadBroadcastReceiver();
 		// setPlayingNotification();
+
 
 
 		return this.rootView;
@@ -357,6 +367,20 @@ public class PlayerFragment extends Fragment implements
             @Override
             public void onClick(View v) {
                 ((PlayerContainerFragment) getParentFragment()).mViewPager.setCurrentItem(2, true);
+            }
+        });
+    }
+
+    private void setShareListeners(){
+        mButtonShare.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent sendIntent = new Intent();
+                sendIntent.setAction(Intent.ACTION_SEND);
+                sendIntent.putExtra(Intent.EXTRA_TEXT, "This is my text to send.");
+                sendIntent.setType("text/plain");
+                startActivity(Intent.createChooser(sendIntent, null));
+
             }
         });
     }
