@@ -66,17 +66,18 @@
         android:paddingTop="3sp"
         android:paddingBottom="3sp"
         android:paddingLeft="8dp"
-        android:textSize="12sp"/>
+        android:textSize="12sp"
+        android:textStyle="bold"/>
 
     <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/playsIcon"
         android:visibility="visible"
-        android:padding="3dp"
         android:background="@drawable/pressable_info_button"
         android:layout_centerVertical="true"
-        android:layout_alignParentRight="true">
+        android:layout_alignParentRight="true"
+        android:padding="3dp">
 
         <ImageView
             android:layout_width="26dp"

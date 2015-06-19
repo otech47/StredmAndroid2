@@ -6,6 +6,8 @@ package com.setmine.android.artist;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -22,6 +24,7 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
@@ -181,7 +184,20 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
         //apply grayscale
         artistImageView = ImageUtils.grayscale(artistImageView);
 
-        ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
+        ImageLoader.getInstance().loadImage(artistImageUrl, options, new SimpleImageLoadingListener() {
+
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                ImageUtils imageUtils = new ImageUtils();
+                Bitmap blurredBitmap = imageUtils.fastblur(loadedImage, 5);
+                artistImageView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
+
+               // playerService.lockscreenImage = loadedImage;
+
+
+            }
+        });
+
         artistTextView.setText(artistName);
 
         setSocialMediaListeners();
