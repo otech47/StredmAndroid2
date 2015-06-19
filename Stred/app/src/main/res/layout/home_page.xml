@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:weightSum="2"
+                android:orientation="vertical"
+              >
+
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/iconsLayout"
+        >
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/firstRow"
+            android:weightSum="2">
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ImageView
+
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/starImage"
+                    android:src="@drawable/setmine_star"
+                    android:adjustViewBounds="true"
+                    android:scaleType="fitXY"
+                    android:background="#e9444b"
+                    android:paddingLeft="30dp"
+                    android:paddingTop="25dp"
+                    android:paddingRight="30dp"
+                    android:paddingBottom="35dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="my sets"
+                    android:id="@+id/textView4"
+                    android:textColor="@color/setmine_white"
+                    android:textSize="20dp"
+                    android:textStyle="bold"
+                    android:typeface="normal"
+                    android:layout_alignBottom="@+id/starImage"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="10dp"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/newSetImage"
+                    android:src="@mipmap/setmine_music_bars"
+                    android:adjustViewBounds="true"
+                    android:background="#4777e1"
+                    android:padding="30dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="new sets"
+                    android:id="@+id/textView5"
+                    android:textColor="@color/setmine_white"
+                    android:textSize="20dp"
+                    android:textStyle="bold"
+                    android:typeface="normal"
+                    android:layout_alignBottom="@+id/newSetImage"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="10dp"/>
+
+            </RelativeLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:orientation="horizontal"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/secondRow">
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/activitiesImage"
+                    android:src="@mipmap/setmine_activities_icon"
+                    android:adjustViewBounds="true"
+                    android:background="#2cb7a7"
+                    android:scaleType="fitCenter"
+                    android:paddingBottom="34dp"
+                    android:paddingLeft="27dp"
+                    android:paddingTop="20dp"
+                    android:paddingRight="27dp"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="activities"
+                    android:id="@+id/textView6"
+                    android:textColor="@color/setmine_white"
+                    android:textSize="20dp"
+                    android:textStyle="bold"
+                    android:typeface="normal"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="10dp"
+                    android:layout_alignBottom="@id/activitiesImage"/>
+
+            </RelativeLayout>
+
+            <RelativeLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1">
+
+                <ImageView
+                    android:layout_weight="1"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/eventsImage"
+                    android:src="@mipmap/setmine_event_flag"
+                    android:adjustViewBounds="true"
+                    android:background="#9242b0"
+                    android:scaleType="fitXY"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="my events"
+                    android:id="@+id/textView7"
+                    android:textColor="@color/setmine_white"
+                    android:textSize="20dp"
+                    android:textStyle="bold"
+                    android:typeface="normal"
+                    android:layout_centerHorizontal="true"
+                    android:layout_marginBottom="10dp"
+                    android:layout_alignBottom="@id/eventsImage"/>
+
+            </RelativeLayout>
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+
+
+    <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/facebookLogoutContainer"
+            android:padding="10dp"
+            android:layout_alignParentBottom="true"
+            android:layout_below="@id/iconsLayout"
+            android:background="#f0ecf6">
+
+
+    </RelativeLayout>
+
+</RelativeLayout>

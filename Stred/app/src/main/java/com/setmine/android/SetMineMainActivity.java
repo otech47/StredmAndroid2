@@ -471,7 +471,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // See each method for documentation
 
-        handleIntent(getIntent());
         applyCustomViewStyles();
 //        createSecondLevelFragments();
 
@@ -568,7 +567,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             // Initialize the MainViewPagerFragment
 
-            openMainViewPager(-1);
+            handleIntent(getIntent());
 
 
 
@@ -668,7 +667,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                     String apiRequest = "set/id?setID=" + finalSetId;
                     String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
                     JSONObject jsonResponse = new JSONObject(jsonString);
-                    if(jsonResponse.get("status").equals("success")) {
+                    if (jsonResponse.get("status").equals("success")) {
                         JSONObject setJson = jsonResponse
                                 .getJSONObject("payload")
                                 .getJSONArray("set")
@@ -731,7 +730,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void startSearchFragment(View v) {
         Log.d(TAG, "startSearchFragment");
-        searchSetsFragment =  new SearchSetsFragment();
+        searchSetsFragment = new SearchSetsFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, searchSetsFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
@@ -775,20 +774,87 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Handles incoming intents for opening parts of the app
 
     public void handleIntent(Intent intent) {
-        if(intent != null && intent.getAction() != null) {
 
-            // Remote Controls and the Notification player send in this intent
-
-            if(intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
-                startPlayerFragment();
-            } else if(intent.getAction().equals("com.setmine.android.VIEW")) {
-
-                // Intent for deep linking
-
-                String command = intent.getDataString();
-                Log.d(TAG, command);
-            }
+        String command;
+        String[] segments;
+        try {
+            command = intent.getDataString();
+            command = Uri.decode(command);
+            Log.d(TAG, command);
+            segments = command.split("/", 0);
+        } catch (Exception e) {
+            segments = null;
         }
+
+        // Intents for Playing Sets, Artist Details, Event Details, Remote Controls and the Notification player
+
+        if (intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
+            startPlayerFragment();
+        } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?play")) {
+
+            Log.d("track id: ", segments[segments.length - 1]);
+
+            if (segments[segments.length - 2].equals("?play")) {
+                playSetWithSetID(segments[segments.length - 1]);
+            }
+        } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 3].equals("?browse")) {
+            if (segments[segments.length - 1].equals("artist")) {
+
+                String artistName = segments[segments.length - 2];
+                String[] artistNameArray = artistName.split("\\+", 0);
+                artistName = "";
+                for (int j = 0; j < artistNameArray.length - 1; j++) {
+                    artistName = artistName + artistNameArray[j] + " ";
+                }
+                artistName = artistName + artistNameArray[artistNameArray.length - 1];
+
+                List<Artist> allArtists = modelsCP.getAllArtists();
+                Artist artist;
+                for (int i = 0; allArtists.size() > i; i++) {
+                    if (artistName.equals(allArtists.get(i).getArtist())) {
+                        artist = allArtists.get(i);
+                        openArtistDetailPage(artist);
+                        break;
+                    }
+                }
+            } else if (segments[segments.length - 1].equals("festival")) {
+                String eventName = segments[segments.length - 2];
+                String[] eventNameArray = eventName.split("\\+", 0);
+                eventName = "";
+                for (int j = 0; j < eventNameArray.length - 1; j++) {
+                    eventName = eventName + eventNameArray[j] + " ";
+                }
+                eventName = eventName + eventNameArray[eventNameArray.length - 1];
+
+                List<Event> allEvents = modelsCP.getEvents();
+                Event event;
+                for (int i = 0; allEvents.size() > i; i++) {
+                    if (eventName.equals(allEvents.get(i).getEvent())) {
+                        event = allEvents.get(i);
+                        openEventDetailPage(event, "recent");
+                        break;
+                    }
+                }
+            }
+        } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?event")) {
+            String eventId = segments[segments.length - 1];
+
+
+            List<Event> upcomingEvents = modelsCP.getSoonestEvents();
+            Event event;
+            for (int i = 0; upcomingEvents.size() > i; i++) {
+                if (eventId.equals(upcomingEvents.get(i).getId())) {
+                    event = upcomingEvents.get(i);
+                    openEventDetailPage(event, "upcoming");
+                    break;
+                }
+            }
+
+        } else {
+            openMainViewPager(-1);
+        }
+
+
     }
 
     // For communicating with PlayerService
@@ -841,13 +907,17 @@ public class SetMineMainActivity extends FragmentActivity implements
         userFragment.onActivityResult(requestCode, resultCode, data);
         Log.d(TAG, "onActivityResult: " + Integer.toString(requestCode) + " " + Integer.toString(requestCode) + " " + data.toString());
         switch (requestCode) {
-            case CONNECTION_FAILURE_RESOLUTION_REQUEST :
+            case CONNECTION_FAILURE_RESOLUTION_REQUEST:
                 switch (resultCode) {
-                    case Activity.RESULT_OK :
+                    case Activity.RESULT_OK:
                         break;
                 }
         }
     }
+    /*
+     * Handle results returned to the FragmentActivity
+     * by Google Play services
+     */
 
     private boolean servicesConnected() {
         // Check that Google Play services is available
@@ -875,10 +945,6 @@ public class SetMineMainActivity extends FragmentActivity implements
             return false;
         }
     }
-
-    // Google Play Services listeners
-
-    // Google Play Services successfully connected
 
     @Override
     public void onConnected(Bundle bundle) {
@@ -925,8 +991,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         currentLocation = new Location("default");
         currentLocation.setLatitude(29.652175);
         currentLocation.setLongitude(-82.325856);
-        String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
-                +currentLocation.getLongitude();
+        String eventSearchUrl = "upcoming?latitude=" + currentLocation.getLatitude() + "&longitude="
+                + currentLocation.getLongitude();
         new SetMineApiGetRequestAsyncTask(this, this)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl,
@@ -936,5 +1002,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                         "upcoming",
                         "upcomingEvents");
     }
+
+
 
 }

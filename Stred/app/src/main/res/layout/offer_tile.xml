@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="10dp"
+    android:id="@+id/offer_tile"
+    android:background="@drawable/pressable_button_white_to_blue">
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:src="@drawable/logo"
+        android:scaleType="centerCrop"
+        android:id="@+id/artistImage"
+        android:layout_gravity="center" />
+
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:paddingLeft="10dp"
+        android:paddingStart="10dp"
+        android:paddingRight="10dp"
+        android:paddingEnd="10dp"
+        android:layout_toEndOf="@id/artistImage"
+        android:layout_toRightOf="@id/artistImage"
+        android:id="@+id/relativeLayout3">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="NEW SONG/ALBUM"
+            android:singleLine="false"
+            android:ellipsize="marquee"
+            android:layout_alignParentTop="true"
+            android:scrollHorizontally="false"
+            android:id="@+id/newSongAlbumText"
+            android:textColor="#78000000"
+            android:textSize="15sp"
+            android:textStyle="normal"
+            android:textIsSelectable="false"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event"
+            android:singleLine="true"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:scrollHorizontally="true"
+            android:id="@+id/artistId"
+            android:textColor="@color/setmine_white"
+            android:textSize="15sp"
+            android:background="#ff2f2f2f"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:layout_centerVertical="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Now to unlock at "
+            android:id="@+id/unlockText"
+            android:textColor="#ff2f2f2f"
+            android:gravity="center"
+            android:layout_alignParentBottom="true"
+            android:textSize="12sp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CHIPOTLE"
+            android:id="@+id/locationOfferText"
+
+
+            android:layout_alignBaseline="@+id/unlockText"
+            android:layout_alignBottom="@+id/unlockText"
+            android:layout_toRightOf="@+id/unlockText"
+            android:layout_toEndOf="@+id/unlockText"
+            android:textColor="#ffd6b93c"
+            android:textStyle="bold"
+            android:singleLine="false"
+            android:textSize="14dp"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/circleBlueImage"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:src="@mipmap/setmine_circle_blue"
+            android:layout_alignTop="@id/artistId"
+            android:layout_alignBottom="@id/artistId"
+            android:adjustViewBounds="true"
+            android:scaleType="fitEnd"/>
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/circlePurpleImage"
+            android:layout_centerVertical="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true"
+            android:src="@mipmap/setmine_circle_purple"
+            android:layout_alignTop="@id/artistId"
+            android:layout_alignBottom="@id/artistId"
+            android:adjustViewBounds="true"
+            android:scaleType="fitEnd"
+            android:visibility="invisible"/>
+
+
+    </RelativeLayout>
+
+
+
+</RelativeLayout>

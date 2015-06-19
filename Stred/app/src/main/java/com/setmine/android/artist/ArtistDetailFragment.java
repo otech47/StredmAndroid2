@@ -13,6 +13,7 @@ import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,7 +23,9 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
+import com.setmine.android.player.PlayerManager;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
@@ -31,6 +34,7 @@ import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.player.PlayerManager;
 import com.setmine.android.set.Set;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 import com.viewpagerindicator.TitlePageIndicator;
 
@@ -161,8 +165,6 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
 
     }
 
-
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
@@ -180,38 +182,8 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .considerExifParams(true)
                 .build();
 
-
-
-
-
-
-        artistImageView = ImageUtils.grayscale(artistImageView);
-
-
-
-// //////////////       ATTEMPT AT BLUR   ////////////////////
-
-//        Uri temp = Uri.parse(artistImageUrl);
-//        Bitmap bitmap = null;
-//
-//       context = this.getActivity();
-//
-//
-//        try {
-//            bitmap = MediaStore.Images.Media.getBitmap(context.getContentResolver(), temp);
-//            bitmap = ImageUtils.fastblur(bitmap, 10);
-//
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        }
-//        artistImageView.setImageBitmap(bitmap);
-
-
-
-        ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
+        ImageLoader.getInstance().displayImage(Constants.S3_ROOT_URL + artistImageUrl, artistImageView, options);
         artistTextView.setText(artistName);
-
-
 
         setSocialMediaListeners();
 
