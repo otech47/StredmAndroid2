@@ -23,7 +23,7 @@ import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.setmine.android.interfaces.ApiCaller;
+import com.setmine.android.Constants;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.player.PlayerManager;
 import com.setmine.android.R;
