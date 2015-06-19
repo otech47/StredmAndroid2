@@ -6,9 +6,18 @@
     android:paddingTop="15dp"
     android:paddingLeft="10dp"
     android:paddingRight="10dp"
-    android:paddingBottom="15dp"
-    android:background="@drawable/pressable_button_transparent_to_blue"
+                android:background="@drawable/pressable_button_transparent_to_blue_transparent"
     android:id="@+id/artist_tile_recent">
+
+    <View
+        android:layout_width="fill_parent"
+        android:layout_height="1dp"
+        android:background="@color/setmine_purple"
+        android:layout_alignParentTop="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentEnd="true"
+        android:layout_below="@+id/artistImage"
+        android:layout_marginTop="15dp"/>
 
     <ImageView
         android:layout_width="50dp"
@@ -64,7 +73,7 @@
         android:layout_height="wrap_content"
         android:id="@+id/playsIcon"
         android:visibility="visible"
-        android:padding="6dp"
+        android:padding="3dp"
         android:background="@drawable/pressable_info_button"
         android:layout_centerVertical="true"
         android:layout_alignParentRight="true">
@@ -86,6 +95,9 @@
             android:textColor="@color/setmine_black"
             android:layout_centerHorizontal="true"
             android:layout_below="@id/iconImage"/>
+
+
+
 
     </RelativeLayout>
 

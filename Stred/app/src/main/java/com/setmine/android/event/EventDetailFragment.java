@@ -24,16 +24,15 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
-import com.setmine.android.Constants;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.set.LineupSet;
 import com.setmine.android.set.Set;
 import com.setmine.android.set.SetViewHolder;
-import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 
 import org.json.JSONException;

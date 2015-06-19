@@ -170,8 +170,10 @@
             android:orientation="vertical"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:animateLayoutChanges="true"
-            android:id="@+id/lineupContainer">
+            android:animateLayoutChanges="false"
+            android:id="@+id/lineupContainer"
+            android:background="@android:color/transparent">
+
         </ListView>
 
         <ProgressBar

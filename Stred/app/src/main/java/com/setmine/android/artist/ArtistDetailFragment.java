@@ -27,6 +27,7 @@ import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.event.Event;
+import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.player.PlayerManager;
 import com.setmine.android.set.Set;
@@ -176,6 +177,9 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .cacheOnDisk(true)
                 .considerExifParams(true)
                 .build();
+
+        //apply grayscale
+        artistImageView = ImageUtils.grayscale(artistImageView);
 
         ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
         artistTextView.setText(artistName);
