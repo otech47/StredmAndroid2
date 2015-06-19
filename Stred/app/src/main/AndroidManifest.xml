@@ -50,6 +50,35 @@
             android:launchMode="singleTop"
             android:screenOrientation="portrait"
             android:label="@string/app_name" >
+
+            <intent-filter android:label="inAppReceiver">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <!-- Accepts URIs that begin with "mixpaneldeeplink://newcontentpage" -->
+                <data android:scheme="mpdeeplink"
+                      android:host="newcontentpage" />
+            </intent-filter>
+
+            <intent-filter>
+                <data android:scheme="http"
+                  android:host="setmine.com"
+                />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" /> />
+
+            </intent-filter>
+            <intent-filter>
+                <data android:scheme="http"
+                      android:host="www.setmine.com"
+                    />
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+            </intent-filter>
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -66,14 +95,7 @@
                 <action android:name="com.setmine.android.SEND"/>
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
-            <intent-filter>
-                <action android:name="android.intent.action.VIEW" />
-                <category android:name="android.intent.category.DEFAULT" />
-                <category android:name="android.intent.category.BROWSABLE" />
-                <!-- Accepts URIs that begin with "http://www.example.com/gizmos” -->
-                <data android:scheme="http"
-                    android:host="setmine.com"/>
-            </intent-filter>
+           
         </activity>
         <activity
             android:name="com.mixpanel.android.surveys.SurveyActivity" />
