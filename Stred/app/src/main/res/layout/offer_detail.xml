@@ -30,13 +30,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="90dp"
-        android:id="@+id/relativeLayout">
+        android:id="@+id/mapContainer"
+        android:clickable="true"
+        android:onClick="googleMapsAddressLookup"
+
+        >
 
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/offerDetailImage"
-            android:src="@drawable/logo"/>
+            android:src="@drawable/logo"
+            android:clickable="false"
+            />
 
     </RelativeLayout>
 
@@ -377,5 +383,11 @@
         </RelativeLayout>
 
     </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/locationText"
+        android:visibility="invisible"/>
 
 </RelativeLayout>
