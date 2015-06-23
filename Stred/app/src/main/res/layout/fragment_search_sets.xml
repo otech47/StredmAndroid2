@@ -4,6 +4,15 @@
     android:layout_height="match_parent"
     android:background="@color/setmine_white">
 
+    <ProgressBar
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/search_loading"
+        android:padding="120dp"
+        android:background="@color/setmine_gray_50_alpha"
+        android:gravity="center|center"
+        android:indeterminate="true" />
+
 
     <SearchView
         android:layout_width="match_parent"

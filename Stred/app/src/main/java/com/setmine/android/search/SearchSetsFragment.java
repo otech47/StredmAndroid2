@@ -3,6 +3,7 @@ package com.setmine.android.search;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,36 +22,39 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-import com.setmine.android.Constants;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.event.Event;
 import com.setmine.android.event.EventDetailFragment;
 import com.setmine.android.genre.Genre;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.interfaces.OnTaskCompleted;
 import com.setmine.android.object.SearchResultEventHolder;
 import com.setmine.android.object.SearchResultTrackHolder;
 import com.setmine.android.object.TrackResponse;
-import com.setmine.android.set.GetSetsTask;
 import com.setmine.android.set.Mix;
 import com.setmine.android.set.SearchResultSetViewHolder;
 import com.setmine.android.set.Set;
 
+import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set> {
+public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>, ApiCaller {
 
     private static final String TAG = "SearchSetsFragment";
 
     private SetMineMainActivity activity;
+    public SearchSetsFragment thisFragment = this;
     public DisplayImageOptions options;
     public String searchQuery;
-    public GetSetsTask getSetsTask;
+    public SetMineApiGetRequestAsyncTask getSetsTask;
 
     public ModelsContentProvider modelsCP;
     public boolean modelsReady;
@@ -73,12 +77,91 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     public List<Genre> genres;
     public List<Set> popularSets;
     public List<Set> recentSets;
+    public List<Artist> allArtists;
+
+    public Bundle toOutstate = new Bundle();
+
+    public int modelsLoaded = 0;
 
     public SearchResultSetAdapter searchResultSetAdapter;
     public ArtistAdapter artistAdapter;
     public EventAdapter eventAdapter;
     public MixAdapter mixAdapter;
     public GenreAdapter genreAdapter;
+
+    final Handler handler = new Handler();
+
+    final Runnable updateUI = new Runnable() {
+        @Override
+        public void run() {
+            finishOnCreate();
+        }
+    };
+
+    @Override
+    public void onApiResponseReceived(final JSONObject jsonObject, String identifier) {
+        final JSONObject finalJsonObject = jsonObject;
+        final String finalIdentifier = identifier;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "onApiResponseReceived: ");
+                try {
+                    toOutstate.putString(finalIdentifier, finalJsonObject.toString()); // For savedInstanceState
+                    JSONObject payload = finalJsonObject.getJSONObject("payload");
+                    if(finalIdentifier.equals("artists")) {
+                        JSONArray artistsArray = payload.getJSONArray("artist");
+                        for(int i = 0; i < artistsArray.length(); i++) {
+                            artists.add(new Artist(artistsArray.getJSONObject(i)));
+                        }
+                        modelsLoaded++;
+                    } else if(finalIdentifier.equals("festivals")) {
+                        JSONArray festivalsArray = payload.getJSONArray("festival");
+                        for(int i = 0; i < festivalsArray.length(); i++) {
+                            festivals.add(new Event(festivalsArray.getJSONObject(i)));
+                        }
+                        modelsLoaded++;
+                    } else if(finalIdentifier.equals("mixes")) {
+                        JSONArray mixesArray = payload.getJSONArray("mix");
+                        for(int i = 0; i < mixesArray.length(); i++) {
+                            mixes.add(new Mix(mixesArray.getJSONObject(i)));
+                        }
+                        modelsLoaded++;
+                    } else if(finalIdentifier.equals("genres")) {
+                        JSONArray genresArray = payload.getJSONArray("genre");
+                        for(int i = 0; i < genresArray.length(); i++) {
+                            genres.add(new Genre("1", genresArray.getString(i))); // Upgrade API for genres
+                        }
+                        modelsLoaded++;
+                    } else if(finalIdentifier.equals("popularSets")) {
+                        JSONArray popularSetsArray = payload.getJSONArray("popular");
+                        for(int i = 0; i < popularSetsArray.length(); i++) {
+                            popularSets.add(new Set(popularSetsArray.getJSONObject(i)));
+                        }
+                        modelsLoaded++;
+                    } else if(finalIdentifier.equals("recentSets")) {
+                        JSONArray recentSetsArray = payload.getJSONArray("recent");
+                        for(int i = 0; i < recentSetsArray.length(); i++) {
+                            popularSets.add(new Set(recentSetsArray.getJSONObject(i)));
+                        }
+                        modelsLoaded++;
+                    } else if(finalIdentifier.equals("allArtists")) {
+                        JSONArray allArtistsArray = payload.getJSONArray("artist");
+                        for(int i = 0; i < allArtistsArray.length(); i++) {
+                            allArtists.add(new Artist(allArtistsArray.getJSONObject(i)));
+                        }
+                        modelsLoaded++;
+                    }
+                    if(modelsLoaded == 7) {
+                        handler.post(updateUI);
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+        }).start();
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -88,14 +171,37 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         this.activity = (SetMineMainActivity)getActivity();
 
         // Recover data from saved instance or retrieve from activity
+        artists = new ArrayList<Artist>();
+        festivals = new ArrayList<Event>();
+        mixes = new ArrayList<Mix>();
+        genres = new ArrayList<Genre>();
+        popularSets = new ArrayList<Set>();
+        recentSets = new ArrayList<Set>();
+        allArtists = new ArrayList<Artist>();
+
+        modelsLoaded = 0;
 
         if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
-            modelsCP = activity.modelsCP;
+
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "festival", "festivals");
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "mix", "mixes");
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "genre", "genres");
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "popular", "popularSets");
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "recent", "recentSets");
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "artist?all=true", "allArtists");
         } else {
-            if(modelsCP == null) {
-                modelsCP = new ModelsContentProvider();
-            }
             String artistsModel = savedInstanceState.getString("artists");
             String festivalsModel = savedInstanceState.getString("festivals");
             String mixesModel = savedInstanceState.getString("mixes");
@@ -111,23 +217,17 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
                 JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
                 JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
-                modelsCP.setModel(jsonArtistsModel, "artists");
-                modelsCP.setModel(jsonFestivalsModel, "festivals");
-                modelsCP.setModel(jsonMixesModel, "mixes");
-                modelsCP.setModel(jsonGenresModel, "genres");
-                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
-                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
-                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
+                onApiResponseReceived(jsonArtistsModel, "artists");
+                onApiResponseReceived(jsonFestivalsModel, "festivals");
+                onApiResponseReceived(jsonMixesModel, "mixes");
+                onApiResponseReceived(jsonGenresModel, "genres");
+                onApiResponseReceived(jsonPopularSetsModel, "popularSets");
+                onApiResponseReceived(jsonRecentSetsModel, "recentSets");
+                onApiResponseReceived(jsonAllArtistsModel, "allArtists");
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
-        artists = modelsCP.getArtists();
-        festivals = modelsCP.getEvents();
-        mixes = modelsCP.getMixes();
-        genres = modelsCP.getGenres();
-        popularSets = modelsCP.getPopularSets();
-        recentSets = modelsCP.getRecentSets();
     }
 
     @Override
@@ -177,13 +277,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             }
         });
 
-        artistAdapter = new ArtistAdapter(artists);
-        eventAdapter = new EventAdapter(festivals);
-        mixAdapter = new MixAdapter(mixes);
-        genreAdapter = new GenreAdapter(genres);
-
-        setBrowseClickListeners();
-
         return rootView;
     }
 
@@ -216,24 +309,43 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "onSaveInstanceState");
-        outState.putString("artists", modelsCP.jsonMappings.get("artists"));
-        outState.putString("festivals", modelsCP.jsonMappings.get("festivals"));
-        outState.putString("mixes", modelsCP.jsonMappings.get("mixes"));
-        outState.putString("genres", modelsCP.jsonMappings.get("genres"));
-        outState.putString("popularSets", modelsCP.jsonMappings.get("popularSets"));
-        outState.putString("recentSets", modelsCP.jsonMappings.get("recentSets"));
-        outState.putString("allArtists", modelsCP.jsonMappings.get("allArtists"));
+        outState.putString("artists", toOutstate.getString("artists"));
+        outState.putString("festivals", toOutstate.getString("festivals"));
+        outState.putString("mixes", toOutstate.getString("mixes"));
+        outState.putString("genres", toOutstate.getString("genres"));
+        outState.putString("popularSets", toOutstate.getString("popularSets"));
+        outState.putString("recentSets", toOutstate.getString("recentSets"));
+        outState.putString("allArtists", toOutstate.getString("allArtists"));
+
         super.onSaveInstanceState(outState);
 
     }
 
+    public void finishOnCreate() {
+        rootView.findViewById(R.id.search_loading).setVisibility(View.GONE);
+        artistAdapter = new ArtistAdapter(artists);
+        eventAdapter = new EventAdapter(festivals);
+        mixAdapter = new MixAdapter(mixes);
+        genreAdapter = new GenreAdapter(genres);
+
+        setBrowseClickListeners();
+    }
+
     public void searchSets(String query) {
         this.searchQuery = query;
+
+        // Clears the browse results list container
         browseItemListContainer.setVisibility(View.GONE);
+
+        // Clears left browse of any selections
         for(int i = 0 ; i < browseNavContainer.getChildCount(); i++) {
             browseNavContainer.getChildAt(i).setSelected(false);
         }
+
+        // Shows the search results list container
         rootView.findViewById(R.id.setSearchResultsContainer).setVisibility(View.VISIBLE);
+
+        // Hides the actual list and shows loader options until search has completed
         searchedSetsList.setVisibility(View.GONE);
         listOptionButtons.setVisibility(View.GONE);
         setsLoading.setVisibility(View.VISIBLE);
@@ -245,9 +357,9 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         try {
             cancelTask();
             if (!searchQuery.equals("")) {
-                getSetsTask = new GetSetsTask(activity,
-                        activity.getApplicationContext(), Constants.API_ROOT_URL, this);
-                getSetsTask.execute("search/"+ Uri.encode(searchQuery), "searchedSets");
+                getSetsTask = (SetMineApiGetRequestAsyncTask) new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                , "search/" + Uri.encode(searchQuery), "searchedSets");
             } else {
                 setsLoading.setVisibility(View.GONE);
                 noResults.setVisibility(View.GONE);
@@ -262,6 +374,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     @Override
     public void cancelTask() {
         if (getSetsTask != null) {
+            Log.d(TAG, "canceled existing task");
             getSetsTask.cancel(true);
         }
     }
@@ -331,6 +444,10 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             @Override
             public void onClick(View v) {
                 didSelectCategory(v);
+                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), thisFragment)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                , "artist", "artists");
+                
                 browseItemList.setAdapter(artistAdapter);
                 browseItemList.setOnItemClickListener(new ListView.OnItemClickListener() {
                     @Override
