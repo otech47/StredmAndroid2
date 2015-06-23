@@ -132,12 +132,9 @@ public class UserFragment extends Fragment implements ApiCaller {
         public void run() {
             if(activity != null) {
                 activity.user = registeredUser;
-//                populateActivities();
-//                populateMySets();
-//                kickOffNextEventQuery();
-//                kickOffNewSetsQuery();
                 registerMixpanelUser();
                 ((MainPagerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(0);
+
             }
 
         }
@@ -656,64 +653,68 @@ public class UserFragment extends Fragment implements ApiCaller {
     public void populateMySets() {
         final List<Set> favoriteSets = registeredUser.getFavoriteSets();
 
-        // Get the inflater for inflating XML files into Views
+        if(favoriteSets != null) {
+            // Get the inflater for inflating XML files into Views
 
-        LayoutInflater inflater = LayoutInflater.from(activity);
+            LayoutInflater inflater = LayoutInflater.from(activity);
 
-        // Remove all views inside the layout container
+            // Remove all views inside the layout container
 
-        ((ViewGroup)mySetsTilesContainer).removeAllViews();
+            ((ViewGroup)mySetsTilesContainer).removeAllViews();
 
-        // Remove the loader
+            // Remove the loader
 
-        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
+            rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
 
-        // If the user has not favorited any sets
+            // If the user has not favorited any sets
 
-        if(favoriteSets.size() == 0) {
-            Log.d(TAG, "No Favorite Sets");
-            TextView noFavoriteSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
-            noFavoriteSets.setText("You haven't favorited any sets yet! To add one to the list, search for a set and click the star icon while it's playing.");
-            ((ViewGroup) mySetsTilesContainer).addView(noFavoriteSets);
+            if(favoriteSets.size() == 0) {
+                Log.d(TAG, "No Favorite Sets");
+                TextView noFavoriteSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
+                noFavoriteSets.setText("You haven't favorited any sets yet! To add one to the list, search for a set and click the star icon while it's playing.");
+                ((ViewGroup) mySetsTilesContainer).addView(noFavoriteSets);
+            }
+            for(int i = 0 ; i < favoriteSets.size() ; i++) {
+                Set set = favoriteSets.get(i);
+                View mySetTile = inflater.inflate(R.layout.set_tile, null);
+
+                ((TextView) mySetTile.findViewById(R.id.artistText))
+                        .setText(set.getArtist());
+                ((TextView) mySetTile.findViewById(R.id.eventText))
+                        .setText(set.getEvent());
+                ((TextView) mySetTile.findViewById(R.id.playCount))
+                        .setText(set.getPopularity() + " plays");
+                ((TextView) mySetTile.findViewById(R.id.setLength))
+                        .setText(set.getSetLength());
+
+                mySetTile.setTag(set);
+
+                mySetTile.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        activity.playerService.playerManager.setPlaylist(favoriteSets);
+                        activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
+                        activity.startPlayerFragment();
+                        activity.playSelectedSet();
+                    }
+                });
+
+                final ImageView artistImage = (ImageView) mySetTile.findViewById(R.id.artistImage);
+
+                ImageLoader.getInstance()
+                        .loadImage(set.getArtistImage(),
+                                options, new SimpleImageLoadingListener() {
+                                    @Override
+                                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                                        artistImage.setImageDrawable(new BitmapDrawable(activity.getResources(), loadedImage));
+                                    }
+                                });
+
+                ((ViewGroup)mySetsTilesContainer).addView(mySetTile);
+            }
         }
-        for(int i = 0 ; i < favoriteSets.size() ; i++) {
-            Set set = favoriteSets.get(i);
-            View mySetTile = inflater.inflate(R.layout.set_tile, null);
 
-            ((TextView) mySetTile.findViewById(R.id.artistText))
-                    .setText(set.getArtist());
-            ((TextView) mySetTile.findViewById(R.id.eventText))
-                    .setText(set.getEvent());
-            ((TextView) mySetTile.findViewById(R.id.playCount))
-                    .setText(set.getPopularity() + " plays");
-            ((TextView) mySetTile.findViewById(R.id.setLength))
-                    .setText(set.getSetLength());
 
-            mySetTile.setTag(set);
-
-            mySetTile.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    activity.playerService.playerManager.setPlaylist(favoriteSets);
-                    activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
-                    activity.startPlayerFragment();
-                    activity.playSelectedSet();
-                }
-            });
-
-            final ImageView artistImage = (ImageView) mySetTile.findViewById(R.id.artistImage);
-
-            ImageLoader.getInstance()
-                    .loadImage(set.getArtistImage(),
-                            options, new SimpleImageLoadingListener() {
-                @Override
-                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                    artistImage.setImageDrawable(new BitmapDrawable(activity.getResources(), loadedImage));
-                }
-            });
-
-            ((ViewGroup)mySetsTilesContainer).addView(mySetTile);
-        }
     }
 
     // Add or Remove a set from My Sets
@@ -782,7 +783,6 @@ public class UserFragment extends Fragment implements ApiCaller {
                 public void onClick(View v) {
                     activity.playerService.playerManager.setPlaylist(newSets);
                     activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
-                    activity.playlistFragment.updatePlaylist();
                     activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }

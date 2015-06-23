@@ -448,7 +448,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
         // button depending on if the user is at the top level
 
-        actionBar = getActionBar();
 
         // Handles showing or hiding the back button in the action bar
 
@@ -467,9 +466,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         setContentView(R.layout.fragment_main);
 
-        // See each method for documentation
-
-        applyCustomViewStyles();
 //        createSecondLevelFragments();
 
         // See finishOnCreate method which is called after these tasks are finished executing
@@ -550,7 +546,6 @@ public class SetMineMainActivity extends FragmentActivity implements
             serviceBound = false;
         }
         playerService.stopSelf();
-        super.onDestroy();
     }
 
     // Executed after all initial models are loaded
@@ -561,9 +556,9 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             Log.d(TAG, "finishOnCreate");
 
-            getWindow().findViewById(R.id.splash_loading).setVisibility(View.GONE);
+            applyCustomViewStyles();
 
-            // Initialize the MainViewPagerFragment
+            getWindow().findViewById(R.id.splash_loading).setVisibility(View.INVISIBLE);
 
             handleIntent(getIntent());
 
@@ -577,6 +572,8 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void applyCustomViewStyles() {
         LayoutInflater inflater = LayoutInflater.from(this);
 
+        actionBar = getActionBar();
+
         // Use a custom action bar view
 
         View customView = inflater.inflate(R.layout.custom_action_bar, null);
@@ -584,6 +581,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         actionBar.setDisplayShowCustomEnabled(true);
 
         // Only allow keyboard pop up on EditText click
+
+        Log.d(TAG, "applyCustomViewStyles");
 
         this.getWindow().setSoftInputMode(WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_HIDDEN);
     }
@@ -605,11 +604,15 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onBackPressed() {
-        if(fragmentManager.getBackStackEntryCount() > 0)
+        fragmentManager = getSupportFragmentManager();
+        Log.d(TAG, ((Integer)fragmentManager.getBackStackEntryCount()).toString());
+        if(fragmentManager.getBackStackEntryCount() > 0) {
+            fragmentManager.popBackStack();
+        } else {
             super.onBackPressed();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
-        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
-        transaction.commitAllowingStateLoss();
+        }
+        Log.d(TAG, ((Integer)fragmentManager.getBackStackEntryCount()).toString());
+
     }
 
     // Click function for Venue Map Button in Event Detail Pages
@@ -693,6 +696,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("mainPagerContainer");
+
         transaction.commitAllowingStateLoss();
     }
 
@@ -706,6 +711,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, playlistFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("playlist");
         transaction.commitAllowingStateLoss();
     }
 
@@ -717,6 +723,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, playerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("player");
         transaction.commitAllowingStateLoss();
     }
 
@@ -728,6 +735,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, searchSetsFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("searchSets");
         transaction.commitAllowingStateLoss();
     }
 
@@ -741,6 +749,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, artistDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("artistDetail");
         transaction.commitAllowingStateLoss();
     }
 
@@ -755,6 +764,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, eventDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("eventDetail");
         transaction.commitAllowingStateLoss();
     }
 

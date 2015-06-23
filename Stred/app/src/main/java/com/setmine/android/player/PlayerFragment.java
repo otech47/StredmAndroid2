@@ -549,7 +549,9 @@ public class PlayerFragment extends Fragment implements
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 ImageUtils imageUtils = new ImageUtils();
                 Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 5000);
-                mImageView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
+                if(mBackgroundImage != null) {
+                    mImageView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
+                }
 
                 Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
                 notificationIntent.setAction("UPDATE_REMOTE");
@@ -568,7 +570,9 @@ public class PlayerFragment extends Fragment implements
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 ImageUtils imageUtils = new ImageUtils();
                 Bitmap blurredBitmap = imageUtils.fastblur(loadedImage, 4);
-                mBackgroundImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
+                if(mBackgroundImage != null) {
+                    mBackgroundImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
+                }
 
                 playerService.lockscreenImage = loadedImage;
 
