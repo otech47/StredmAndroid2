@@ -377,7 +377,8 @@ public class PlayerFragment extends Fragment implements
             public void onClick(View view) {
                 Intent sendIntent = new Intent();
                 sendIntent.setAction(Intent.ACTION_SEND);
-                sendIntent.putExtra(Intent.EXTRA_TEXT, "This is my text to send.");
+                sendIntent.putExtra(Intent.EXTRA_TEXT, "http://setmine.com/?play/"
+                        + playerManager.getSelectedSet().getId());
                 sendIntent.setType("text/plain");
                 startActivity(Intent.createChooser(sendIntent, "http://setmine.com/?play/"+playerManager.getSelectedSet().getId()));
 
@@ -499,7 +500,6 @@ public class PlayerFragment extends Fragment implements
 
 
     }
-
 
     public void updateViewToNewSet() {
         Log.d(TAG, "updateViewToNewSet");

@@ -425,12 +425,6 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         ((MainPagerContainerFragment)getParentFragment()).mMainPagerAdapter.TITLES[0] = "Home";
 
-        if(registeredUser.isRegistered()) {
-            populateMySets();
-            populateActivities();
-            populateMyNextEvent();
-        }
-
         // Scroll to top of view
 
         ((ScrollView)rootView.findViewById(R.id.homeScroll)).smoothScrollTo(0, 0);
@@ -477,8 +471,6 @@ public class UserFragment extends Fragment implements ApiCaller {
                 newSetsDetailContainer.setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
                 kickOffNewSetsQuery();
-
-
 
             }
         });
@@ -704,7 +696,6 @@ public class UserFragment extends Fragment implements ApiCaller {
                 public void onClick(View v) {
                     activity.playerService.playerManager.setPlaylist(favoriteSets);
                     activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
-                    activity.playlistFragment.updatePlaylist();
                     activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
