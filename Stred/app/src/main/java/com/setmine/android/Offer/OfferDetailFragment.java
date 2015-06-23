@@ -19,8 +19,16 @@ import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.user.User;
 import com.setmine.android.util.DateUtils;
 
+import org.joda.time.DateTime;
+import org.joda.time.Days;
+import org.joda.time.Hours;
+import org.joda.time.Minutes;
+import org.joda.time.format.DateTimeFormatter;
+import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.Date;
 
 /**
  * Created by ryan on 6/21/2015.
@@ -35,14 +43,6 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public View offerButton1;
     public View offerButton2;
     public Offer currentOffer;
-    public String offerId;
-    public String artistId;
-    public String setId;
-    public String venueId;
-    public String dateReleased;
-    public String dateExpired;
-    public String totalRevenue;
-    public String totalConvergences;
     public TextView artistNameText;
     public TextView exclusiveContentText;
     public TextView distanceText;
@@ -96,14 +96,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             } catch (JSONException e) {
                 e.printStackTrace();
             }
-            offerId = savedInstanceState.getString("offerId");
-            setId = savedInstanceState.getString("setId");
-            venueId = savedInstanceState.getString("venueId");
-            dateReleased = savedInstanceState.getString("dateReleased");
-            dateExpired = savedInstanceState.getString("dateExpired");
-            totalRevenue = savedInstanceState.getString("totalRevenue");
-            totalConvergences = savedInstanceState.getString("totalConvergences");
-            artistId = savedInstanceState.getString("artistId");
+
         }
 
 
@@ -131,10 +124,30 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         minutesLeftText = (TextView)rootView.findViewById(R.id.minutesLeftText);
         vendorMessageText =(TextView)rootView.findViewById(R.id.vendorMessage);
 
+        artistNameText.setText(currentOffer.getArtist().getArtist());
 
+        //displaying time left
+        java.util.Date juDate = new Date();
+        DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+        DateTime currentTime = new DateTime(juDate);
+        DateTime expirationTime = fmt.parseDateTime(currentOffer.getDateExpired());
+        String hoursString = Hours.hoursBetween(currentTime,expirationTime).toString();
+        String daysString = Days.daysBetween(currentTime, expirationTime).toString();
+        String minutesString= Minutes.minutesBetween(currentTime, expirationTime).toString();
+        int hoursInt = Integer.parseInt(hoursString);
+        int daysInt = Integer.parseInt(daysString);
+        int minutesInt = Integer.parseInt(minutesString);
 
-
-
+        if(hoursInt<24 &&hoursInt>1){
+            minutesLeftText.setText("This offer expires in "+hoursString+" hours and "+minutesInt+" minutes.");
+        }else if(hoursInt>24){
+            int hours = hoursInt%24;
+            if(hours >1) {
+                minutesLeftText.setText("This offer expires in " + daysInt + " days and " + hours + " hours");
+            }else if(hours == 1){
+                minutesLeftText.setText("This offer expires in " + daysInt + " days and 1 hour");
+            }
+        }
 
 
         assignClickListeners();
