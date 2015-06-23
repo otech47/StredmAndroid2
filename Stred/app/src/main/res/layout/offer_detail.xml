@@ -167,7 +167,8 @@
                 android:layout_width="0dp"
                 android:layout_height="match_parent"
                 android:id="@+id/offerButton2Layout"
-                android:layout_weight="1">
+                android:layout_weight="1"
+                android:visibility="visible">
 
                 <ImageView
                     android:layout_weight="1"
@@ -329,7 +330,7 @@
             android:gravity="center"
             android:id="@+id/vendorMessageLayout"
 
-            >
+            android:visibility="visible">
 
             <TextView
                 android:layout_width="wrap_content"
