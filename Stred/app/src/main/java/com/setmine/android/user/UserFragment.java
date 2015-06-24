@@ -756,9 +756,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         ((ViewGroup)newSetsTileContainer).removeAllViews();
 
-        // Remove the loader
 
-        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
 
         // If the user has not favorited any sets
 
@@ -791,7 +789,6 @@ public class UserFragment extends Fragment implements ApiCaller {
                 public void onClick(View v) {
                     activity.playerService.playerManager.setPlaylist(newSets);
                     activity.playerService.playerManager.selectSetById(((Set) v.getTag()).getId());
-                    activity.playlistFragment.updatePlaylist();
                     activity.startPlayerFragment();
                     activity.playSelectedSet();
                 }
@@ -809,6 +806,11 @@ public class UserFragment extends Fragment implements ApiCaller {
                             });
 
             ((ViewGroup)newSetsTileContainer).addView(mySetTile);
+
+
         }
+        // Remove the loader
+        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
     }
+
 }

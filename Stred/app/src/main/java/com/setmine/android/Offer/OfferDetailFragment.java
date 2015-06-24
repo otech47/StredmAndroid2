@@ -63,6 +63,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public TextView addressText1;
     public TextView addressText2;
     public ImageView vendorImage;
+    public float distance;
 
 
     private Location userLocation;
@@ -86,10 +87,35 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
     public void createOffer(JSONObject jsonObject){
        currentOffer= new Offer(jsonObject);
+       getStaticMap();
     }
 
     public void getStaticMap(){
-       final String STATIC_MAP_API_ENDPOINT = "https://maps.googleapis.com/maps/api/staticmap?center="+currentOffer.getVenue().getLatitude()+","+currentOffer.getVenue().getLongitude()+"&zoom=13&size=300x300";
+        Location currentLocation = ((SetMineMainActivity)getActivity()).currentLocation;
+        Location venueLocation = new Location("venue");
+        venueLocation.setLatitude(Double.parseDouble(currentOffer.getVenue().getLatitude()));
+        venueLocation.setLongitude(Double.parseDouble(currentOffer.getVenue().getLongitude()));
+        String venueLatitude = currentOffer.getVenue().getLatitude();
+        String venueLongitude= currentOffer.getVenue().getLongitude();
+
+        String staticMapUrlFinal = "https://maps.googleapis.com/maps/api/staticmap?size=300x300";
+
+        if(currentLocation != null){
+            //distanceTo() is returned in meters
+            distance= currentLocation.distanceTo(venueLocation);
+            distance= distance *3.2808399f; //convert to feet
+
+            Double currentLatitude = currentLocation.getLatitude();
+            Double currentLongitude = currentLocation.getLongitude();
+            String staticMapVenueLocation ="&markers=color:0xAA48CB%7Clabel:B%7C"+venueLatitude+","+venueLongitude;
+            String staticMapCurrentLocation = "&markers=color:0x4A87F4%7Clabel:A%7C" + currentLatitude.toString() +","+currentLongitude.toString();
+            String staticMapPath = "&path=color:0x808080|weight:5|"+currentLatitude.toString()+","+currentLongitude.toString()+"|"+venueLatitude+","+venueLongitude;
+            staticMapUrlFinal = staticMapUrlFinal+staticMapCurrentLocation+staticMapVenueLocation+staticMapPath;
+        }else{
+            staticMapUrlFinal = staticMapUrlFinal + "&markers=color:0xAA48CB%7C"+venueLatitude+","+venueLongitude;
+        }
+
+        final String STATIC_MAP_API_ENDPOINT = staticMapUrlFinal;
         AsyncTask<Void, Void, Bitmap> setImageFromUrl = new AsyncTask<Void, Void, Bitmap>(){
             @Override
             protected Bitmap doInBackground(Void... params) {

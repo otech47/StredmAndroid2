@@ -307,9 +307,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         if(activity.currentLocation != null) {
             this.selectedLocation = new Location(activity.currentLocation);
         } else {
-            this.selectedLocation = new Location("default");
-            selectedLocation.setLatitude(29.652175);
-            selectedLocation.setLongitude(-82.325856);
+            this.selectedLocation = null;
         }
 
 

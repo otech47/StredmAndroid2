@@ -338,11 +338,8 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
             else {
                 Log.d(TAG, "services NOT Connected");
-                currentLocation = new Location("default");
-                currentLocation.setLatitude(29.652175);
-                currentLocation.setLongitude(-82.325856);
-                String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
-                        +currentLocation.getLongitude();
+                currentLocation= null;
+                String eventSearchUrl = "upcoming";
                 new SetMineApiGetRequestAsyncTask(this, this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                                 eventSearchUrl,
@@ -961,20 +958,19 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     public void onConnected(Bundle bundle) {
 
-        // Default to Gainesville coordinates if location not available and disconnect
+        String eventSearchUrl ="upcoming";
 
         if(locationClient.getLastLocation() != null) {
             currentLocation = locationClient.getLastLocation();
+            eventSearchUrl =eventSearchUrl+"/?latitude=" + currentLocation.getLatitude();
+            eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
         }
         else {
-            currentLocation = new Location("default");
-            currentLocation.setLatitude(29.652175);
-            currentLocation.setLongitude(-82.325856);
+            currentLocation = null;
         }
         locationClient.disconnect();
 
-        String eventSearchUrl = "upcoming/?latitude=" + currentLocation.getLatitude();
-        eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
+
         new SetMineApiGetRequestAsyncTask(this, this)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl, "upcomingEvents");
@@ -1000,11 +996,8 @@ public class SetMineMainActivity extends FragmentActivity implements
 
 
         locationClient.disconnect();
-        currentLocation = new Location("default");
-        currentLocation.setLatitude(29.652175);
-        currentLocation.setLongitude(-82.325856);
-        String eventSearchUrl = "upcoming?latitude=" + currentLocation.getLatitude() + "&longitude="
-                + currentLocation.getLongitude();
+        currentLocation = null;
+        String eventSearchUrl = "upcoming";
         new SetMineApiGetRequestAsyncTask(this, this)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl,
