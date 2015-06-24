@@ -22,6 +22,9 @@ public class Offer extends JSONModel{
     private String mDateExpired;
     private String mTotalRevenue;
     private String mTotalConvergences;
+    private String mMessage;
+
+
 
     public Offer(){}
 
@@ -40,11 +43,22 @@ public class Offer extends JSONModel{
             setDateExpired(payload.getString("date_expired"));
             setTotalRevenue(payload.getString("total_revenue"));
             setTotalConvergences(payload.getString("total_convergences"));
+            setMessage(payload.getString("message"));
             }
         }catch (JSONException e){
             e.printStackTrace();
         }
 
+    }
+
+
+
+    public String getMessage() {
+        return mMessage;
+    }
+
+    public void setMessage(String message) {
+        mMessage = message;
     }
 
     public String getOfferId() {

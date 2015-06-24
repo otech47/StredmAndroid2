@@ -2,10 +2,9 @@ package com.setmine.android.api;
 
 import android.content.Context;
 import android.os.AsyncTask;
-import android.util.Log;
 
-import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONObject;
@@ -29,7 +28,6 @@ public class ApiCallAsyncTask extends AsyncTask<String, Integer, JSONObject> {
     @Override
     protected void onPreExecute() {
         activity.asyncTasksInProgress++;
-        Log.v("Task started. Still in queue: ", ((Integer)activity.asyncTasksInProgress).toString());
     }
 
     @Override
@@ -52,7 +50,6 @@ public class ApiCallAsyncTask extends AsyncTask<String, Integer, JSONObject> {
     @Override
     protected void onPostExecute(JSONObject jsonObject) {
         activity.asyncTasksInProgress--;
-        Log.v("Task complete. Still in queue: ", ((Integer)activity.asyncTasksInProgress).toString());
         taskCaller.onApiResponseReceived(jsonObject, modelType);
     }
 }

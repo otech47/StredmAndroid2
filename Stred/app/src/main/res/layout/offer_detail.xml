@@ -26,10 +26,22 @@
         android:paddingTop="10dp"
         android:textColor="#ffd5d5d5"/>
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="___  miles"
+        android:id="@+id/distanceText"
+        android:layout_below="@+id/mapContainer"
+        android:layout_centerHorizontal="true"
+        android:textStyle="bold"
+        android:textColor="#ffd5d5d5"
+        android:textSize="18dp"/>
+
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="90dp"
+        android:layout_below="@id/offerDetailArtistName"
+        android:layout_marginTop="60dp"
         android:id="@+id/mapContainer"
         android:clickable="true"
         android:onClick="googleMapsAddressLookup"
@@ -39,40 +51,27 @@
         <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/offerDetailImage"
+            android:id="@+id/mapImage"
             android:src="@drawable/logo"
             android:clickable="false"
             />
 
     </RelativeLayout>
 
+
+
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Exclusive Content"
-        android:id="@+id/exclusiveContentText"
+        android:text="Venue"
+        android:id="@+id/offerVenueText"
         android:textColor="#ffd5d5d5"
         android:textAlignment="center"
-        android:singleLine="true"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
+        android:layout_below="@id/distanceText"
         android:gravity="center"
-        android:textSize="35dp"
-        />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="___  miles"
-        android:id="@+id/distanceText"
-        android:layout_below="@+id/exclusiveContentText"
-        android:layout_centerHorizontal="true"
-        android:textStyle="bold"
-        android:textColor="#ffd5d5d5"
-        android:layout_marginTop="14dp"
-        android:textSize="15dp"/>
+        android:textSize="40dp"
+        android:layout_marginTop="10dp"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -80,7 +79,7 @@
         android:text="This offer expires in __ many hours."
         android:id="@+id/redemptionText"
         android:layout_marginBottom="25dp"
-        android:textSize="20dp"
+        android:textSize="18dp"
         android:gravity="center"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
@@ -89,130 +88,86 @@
         android:paddingLeft="60dp"
         android:paddingRight="60dp"/>
 
-    <LinearLayout
-        android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@id/distanceText"
-        android:layout_above="@id/redemptionText"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:weightSum="2">
+        android:text="69 Tittylicious Blv."
+        android:id="@+id/addressText1"
+        android:layout_below="@+id/offerVenueText"
+        android:layout_centerHorizontal="true"
+        android:textColor="#ffd5d5d5"
+        android:textSize="15dp"
+        android:password="false"/>
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Whore Island, FL 32456"
+        android:id="@+id/addressText2"
+        android:layout_below="@+id/addressText1"
+        android:layout_centerHorizontal="true"
+        android:textColor="#ffd5d5d5"
+        android:textSize="15dp"
+        android:password="false"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:weightSum="2"
+        android:gravity="center_horizontal"
+        android:layout_weight="1"
+        android:layout_below="@+id/addressText2"
+        android:layout_above="@id/redemptionText">
+
+        <RelativeLayout
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:weightSum="2"
-            android:gravity="center_horizontal"
-            android:layout_weight="1">
+            android:id="@+id/offerButton1Layout"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical">
 
-            <RelativeLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:id="@+id/offerButton1Layout"
-                android:layout_weight="1"
-                android:layout_gravity="center_vertical">
+            <ImageView
 
-                <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/offerButton1"
+                android:src="@mipmap/setmine_bar_button"
+                android:scaleType="centerCrop"
+                android:alpha=".95"
+                android:layout_centerInParent="true"/>
 
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/offerButton1"
-                    android:layout_centerHorizontal="true"
-                    android:src="@mipmap/setmine_bar_button"
-                    android:scaleType="centerCrop"
-                    android:alpha=".95"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/offerButton1"
+                android:layout_alignTop="@id/offerButton1"
+                android:id="@+id/lockIcon"
+                android:adjustViewBounds="true"
+                android:src="@android:drawable/ic_lock_lock"
+                android:scaleType="centerCrop"
+                android:layout_marginLeft="18dp"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="14dp"/>
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/offerButton1"
-                    android:layout_alignTop="@id/offerButton1"
-                    android:id="@+id/lockIcon"
-                    android:adjustViewBounds="true"
-                    android:src="@android:drawable/ic_lock_lock"
-                    android:scaleType="centerCrop"
-                    android:layout_marginLeft="18dp"
-                    android:layout_centerVertical="true"
-                    android:layout_marginTop="14dp"
-                    android:layout_marginBottom="13dp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Exclusive Stuff"
-                    android:id="@+id/offerText1"
-                    android:singleLine="true"
-                    android:layout_alignWithParentIfMissing="false"
-                    android:layout_alignTop="@+id/lockIcon"
-                    android:layout_alignBottom="@+id/lockIcon"
-                    android:textColor="@color/setmine_dark_gray"
-                    android:layout_marginRight="20dp"
-                    android:gravity="center"
-                    android:textSize="13dp"
-                    android:layout_alignLeft="@+id/lockIcon"
-                    android:layout_alignStart="@+id/lockIcon"
-                    android:paddingLeft="14dp"/>
-            </RelativeLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:weightSum="2"
-            android:gravity="center_horizontal">
-
-            <RelativeLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:id="@+id/offerButton2Layout"
-                android:layout_weight="1"
-                android:visibility="visible">
-
-                <ImageView
-                    android:layout_weight="1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/offerButton2"
-                    android:layout_centerHorizontal="true"
-                    android:src="@mipmap/setmine_bar_button"
-                    android:scaleType="centerCrop"
-                    android:alpha=".95"/>
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/offerButton2"
-                    android:layout_alignTop="@id/offerButton2"
-                    android:id="@+id/vendorImageSmall"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/artist_icon"
-                    android:scaleType="centerCrop"
-                    android:layout_marginLeft="18dp"
-                    android:layout_centerVertical="true"
-                    android:layout_marginTop="14dp"
-                    android:layout_marginBottom="13dp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Free Stuff"
-                    android:id="@+id/offerText2"
-                    android:singleLine="true"
-                    android:layout_alignWithParentIfMissing="false"
-                    android:layout_alignTop="@+id/vendorImageSmall"
-                    android:layout_alignBottom="@+id/vendorImageSmall"
-                    android:textColor="@color/setmine_dark_gray"
-                    android:layout_marginRight="20dp"
-                    android:gravity="center"
-                    android:textSize="13dp"
-                    android:layout_alignLeft="@+id/vendorImageSmall"
-                    android:layout_alignStart="@+id/vendorImageSmall"
-                    android:paddingLeft="14dp"/>
-            </RelativeLayout>
-        </LinearLayout>
-
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Exclusive Stuff"
+                android:id="@+id/offerText1"
+                android:singleLine="true"
+                android:layout_alignWithParentIfMissing="false"
+                android:layout_alignTop="@+id/lockIcon"
+                android:layout_alignBottom="@+id/lockIcon"
+                android:textColor="@color/setmine_dark_gray"
+                android:layout_marginRight="20dp"
+                android:gravity="center"
+                android:textSize="13dp"
+                android:layout_alignLeft="@+id/lockIcon"
+                android:layout_alignStart="@+id/lockIcon"
+                android:paddingLeft="14dp"/>
+        </RelativeLayout>
     </LinearLayout>
 
     <RelativeLayout
@@ -264,73 +219,13 @@
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@+id/blueBar1"
-            android:layout_alignRight="@+id/closeButton"
-            android:layout_alignEnd="@+id/closeButton"
-            android:layout_marginTop="15dp"
-            android:id="@+id/relativeLayout2"
-            android:gravity="center_horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="You have "
-                android:id="@+id/textView"
-                android:textColor="@color/setmine_dark_gray"
-                android:textSize="15dp"
-
-                android:layout_alignParentTop="true"
-                />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 min "
-                android:id="@+id/minutesLeftText"
-                android:textColor="@color/setmine_dark_gray"
-                android:typeface="normal"
-                android:textStyle="bold"
-                android:textSize="15dp"
-                android:layout_alignTop="@+id/textView"
-                android:layout_toRightOf="@+id/textView"
-                android:layout_toEndOf="@+id/textView"
-                android:layout_centerHorizontal="true"
-                />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="left to"
-                android:id="@+id/textView2"
-                android:textColor="@color/setmine_dark_gray"
-                android:textSize="15dp"
-
-
-                android:layout_toRightOf="@+id/minutesLeftText"
-                android:layout_toEndOf="@+id/minutesLeftText"/>
-
-        </RelativeLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="redeem offer."
-            android:id="@+id/textView3"
-            android:textSize="15dp"
-            android:textColor="@color/setmine_dark_gray"
-            android:layout_below="@+id/relativeLayout2"
-            android:layout_centerHorizontal="true"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_alignParentBottom="true"
             android:gravity="center"
             android:id="@+id/vendorMessageLayout"
 
-            android:visibility="visible">
+            >
 
             <TextView
                 android:layout_width="wrap_content"
@@ -369,8 +264,8 @@
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
-            android:layout_below="@id/textView3"
-            android:layout_above="@id/vendorMessageLayout">
+            android:layout_above="@id/vendorMessageLayout"
+            android:layout_below="@+id/blueBar1">
 
             <ImageView
                 android:layout_width="wrap_content"
@@ -388,7 +283,13 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/locationText"
+        android:id="@+id/offerLatitude"
+        android:visibility="invisible"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/offerLongitude"
         android:visibility="invisible"/>
 
 </RelativeLayout>

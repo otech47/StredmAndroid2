@@ -1,7 +1,10 @@
 package com.setmine.android.Offer;
 
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -9,8 +12,11 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.setmine.android.Constants;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
@@ -19,15 +25,20 @@ import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.user.User;
 import com.setmine.android.util.DateUtils;
 
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.joda.time.DateTime;
 import org.joda.time.Days;
 import org.joda.time.Hours;
 import org.joda.time.Minutes;
+import org.joda.time.Seconds;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.InputStream;
 import java.util.Date;
 
 /**
@@ -44,14 +55,14 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public View offerButton2;
     public Offer currentOffer;
     public TextView artistNameText;
-    public TextView exclusiveContentText;
+    public TextView offerVenueText;
     public TextView distanceText;
     public TextView offerButtonText1;
-    public TextView offerButtonText2;
     public TextView redemptionText;
-    public TextView minutesLeftText;
     public TextView vendorMessageText;
-
+    public TextView addressText1;
+    public TextView addressText2;
+    public ImageView vendorImage;
 
 
     private Location userLocation;
@@ -75,6 +86,35 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
     public void createOffer(JSONObject jsonObject){
        currentOffer= new Offer(jsonObject);
+    }
+
+    public void getStaticMap(){
+       final String STATIC_MAP_API_ENDPOINT = "https://maps.googleapis.com/maps/api/staticmap?center="+currentOffer.getVenue().getLatitude()+","+currentOffer.getVenue().getLongitude()+"&zoom=13&size=300x300";
+        AsyncTask<Void, Void, Bitmap> setImageFromUrl = new AsyncTask<Void, Void, Bitmap>(){
+            @Override
+            protected Bitmap doInBackground(Void... params) {
+                Bitmap bmp = null;
+                HttpClient httpclient = new DefaultHttpClient();
+                HttpGet request = new HttpGet(STATIC_MAP_API_ENDPOINT);
+
+                InputStream in = null;
+                try {
+                    in = httpclient.execute(request).getEntity().getContent();
+                    bmp = BitmapFactory.decodeStream(in);
+                    in.close();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return bmp;
+            }
+            protected void onPostExecute(Bitmap bmp) {
+                if (bmp != null) {
+                    final ImageView iv = (ImageView) rootView.findViewById(R.id.mapImage);
+                    iv.setImageBitmap(bmp);
+                }
+            }
+        };
+        setImageFromUrl.execute();
     }
 
     @Override
@@ -112,22 +152,24 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
         //feature buttons
         offerButton1 = rootView.findViewById(R.id.offerButton1);
-        offerButton2 = rootView.findViewById(R.id.offerButton1);
 
         //text views
         artistNameText = (TextView)rootView.findViewById(R.id.offerDetailArtistName);
-        exclusiveContentText= (TextView)rootView.findViewById(R.id.exclusiveContentText);
+        offerVenueText = (TextView)rootView.findViewById(R.id.offerVenueText);
         distanceText = (TextView)rootView.findViewById(R.id.distanceText);
         offerButtonText1 = (TextView)rootView.findViewById(R.id.offerText1);
-        offerButtonText2 = (TextView)rootView.findViewById(R.id.offerText2);
         redemptionText = (TextView)rootView.findViewById(R.id.redemptionText);
-        minutesLeftText = (TextView)rootView.findViewById(R.id.minutesLeftText);
         vendorMessageText =(TextView)rootView.findViewById(R.id.vendorMessage);
+        addressText1 = (TextView) rootView.findViewById(R.id.addressText1);
+        addressText2 = (TextView)rootView.findViewById(R.id.addressText2);
 
-        artistNameText.setText(currentOffer.getArtist().getArtist());
+        //image views
+        vendorImage = (ImageView)rootView.findViewById(R.id.vendorIcon);
+        ImageLoader.getInstance().displayImage(Constants.CLOUDFRONT_URL_FOR_IMAGES+ currentOffer.getVenue().getIconImageUrl(), vendorImage);
 
-        //displaying time left
-        java.util.Date juDate = new Date();
+
+        //update time left
+        Date juDate = new Date();
         DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
         DateTime currentTime = new DateTime(juDate);
         DateTime expirationTime = fmt.parseDateTime(currentOffer.getDateExpired());
@@ -139,16 +181,32 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         int minutesInt = Integer.parseInt(minutesString);
 
         if(hoursInt<24 &&hoursInt>1){
-            minutesLeftText.setText("This offer expires in "+hoursString+" hours and "+minutesInt+" minutes.");
-        }else if(hoursInt>24){
+            redemptionText.setText("This offer expires in " + hoursString + " hours and " + minutesInt + " minutes.");
+        }else if(hoursInt==1){
+            redemptionText.setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
+        }
+        else if(hoursInt>24){
             int hours = hoursInt%24;
             if(hours >1) {
-                minutesLeftText.setText("This offer expires in " + daysInt + " days and " + hours + " hours");
+                redemptionText.setText("This offer expires in " + daysInt + " days and " + hours + " hours.");
             }else if(hours == 1){
-                minutesLeftText.setText("This offer expires in " + daysInt + " days and 1 hour");
+                redemptionText.setText("This offer expires in " + daysInt + " days and 1 hour.");
+            }else if(hours <1){
+                redemptionText.setText("This offer expires in " + daysInt + " days.");
             }
+        }else if(Seconds.secondsBetween(currentTime, expirationTime) == null){
+            redemptionText.setText("This offer has expired.");
         }
 
+        //changing text views
+        artistNameText.setText(currentOffer.getArtist().getArtist());
+        offerButtonText1.setText("Exclusive set.");
+        vendorMessageText.setText(currentOffer.getMessage());
+        if(currentOffer.getVenue().getAddress() != null){
+            String[] addressArray = currentOffer.getVenue().getAddress().split(",");
+            addressText1.setText(addressArray[0]);
+            addressText2.setText(addressArray[1]+addressArray[2]);
+        }
 
         assignClickListeners();
 
