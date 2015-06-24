@@ -7,11 +7,17 @@ android {
         applicationId "com.setmine.android"
         minSdkVersion 15
         targetSdkVersion 20
-        versionCode 20
-        versionName "6.0"
+        versionCode 21
+        versionName "6.0.1"
     }
     sourceSets { main { assets.srcDirs = ['src/main/assets', 'src/main/assets/'] } }
+    packagingOptions {
+        exclude 'META-INF/notice.txt'
+        exclude 'META-INF/license.txt'
+    }
 }
+
+
 
 dependencies {
     compile 'com.android.support:support-v4:20.0.0'
@@ -24,4 +30,9 @@ dependencies {
     compile 'com.viewpagerindicator:library:2.4.1@aar'
     compile 'net.danlew:android.joda:2.7.2'
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile files('libs/gimbal.jar')
+    compile files('libs/gimbal-dev-logging.jar')
+    compile files('libs/spring-android-core-1.0.1.RELEASE.jar')
+    compile files('libs/spring-android-rest-template-1.0.1.RELEASE.jar')
+
 }

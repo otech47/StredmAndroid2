@@ -26,6 +26,7 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.gimbal.android.Gimbal;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -274,6 +275,12 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
     }
 
+    public void initializeGimbal() {
+        Gimbal.setApiKey(this.getApplication(), "c06f63bf-ef5f-45e9-9edf-4f600c86c67a");
+        Gimbal.registerForPush("699004373125");
+
+    }
+
     // Activity Handling
 
     @Override
@@ -285,9 +292,15 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         JodaTimeAndroid.init(this);
 
+        // For event-based metrics on Mixpanel.com
+
         initializeMixpanel();
 
+        // Initialize user
+
         user = new User();
+
+//        initializeGimbal();
 
         // Create the ServiceConnection to the PlayerService every time the activity is created, regardless of savedInstanceState
 
@@ -790,6 +803,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         } catch (Exception e) {
             segments = null;
         }
+
 
         // Intents for Playing Sets, Artist Details, Event Details, Remote Controls and the Notification player
 
