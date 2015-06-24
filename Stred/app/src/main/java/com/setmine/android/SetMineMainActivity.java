@@ -558,9 +558,10 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             applyCustomViewStyles();
 
+            handleIntent(getIntent());
+
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.INVISIBLE);
 
-            handleIntent(getIntent());
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();

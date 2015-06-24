@@ -280,7 +280,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             searchResultSetAdapter.tracks = trackResponses;
         }
         if(list.size() > 0) {
-            listOptionButtons.setVisibility(View.VISIBLE);
+//            listOptionButtons.setVisibility(View.VISIBLE);
             searchedSetsList.setVisibility(View.VISIBLE);
             setsLoading.setVisibility(View.GONE);
             noResults.setVisibility(View.GONE);
@@ -754,7 +754,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                         view.setId(Integer.valueOf(set.getId()).intValue());
                     }
                     setViewHolder.playCount.setText(set.getPopularity() + " plays");
-                    setViewHolder.playCount.setText(set.getSetLength());
+                    setViewHolder.setLength.setText(set.getSetLength());
                     setViewHolder.artistText.setText(set.getArtist());
                     setViewHolder.eventText.setText(set.getEvent());
 

@@ -70,7 +70,7 @@
             android:layout_toRightOf="@id/playsIcon"
             android:layout_toEndOf="@id/playsIcon"
             android:layout_alignParentBottom="true"
-            android:textSize="12sp"/>
+            android:textSize="12sp" />
 
         <TextView
             android:layout_width="wrap_content"
