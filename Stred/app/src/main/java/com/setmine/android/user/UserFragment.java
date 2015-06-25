@@ -34,6 +34,7 @@ import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.Activity;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.api.SetMineApiPostRequestAsyncTask;
+import com.setmine.android.artist.Artist;
 import com.setmine.android.event.Event;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.set.Set;
@@ -620,7 +621,7 @@ public class UserFragment extends Fragment implements ApiCaller {
     }
 
     private void kickOffNewOffersQuery() {
-        String myNewOffersQuery = "offers/id/1";
+        String myNewOffersQuery = "offers/user/1";
 
 //        String myNewOffersQuery = "offers/id/1"+registeredUser.getId();
 
@@ -867,6 +868,8 @@ public class UserFragment extends Fragment implements ApiCaller {
             Offer offer = newOffers.get(j);
             View myOfferTile = inflater.inflate(R.layout.offer_tile, null);
 
+            Artist test =offer.getArtist();
+
             ((TextView) myOfferTile.findViewById(R.id.offerTileArtist))
                     .setText(offer.getArtist().getArtist());
             ((TextView) myOfferTile.findViewById(R.id.offerVenueText))
@@ -877,6 +880,8 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             ((ViewGroup) newSetsTileContainer).addView(myOfferTile);
         }
+        // Remove the loader
+        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
     }
 
 }

@@ -30,21 +30,18 @@ public class Offer extends JSONModel{
 
     public Offer(JSONObject json){
         jsonModelString=json.toString();
-        JSONObject payload;
-        try{
-            if(json.getString("status").equals("success")) {
-            payload = json.getJSONObject("payload");
 
-            setOfferId(payload.getString("id"));
-            setArtist(new Artist(payload.getJSONObject("artist_id")));
-            setSetId(payload.getString("set_id"));
-            setVenue(new Venue(payload.getJSONObject("venue")));
-            setDateReleased(payload.getString("date_released"));
-            setDateExpired(payload.getString("date_expired"));
-            setTotalRevenue(payload.getString("total_revenue"));
-            setTotalConvergences(payload.getString("total_convergences"));
-            setMessage(payload.getString("message"));
-            }
+        try{
+            setOfferId(json.getString("id"));
+            setArtist(new Artist(json.getJSONObject("artist")));
+            setSetId(json.getString("set_id"));
+            setVenue(new Venue(json.getJSONObject("venue")));
+            setDateReleased(json.getString("date_released"));
+            setDateExpired(json.getString("date_expired"));
+            setTotalRevenue(json.getString("total_revenue"));
+            setTotalConvergences(json.getString("total_convergences"));
+            setMessage(json.getString("message"));
+
         }catch (JSONException e){
             e.printStackTrace();
         }
