@@ -16,7 +16,6 @@ import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.nostra13.universalimageloader.core.ImageLoader;
-import com.setmine.android.Constants;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
@@ -29,9 +28,7 @@ import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.joda.time.DateTime;
-import org.joda.time.Days;
-import org.joda.time.Hours;
-import org.joda.time.Minutes;
+import org.joda.time.Period;
 import org.joda.time.Seconds;
 import org.joda.time.format.DateTimeFormatter;
 import org.joda.time.format.ISODateTimeFormat;
@@ -52,7 +49,6 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public User registeredUser;
     public View rootView;
     public View offerButton1;
-    public View offerButton2;
     public Offer currentOffer;
     public TextView artistNameText;
     public TextView offerVenueText;
@@ -74,49 +70,101 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     @Override
     public void onApiResponseReceived(final JSONObject jsonObject, String identifier) {
         final JSONObject finalJsonObject = jsonObject;
+
+
         final String finalIdentifier = identifier;
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if(finalIdentifier == "offers"){
-                    createOffer(finalJsonObject);
-                }
+
+                getActivity().runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+
+                        if (finalIdentifier == "offers") {
+                            try {
+                                createOffer(finalJsonObject.getJSONObject("payload").getJSONObject("offer"));
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            }
+                        }
+
+                    }
+                });
             }
         }).start();
     }
 
-    public void createOffer(JSONObject jsonObject){
-       currentOffer= new Offer(jsonObject);
-       getStaticMap();
+    public void createOffer(JSONObject jsonObject) {
+        currentOffer = new Offer(jsonObject);
+        getStaticMap();
+        ImageLoader.getInstance().displayImage(currentOffer.getVenue().getIconImageUrl(), vendorImage);
+//update time left
+        Date juDate = new Date();
+        DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
+        DateTime currentTime = new DateTime(juDate);
+        DateTime expirationTime = fmt.parseDateTime(currentOffer.getDateExpired());
+        Period period = new Period(currentTime, expirationTime);
+        int hoursInt = period.getHours();
+        int minutesInt = period.getMinutes();
+        int daysInt = period.getDays();
+
+
+        if (hoursInt < 24 && hoursInt > 1) {
+            redemptionText.setText("This offer expires in " + hoursInt + " hours and " + minutesInt + " minutes.");
+        } else if (hoursInt == 1) {
+            redemptionText.setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
+        } else if (hoursInt > 24) {
+            int hours = hoursInt % 24;
+            if (hours > 1) {
+                redemptionText.setText("This offer expires in " + daysInt + " days and " + hours + " hours.");
+            } else if (hours == 1) {
+                redemptionText.setText("This offer expires in " + daysInt + " days and 1 hour.");
+            } else if (hours < 1) {
+                redemptionText.setText("This offer expires in " + daysInt + " days.");
+            }
+        } else if (Seconds.secondsBetween(currentTime, expirationTime) == null) {
+            redemptionText.setText("This offer has expired.");
+        }
+
+        //changing text views
+        artistNameText.setText(currentOffer.getArtist().getArtist());
+        offerButtonText1.setText("Exclusive set.");
+        vendorMessageText.setText(currentOffer.getMessage());
+        if (currentOffer.getVenue().getAddress() != null) {
+            String[] addressArray = currentOffer.getVenue().getAddress().split(",");
+            addressText1.setText(addressArray[0]);
+            addressText2.setText(addressArray[1] + addressArray[2]);
+        }
     }
 
-    public void getStaticMap(){
-        Location currentLocation = ((SetMineMainActivity)getActivity()).currentLocation;
+    public void getStaticMap() {
+        Location currentLocation = ((SetMineMainActivity) getActivity()).currentLocation;
         Location venueLocation = new Location("venue");
         venueLocation.setLatitude(Double.parseDouble(currentOffer.getVenue().getLatitude()));
         venueLocation.setLongitude(Double.parseDouble(currentOffer.getVenue().getLongitude()));
         String venueLatitude = currentOffer.getVenue().getLatitude();
-        String venueLongitude= currentOffer.getVenue().getLongitude();
+        String venueLongitude = currentOffer.getVenue().getLongitude();
 
         String staticMapUrlFinal = "https://maps.googleapis.com/maps/api/staticmap?size=300x300";
 
-        if(currentLocation != null){
+        if (currentLocation != null) {
             //distanceTo() is returned in meters
-            distance= currentLocation.distanceTo(venueLocation);
-            distance= distance *3.2808399f; //convert to feet
+            distance = currentLocation.distanceTo(venueLocation);
+            distance = distance * 3.2808399f; //convert to feet
 
             Double currentLatitude = currentLocation.getLatitude();
             Double currentLongitude = currentLocation.getLongitude();
-            String staticMapVenueLocation ="&markers=color:0xAA48CB%7Clabel:B%7C"+venueLatitude+","+venueLongitude;
-            String staticMapCurrentLocation = "&markers=color:0x4A87F4%7Clabel:A%7C" + currentLatitude.toString() +","+currentLongitude.toString();
-            String staticMapPath = "&path=color:0x808080|weight:5|"+currentLatitude.toString()+","+currentLongitude.toString()+"|"+venueLatitude+","+venueLongitude;
-            staticMapUrlFinal = staticMapUrlFinal+staticMapCurrentLocation+staticMapVenueLocation+staticMapPath;
-        }else{
-            staticMapUrlFinal = staticMapUrlFinal + "&markers=color:0xAA48CB%7C"+venueLatitude+","+venueLongitude;
+            String staticMapVenueLocation = "&markers=color:0xAA48CB%7Clabel:B%7C" + venueLatitude + "," + venueLongitude;
+            String staticMapCurrentLocation = "&markers=color:0x4A87F4%7Clabel:A%7C" + currentLatitude.toString() + "," + currentLongitude.toString();
+            String staticMapPath = "&path=color:0x808080|weight:5|" + currentLatitude.toString() + "," + currentLongitude.toString() + "|" + venueLatitude + "," + venueLongitude;
+            staticMapUrlFinal = staticMapUrlFinal + staticMapCurrentLocation + staticMapVenueLocation + staticMapPath;
+        } else {
+            staticMapUrlFinal = staticMapUrlFinal + "&markers=color:0xAA48CB%7C" + venueLatitude + "," + venueLongitude;
         }
 
-        final String STATIC_MAP_API_ENDPOINT = staticMapUrlFinal;
-        AsyncTask<Void, Void, Bitmap> setImageFromUrl = new AsyncTask<Void, Void, Bitmap>(){
+        final String STATIC_MAP_API_ENDPOINT = Uri.encode(staticMapUrlFinal);
+        AsyncTask<Void, Void, Bitmap> setImageFromUrl = new AsyncTask<Void, Void, Bitmap>() {
             @Override
             protected Bitmap doInBackground(Void... params) {
                 Bitmap bmp = null;
@@ -133,6 +181,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
                 }
                 return bmp;
             }
+
             protected void onPostExecute(Bitmap bmp) {
                 if (bmp != null) {
                     final ImageView iv = (ImageView) rootView.findViewById(R.id.mapImage);
@@ -145,18 +194,19 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        Log.v(TAG, "onCreate");
 
-        if(savedInstanceState==null){
+
+        if (savedInstanceState == null) {
             Bundle arguments = getArguments();
             String currentOfferId = arguments.getString("currentOffer");
-            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity) getActivity(), this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                            "offers/" + Uri.encode(currentOfferId), "offers");
+                            "offers/id/" + Uri.encode(currentOfferId), "offers");
 
 
-        }
-
-        else{
+        } else {
             try {
                 currentOffer = new Offer(new JSONObject(savedInstanceState.getString("currentOffer")));
             } catch (JSONException e) {
@@ -169,70 +219,29 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     }
 
 
-    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState){
-        Log.d(TAG,"onCreateView");
+    public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
         rootView = inflater.inflate(R.layout.offer_detail, container, false);
 
         //feature detail containers
-        mapContainer= rootView.findViewById(R.id.mapContainer);
+        mapContainer = rootView.findViewById(R.id.mapContainer);
 
         //feature buttons
         offerButton1 = rootView.findViewById(R.id.offerButton1);
 
         //text views
-        artistNameText = (TextView)rootView.findViewById(R.id.offerDetailArtistName);
-        offerVenueText = (TextView)rootView.findViewById(R.id.offerVenueText);
-        distanceText = (TextView)rootView.findViewById(R.id.distanceText);
-        offerButtonText1 = (TextView)rootView.findViewById(R.id.offerText1);
-        redemptionText = (TextView)rootView.findViewById(R.id.redemptionText);
-        vendorMessageText =(TextView)rootView.findViewById(R.id.vendorMessage);
+        artistNameText = (TextView) rootView.findViewById(R.id.offerDetailArtistName);
+        offerVenueText = (TextView) rootView.findViewById(R.id.offerVenueText);
+        distanceText = (TextView) rootView.findViewById(R.id.distanceText);
+        offerButtonText1 = (TextView) rootView.findViewById(R.id.offerText1);
+        redemptionText = (TextView) rootView.findViewById(R.id.redemptionText);
+        vendorMessageText = (TextView) rootView.findViewById(R.id.vendorMessage);
         addressText1 = (TextView) rootView.findViewById(R.id.addressText1);
-        addressText2 = (TextView)rootView.findViewById(R.id.addressText2);
+        addressText2 = (TextView) rootView.findViewById(R.id.addressText2);
 
         //image views
-        vendorImage = (ImageView)rootView.findViewById(R.id.vendorIcon);
-        ImageLoader.getInstance().displayImage(Constants.CLOUDFRONT_URL_FOR_IMAGES+ currentOffer.getVenue().getIconImageUrl(), vendorImage);
+        vendorImage = (ImageView) rootView.findViewById(R.id.vendorIcon);
 
-
-        //update time left
-        Date juDate = new Date();
-        DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
-        DateTime currentTime = new DateTime(juDate);
-        DateTime expirationTime = fmt.parseDateTime(currentOffer.getDateExpired());
-        String hoursString = Hours.hoursBetween(currentTime,expirationTime).toString();
-        String daysString = Days.daysBetween(currentTime, expirationTime).toString();
-        String minutesString= Minutes.minutesBetween(currentTime, expirationTime).toString();
-        int hoursInt = Integer.parseInt(hoursString);
-        int daysInt = Integer.parseInt(daysString);
-        int minutesInt = Integer.parseInt(minutesString);
-
-        if(hoursInt<24 &&hoursInt>1){
-            redemptionText.setText("This offer expires in " + hoursString + " hours and " + minutesInt + " minutes.");
-        }else if(hoursInt==1){
-            redemptionText.setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
-        }
-        else if(hoursInt>24){
-            int hours = hoursInt%24;
-            if(hours >1) {
-                redemptionText.setText("This offer expires in " + daysInt + " days and " + hours + " hours.");
-            }else if(hours == 1){
-                redemptionText.setText("This offer expires in " + daysInt + " days and 1 hour.");
-            }else if(hours <1){
-                redemptionText.setText("This offer expires in " + daysInt + " days.");
-            }
-        }else if(Seconds.secondsBetween(currentTime, expirationTime) == null){
-            redemptionText.setText("This offer has expired.");
-        }
-
-        //changing text views
-        artistNameText.setText(currentOffer.getArtist().getArtist());
-        offerButtonText1.setText("Exclusive set.");
-        vendorMessageText.setText(currentOffer.getMessage());
-        if(currentOffer.getVenue().getAddress() != null){
-            String[] addressArray = currentOffer.getVenue().getAddress().split(",");
-            addressText1.setText(addressArray[0]);
-            addressText2.setText(addressArray[1]+addressArray[2]);
-        }
 
         assignClickListeners();
 
@@ -245,7 +254,6 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         outState.putString("currentOffer", currentOffer.jsonModelString);
 
 
-
     }
 
     public void assignClickListeners() {
@@ -256,13 +264,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
             }
         });
-        offerButton2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
 
-
-            }
-        });
         mapContainer.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {

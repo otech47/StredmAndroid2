@@ -865,7 +865,7 @@ public class UserFragment extends Fragment implements ApiCaller {
             ((ViewGroup) newSetsTileContainer).addView(noNewSets);
         }
         for (int j = 0; j < newOffers.size(); j++) {
-            Offer offer = newOffers.get(j);
+            final Offer offer = newOffers.get(j);
             View myOfferTile = inflater.inflate(R.layout.offer_tile, null);
 
             Artist test =offer.getArtist();
@@ -878,7 +878,18 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             // ((ImageView) myOfferTile.findViewById(R.id.offerArtistImage)).setImageResource(timeID);
 
+            myOfferTile.setTag(offer);
+
             ((ViewGroup) newSetsTileContainer).addView(myOfferTile);
+
+
+            myOfferTile.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    activity.openOfferDetailFragment(offer.getOfferId());
+
+                }
+            });
         }
         // Remove the loader
         rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
