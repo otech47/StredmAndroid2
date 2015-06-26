@@ -51,6 +51,8 @@ public class Venue extends JSONModel{
             setLongitude(json.getString("longitude"));
             setLatitude(json.getString("latitude"));
             setBeacon(json.getString("beacon"));
+            setBannerImageUrl(json.getString("banner_imageURL"));
+            setAddress(json.getString("address"));
 
         }catch (JSONException e){
             e.printStackTrace();

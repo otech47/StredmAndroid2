@@ -129,13 +129,16 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
         //changing text views
         artistNameText.setText(currentOffer.getArtist().getArtist());
+        String test1= currentOffer.getArtist().getArtist();
         offerButtonText1.setText("Exclusive set.");
         vendorMessageText.setText(currentOffer.getMessage());
+        String test = currentOffer.getVenue().getAddress();
         if (currentOffer.getVenue().getAddress() != null) {
             String[] addressArray = currentOffer.getVenue().getAddress().split(",");
             addressText1.setText(addressArray[0]);
             addressText2.setText(addressArray[1] + addressArray[2]);
         }
+        offerVenueText.setText(currentOffer.getVenue().getVenueName());
     }
 
     public void getStaticMap() {

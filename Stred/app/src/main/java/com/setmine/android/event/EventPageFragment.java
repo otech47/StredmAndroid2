@@ -336,18 +336,19 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             }
         });
         if(addressResult == null) {
-            try {
-                addressResultList = geocoder.getFromLocation(selectedLocation.getLatitude(),
-                        selectedLocation.getLongitude(), 1);
-                if(addressResultList.size() > 0) {
-                    addressResult = addressResultList.get(0);
-                    locationText.setText(addressResult.getLocality() + ", " + addressResult.getAdminArea());
+            if(selectedLocation!=null) {
+                try {
+                    addressResultList = geocoder.getFromLocation(selectedLocation.getLatitude(),
+                            selectedLocation.getLongitude(), 1);
+                    if (addressResultList.size() > 0) {
+                        addressResult = addressResultList.get(0);
+                        locationText.setText(addressResult.getLocality() + ", " + addressResult.getAdminArea());
+                    } else {
+                        locationText.setText("No Address");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                else {
-                    locationText.setText("No Address");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
 
