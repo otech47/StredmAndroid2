@@ -20,11 +20,12 @@
         android:layout_height="wrap_content"
         android:text="Artist Name"
         android:id="@+id/offerDetailArtistName"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
         android:textSize="40sp"
         android:paddingTop="10dp"
-        android:textColor="#ffd5d5d5"/>
+        android:textColor="#ffd5d5d5"
+        android:layout_alignParentTop="true"
+        android:layout_centerHorizontal="true"
+        android:textStyle="bold"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -35,7 +36,8 @@
         android:layout_centerHorizontal="true"
         android:textStyle="bold"
         android:textColor="#ffd5d5d5"
-        android:textSize="18dp"/>
+        android:textSize="18dp"
+        android:layout_marginTop="3dp"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -56,6 +58,26 @@
             android:clickable="false"
             />
 
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/centered_loader_container"
+            android:background="@color/setmine_gray_50_alpha"
+            android:layout_alignBottom="@+id/mapImage">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/centered_loader"
+                android:layout_margin="@dimen/progress_padding"
+                android:text="Loading..."
+                android:textSize="25dp"
+                android:layout_centerInParent="true"
+                android:gravity="center|bottom"
+                android:indeterminate="true" />
+
+        </RelativeLayout>
+
     </RelativeLayout>
 
 
@@ -71,10 +93,14 @@
         android:layout_below="@id/distanceText"
         android:gravity="center"
         android:textSize="40dp"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="7dp"
         android:singleLine="true"
         android:scrollHorizontally="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
         />
+
 
     <TextView
         android:layout_width="wrap_content"
@@ -88,7 +114,8 @@
         android:layout_alignParentStart="true"
         android:textColor="#ffd5d5d5"
         android:paddingLeft="60dp"
-        android:paddingRight="60dp"/>
+        android:paddingRight="60dp"
+        android:visibility="visible"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -99,7 +126,8 @@
         android:layout_centerHorizontal="true"
         android:textColor="#ffd5d5d5"
         android:textSize="15dp"
-        android:password="false"/>
+        android:password="false"
+        android:visibility="gone"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -110,7 +138,8 @@
         android:layout_centerHorizontal="true"
         android:textColor="#ffd5d5d5"
         android:textSize="15dp"
-        android:password="false"/>
+        android:password="false"
+        android:visibility="gone"/>
 
     <LinearLayout
         android:orientation="horizontal"
@@ -200,7 +229,7 @@
             android:text="Congratulations!"
             android:id="@+id/congratsText"
             android:layout_gravity="center"
-            android:textSize="35dp"
+            android:textSize="30dp"
             android:textColor="@color/setmine_dark_gray"
             android:gravity="center_horizontal"
             android:layout_below="@id/closeButton"
@@ -260,23 +289,24 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:id="@+id/layoutVendorPic"
             android:layout_gravity="center"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
             android:layout_above="@id/vendorMessageLayout"
-            android:layout_below="@+id/blueBar1">
+            android:layout_below="@+id/blueBar1"
+            >
 
             <ImageView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:id="@+id/vendorIcon"
                 android:src="@drawable/logo"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
-                android:scaleType="fitCenter"
+                android:scaleType="centerCrop"
                 />
         </RelativeLayout>
 

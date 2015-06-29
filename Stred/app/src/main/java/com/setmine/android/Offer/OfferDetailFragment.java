@@ -1,10 +1,9 @@
 package com.setmine.android.Offer;
 
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
+import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -15,18 +14,18 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.user.User;
 import com.setmine.android.util.DateUtils;
 
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.joda.time.DateTime;
 import org.joda.time.Period;
 import org.joda.time.Seconds;
@@ -35,7 +34,7 @@ import org.joda.time.format.ISODateTimeFormat;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.InputStream;
+import java.math.BigDecimal;
 import java.util.Date;
 
 /**
@@ -103,34 +102,39 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         Date juDate = new Date();
         DateTimeFormatter fmt = ISODateTimeFormat.dateTime();
         DateTime currentTime = new DateTime(juDate);
-        DateTime expirationTime = fmt.parseDateTime(currentOffer.getDateExpired());
-        Period period = new Period(currentTime, expirationTime);
-        int hoursInt = period.getHours();
-        int minutesInt = period.getMinutes();
-        int daysInt = period.getDays();
+
+        if(currentOffer.getDateExpired() != "null") {
+            DateTime expirationTime = fmt.parseDateTime(currentOffer.getDateExpired());
+            Period period = new Period(currentTime, expirationTime);
+            int hoursInt = period.getHours();
+            int minutesInt = period.getMinutes();
+            int daysInt = period.getDays();
 
 
-        if (hoursInt < 24 && hoursInt > 1) {
-            redemptionText.setText("This offer expires in " + hoursInt + " hours and " + minutesInt + " minutes.");
-        } else if (hoursInt == 1) {
-            redemptionText.setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
-        } else if (hoursInt > 24) {
-            int hours = hoursInt % 24;
-            if (hours > 1) {
-                redemptionText.setText("This offer expires in " + daysInt + " days and " + hours + " hours.");
-            } else if (hours == 1) {
-                redemptionText.setText("This offer expires in " + daysInt + " days and 1 hour.");
-            } else if (hours < 1) {
-                redemptionText.setText("This offer expires in " + daysInt + " days.");
+            if (hoursInt < 24 && hoursInt > 1) {
+                redemptionText.setText("This offer expires in " + hoursInt + " hours and " + minutesInt + " minutes.");
+            } else if (hoursInt == 1) {
+                redemptionText.setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
+            } else if (hoursInt > 24) {
+                int hours = hoursInt % 24;
+                if (hours > 1) {
+                    redemptionText.setText("This offer expires in " + daysInt + " days and " + hours + " hours.");
+                } else if (hours == 1) {
+                    redemptionText.setText("This offer expires in " + daysInt + " days and 1 hour.");
+                } else if (hours < 1) {
+                    redemptionText.setText("This offer expires in " + daysInt + " days.");
+                }
+            } else if (Seconds.secondsBetween(currentTime, expirationTime) == null) {
+                redemptionText.setText("This offer has expired.");
             }
-        } else if (Seconds.secondsBetween(currentTime, expirationTime) == null) {
-            redemptionText.setText("This offer has expired.");
+        }else{
+            redemptionText.setVisibility(View.GONE);
         }
 
         //changing text views
         artistNameText.setText(currentOffer.getArtist().getArtist());
         String test1= currentOffer.getArtist().getArtist();
-        offerButtonText1.setText("Exclusive set.");
+        offerButtonText1.setText("Exclusive Set");
         vendorMessageText.setText(currentOffer.getMessage());
         String test = currentOffer.getVenue().getAddress();
         if (currentOffer.getVenue().getAddress() != null) {
@@ -149,50 +153,78 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         String venueLatitude = currentOffer.getVenue().getLatitude();
         String venueLongitude = currentOffer.getVenue().getLongitude();
 
-        String staticMapUrlFinal = "https://maps.googleapis.com/maps/api/staticmap?size=300x300";
+        String staticMapUrlFinal = "https://maps.googleapis.com/maps/api/staticmap?";
+        String staticMapSize = "size=450x450";
+        String test ="";
 
         if (currentLocation != null) {
             //distanceTo() is returned in meters
             distance = currentLocation.distanceTo(venueLocation);
             distance = distance * 3.2808399f; //convert to feet
+            if(distance <= 528){
+                BigDecimal bd = new BigDecimal(Float.toString(distance));
+                bd = bd.setScale(0,BigDecimal.ROUND_HALF_UP);
+                distanceText.setText(String.valueOf(bd)+" feet" );
+            }else if(distance> 528 ){
+                distance = distance/5280;
+                BigDecimal bd = new BigDecimal(Float.toString(distance));
+                bd = bd.setScale(1,BigDecimal.ROUND_HALF_UP);
+                distanceText.setText(String.valueOf(bd)+" miles" );
+            }
 
             Double currentLatitude = currentLocation.getLatitude();
             Double currentLongitude = currentLocation.getLongitude();
             String staticMapVenueLocation = "&markers=color:0xAA48CB%7Clabel:B%7C" + venueLatitude + "," + venueLongitude;
             String staticMapCurrentLocation = "&markers=color:0x4A87F4%7Clabel:A%7C" + currentLatitude.toString() + "," + currentLongitude.toString();
             String staticMapPath = "&path=color:0x808080|weight:5|" + currentLatitude.toString() + "," + currentLongitude.toString() + "|" + venueLatitude + "," + venueLongitude;
-            staticMapUrlFinal = staticMapUrlFinal + staticMapCurrentLocation + staticMapVenueLocation + staticMapPath;
+            test = staticMapUrlFinal +staticMapSize+staticMapCurrentLocation+staticMapVenueLocation+staticMapPath;
+            String toEncode =Uri.encode( staticMapCurrentLocation+ staticMapVenueLocation + staticMapPath);
+            staticMapUrlFinal = staticMapUrlFinal + Uri.encode(staticMapSize)+ toEncode;
+
+
         } else {
-            staticMapUrlFinal = staticMapUrlFinal + "&markers=color:0xAA48CB%7C" + venueLatitude + "," + venueLongitude;
+            staticMapUrlFinal = staticMapUrlFinal +Uri.encode(staticMapSize)+ Uri.encode("&markers=color:0xAA48CB%7C" + venueLatitude + "," + venueLongitude);
         }
 
-        final String STATIC_MAP_API_ENDPOINT = Uri.encode(staticMapUrlFinal);
-        AsyncTask<Void, Void, Bitmap> setImageFromUrl = new AsyncTask<Void, Void, Bitmap>() {
+        final String STATIC_MAP_API_ENDPOINT = staticMapUrlFinal;
+
+
+
+       DisplayImageOptions options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.logo_small)
+                .showImageForEmptyUri(R.drawable.logo_small)
+                .showImageOnFail(R.drawable.logo_small)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .build();
+
+//        ImageLoader.getInstance().displayImage(test, (ImageView)rootView.findViewById(R.id.mapImage));
+
+    ImageLoader.getInstance().loadImage(test, options, new SimpleImageLoadingListener() {
+
             @Override
-            protected Bitmap doInBackground(Void... params) {
-                Bitmap bmp = null;
-                HttpClient httpclient = new DefaultHttpClient();
-                HttpGet request = new HttpGet(STATIC_MAP_API_ENDPOINT);
-
-                InputStream in = null;
-                try {
-                    in = httpclient.execute(request).getEntity().getContent();
-                    bmp = BitmapFactory.decodeStream(in);
-                    in.close();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-                return bmp;
+            public void onLoadingStarted(String imageUri, View view) {
+                super.onLoadingStarted(imageUri, view);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
             }
 
-            protected void onPostExecute(Bitmap bmp) {
-                if (bmp != null) {
-                    final ImageView iv = (ImageView) rootView.findViewById(R.id.mapImage);
-                    iv.setImageBitmap(bmp);
-                }
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                ImageUtils imageUtils = new ImageUtils();
+                Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 400);
+                ImageView mapView = (ImageView) rootView.findViewById(R.id.mapImage);
+                mapView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
+
+
+                mapView.setImageBitmap(roundedBitmap);
+
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
+
             }
-        };
-        setImageFromUrl.execute();
+        });
+
+
     }
 
     @Override
