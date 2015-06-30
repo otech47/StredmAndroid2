@@ -1,6 +1,7 @@
 package com.setmine.android.Offer;
 
 import android.graphics.Bitmap;
+import android.graphics.Typeface;
 import android.graphics.drawable.BitmapDrawable;
 import android.location.Location;
 import android.net.Uri;
@@ -59,10 +60,13 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public TextView addressText2;
     public ImageView vendorImage;
     public float distance;
+    public SetMineMainActivity activity;
 
 
     private Location userLocation;
     private int timeID;
+    private DisplayImageOptions options;
+
 
     private static final String TAG = "OfferDetailFragment";
 
@@ -131,8 +135,33 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             redemptionText.setVisibility(View.GONE);
         }
 
+        options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.logo_small)
+                .showImageForEmptyUri(R.drawable.logo_small)
+                .showImageOnFail(R.drawable.logo_small)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .build();
+
+        ImageLoader.getInstance().loadImage(currentOffer.getVenue().getBannerImageUrl(), options, new SimpleImageLoadingListener() {
+
+            @Override
+            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                ImageUtils imageUtils = new ImageUtils();
+                Bitmap blurredBitmap = imageUtils.fastblur(loadedImage, 5);
+                ImageView mBackgroundImage = (ImageView)rootView.findViewById(R.id.offerBackgroundImage);
+                mBackgroundImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
+
+
+
+
+            }
+        });
+
         //changing text views
         artistNameText.setText(currentOffer.getArtist().getArtist());
+        artistNameText.setTypeface(null, Typeface.BOLD);
         String test1= currentOffer.getArtist().getArtist();
         offerButtonText1.setText("Exclusive Set");
         vendorMessageText.setText(currentOffer.getMessage());
@@ -215,17 +244,26 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
                 Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 400);
                 ImageView mapView = (ImageView) rootView.findViewById(R.id.mapImage);
                 mapView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
-
-
                 mapView.setImageBitmap(roundedBitmap);
 
+                TextView mapAddress =(TextView)rootView.findViewById(R.id.locationText);
+                mapAddress.setText(addressText1.getText()+","+addressText2.getText());
+                mapContainer.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        activity.googleMapsAddressLookup(v);
+                    }
+                });
                 rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
+                rootView.findViewById(R.id.circle).setVisibility(View.VISIBLE);
 
             }
         });
 
 
     }
+
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -234,6 +272,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
 
         if (savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
             Bundle arguments = getArguments();
             String currentOfferId = arguments.getString("currentOffer");
             new SetMineApiGetRequestAsyncTask((SetMineMainActivity) getActivity(), this)
