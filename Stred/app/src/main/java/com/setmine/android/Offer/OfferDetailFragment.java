@@ -223,8 +223,8 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
                 .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
+                .cacheInMemory(false)
+                .cacheOnDisk(false)
                 .considerExifParams(true)
                 .build();
 
@@ -241,11 +241,12 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         @Override
         public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
             ImageUtils imageUtils = new ImageUtils();
-            Bitmap roundedBitmap = null;
-            int count = 0;
-            while (roundedBitmap == null) {
-                roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 400);
-                count = 1+count;
+        if(loadedImage==null){
+            boolean sadf = true;
+        }
+            Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 400);
+            if(roundedBitmap == null){
+                boolean tsdf = true;
             }
             ImageView mapView = (ImageView) rootView.findViewById(R.id.mapImage);
             mapView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));

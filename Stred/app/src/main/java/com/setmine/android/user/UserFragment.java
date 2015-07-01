@@ -285,8 +285,8 @@ public class UserFragment extends Fragment implements ApiCaller {
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
                 .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
+                .cacheInMemory(false)
+                .cacheOnDisk(false)
                 .considerExifParams(true)
                 .build();
 
@@ -776,7 +776,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-        ((ViewGroup) newSetsTileContainer).removeAllViews();
+ //       ((ViewGroup) newSetsTileContainer).removeAllViews();
 
 
         // If the user has not favorited any sets
