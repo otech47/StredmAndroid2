@@ -485,7 +485,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 featureButtonsContainer.setVisibility(View.GONE);
                 newSetsDetailContainer.setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
-//                kickOffNewSetsQuery();
+                kickOffNewSetsQuery();
                 kickOffNewOffersQuery();
 
             }
@@ -848,7 +848,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-        ((ViewGroup) newSetsTileContainer).removeAllViews();
+      //  ((ViewGroup) newSetsTileContainer).removeAllViews();
 
 
         if (newOffers.size() == 0) {
