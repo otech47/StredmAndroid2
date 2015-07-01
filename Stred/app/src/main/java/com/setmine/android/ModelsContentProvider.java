@@ -209,6 +209,7 @@ public class ModelsContentProvider {
                     }
                 }
                 else if(modelName.equals("activities")) {
+                    Log.d(TAG, payload.toString());
                     jsonMappings.put(modelName, model.toString());
                     JSONArray activitiesArray = payload.getJSONArray("activity");
                     for(int i = 0 ; i < activitiesArray.length() ; i++) {
