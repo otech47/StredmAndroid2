@@ -9,203 +9,244 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:id="@+id/imageView3"
+        android:background="@android:color/black"/>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         android:id="@+id/offerBackgroundImage"
+        android:background="@color/setmine_dark_gray"
         android:layout_alignParentTop="true"
-        android:layout_alignParentRight="true"
-        android:layout_alignParentEnd="true"
-        android:background="@color/setmine_dark_gray"/>
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:scaleType="centerCrop"
+        android:alpha=".8"/>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:id="@+id/imageView"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/offerDetailArtistName"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:background="@color/setmine_blue"/>
+
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="2dp"
+        android:id="@+id/imageView2"
+        android:layout_centerHorizontal="true"
+        android:layout_below="@+id/offerVenueText"
+        android:layout_marginLeft="40dp"
+        android:layout_marginRight="40dp"
+        android:background="@color/setmine_blue"
+        android:layout_marginTop="10dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Artist Name"
         android:id="@+id/offerDetailArtistName"
+        android:paddingTop="10dp"
+        android:textColor="#ffd5d5d5"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:textSize="40sp"
-        android:paddingTop="10dp"
-        android:textColor="#ffd5d5d5"/>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="90dp"
-        android:id="@+id/relativeLayout">
-
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/offerDetailImage"
-            android:src="@drawable/logo"/>
-
-    </RelativeLayout>
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="Exclusive Content"
-        android:id="@+id/exclusiveContentText"
-        android:textColor="#ffd5d5d5"
-        android:textAlignment="center"
-        android:singleLine="true"
-        android:layout_centerVertical="true"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:gravity="center"
-        android:textSize="35dp"
-        />
+        android:textStyle="bold"
+        android:layout_marginBottom="10dp"
+        android:textSize="35dp"/>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="___  miles"
         android:id="@+id/distanceText"
-        android:layout_below="@+id/exclusiveContentText"
+        android:layout_below="@+id/mapContainer"
         android:layout_centerHorizontal="true"
         android:textStyle="bold"
         android:textColor="#ffd5d5d5"
-        android:layout_marginTop="14dp"
-        android:textSize="15dp"/>
+        android:textSize="18dp"
+        android:layout_marginTop="3dp"/>
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/offerDetailArtistName"
+        android:layout_marginTop="10dp"
+        android:id="@+id/mapContainer"
+        android:clickable="true"
+
+        >
+
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/circle"
+            android:src="@drawable/circle"
+            android:layout_centerInParent="true"
+            android:layout_alignTop="@+id/mapImage"
+            android:layout_alignLeft="@+id/mapImage"
+            android:layout_alignRight="@+id/mapImage"
+            android:layout_alignBottom="@+id/mapImage"
+            android:visibility="invisible"/>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/mapImage"
+            android:src="@drawable/logo"
+            android:clickable="false"
+            android:padding="5dp"/>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:id="@+id/centered_loader_container"
+            android:background="@color/setmine_gray_50_alpha"
+            android:layout_alignBottom="@+id/mapImage"
+            >
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/centered_loader"
+                android:layout_margin="@dimen/progress_padding"
+                android:text="Loading..."
+                android:textSize="25dp"
+                android:layout_centerInParent="true"
+                android:gravity="center|bottom"
+                android:indeterminate="true" />
+        </RelativeLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="New Text"
+            android:id="@+id/locationText"
+            android:visibility="gone"/>
+
+    </RelativeLayout>
+
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="Venue"
+        android:id="@+id/offerVenueText"
+        android:textColor="#ffd5d5d5"
+        android:textAlignment="center"
+        android:layout_below="@id/distanceText"
+        android:gravity="center"
+        android:textSize="35dp"
+        android:layout_marginTop="4dp"
+        android:singleLine="false"
+        android:scrollHorizontally="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:focusable="true"
+        android:focusableInTouchMode="true"
+        />
+
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Once unlocked, you have __ hours to redeem your offer"
         android:id="@+id/redemptionText"
-        android:layout_marginBottom="25dp"
-        android:textSize="20dp"
+        android:textSize="18dp"
         android:gravity="center"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
         android:textColor="#ffd5d5d5"
         android:paddingLeft="60dp"
-        android:paddingRight="60dp"/>
+        android:paddingRight="60dp"
+        android:visibility="visible"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="69 Tittylicious Blv."
+        android:id="@+id/addressText1"
+        android:layout_below="@+id/offerVenueText"
+        android:layout_centerHorizontal="true"
+        android:textColor="#ffd5d5d5"
+        android:textSize="15dp"
+        android:password="false"
+        android:visibility="gone"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Whore Island, FL 32456"
+        android:id="@+id/addressText2"
+        android:layout_below="@+id/addressText1"
+        android:layout_centerHorizontal="true"
+        android:textColor="#ffd5d5d5"
+        android:textSize="15dp"
+        android:password="false"
+        android:visibility="gone"/>
 
     <LinearLayout
+        android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@id/distanceText"
-        android:layout_above="@id/redemptionText"
-        android:layout_gravity="center"
-        android:orientation="vertical"
-        android:weightSum="2">
+        android:layout_height="match_parent"
+        android:weightSum="2"
+        android:gravity="center_horizontal"
+        android:layout_weight="1"
+        android:layout_below="@+id/imageView2"
+        android:layout_above="@id/redemptionText">
 
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
+        <RelativeLayout
+            android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:weightSum="2"
-            android:gravity="center_horizontal"
-            android:layout_weight="1">
+            android:id="@+id/offerButton1Layout"
+            android:layout_weight="1"
+            android:layout_gravity="center_vertical">
 
-            <RelativeLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:id="@+id/offerButton1Layout"
-                android:layout_weight="1"
-                android:layout_gravity="center_vertical">
+            <ImageView
 
-                <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/offerButton1"
+                android:src="@mipmap/setmine_bar_button"
+                android:scaleType="centerCrop"
+                android:alpha=".95"
+                android:layout_centerInParent="true"/>
 
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:id="@+id/offerButton1"
-                    android:layout_centerHorizontal="true"
-                    android:src="@mipmap/setmine_bar_button"
-                    android:scaleType="centerCrop"
-                    android:alpha=".95"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignBottom="@id/offerButton1"
+                android:layout_alignTop="@id/offerButton1"
+                android:id="@+id/lockIcon"
+                android:adjustViewBounds="true"
+                android:src="@android:drawable/ic_lock_lock"
+                android:scaleType="centerCrop"
+                android:layout_marginLeft="18dp"
+                android:layout_centerVertical="true"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="14dp"/>
 
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/offerButton1"
-                    android:layout_alignTop="@id/offerButton1"
-                    android:id="@+id/lockIcon"
-                    android:adjustViewBounds="true"
-                    android:src="@android:drawable/ic_lock_lock"
-                    android:scaleType="centerCrop"
-                    android:layout_marginLeft="18dp"
-                    android:layout_centerVertical="true"
-                    android:layout_marginTop="14dp"
-                    android:layout_marginBottom="13dp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Exclusive Stuff"
-                    android:id="@+id/offerText1"
-                    android:singleLine="true"
-                    android:layout_alignWithParentIfMissing="false"
-                    android:layout_alignTop="@+id/lockIcon"
-                    android:layout_alignBottom="@+id/lockIcon"
-                    android:textColor="@color/setmine_dark_gray"
-                    android:layout_marginRight="20dp"
-                    android:gravity="center"
-                    android:textSize="13dp"
-                    android:layout_alignLeft="@+id/lockIcon"
-                    android:layout_alignStart="@+id/lockIcon"
-                    android:paddingLeft="14dp"/>
-            </RelativeLayout>
-        </LinearLayout>
-
-        <LinearLayout
-            android:orientation="horizontal"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:weightSum="2"
-            android:gravity="center_horizontal">
-
-            <RelativeLayout
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:id="@+id/offerButton2Layout"
-                android:layout_weight="1">
-
-                <ImageView
-                    android:layout_weight="1"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/offerButton2"
-                    android:layout_centerHorizontal="true"
-                    android:src="@mipmap/setmine_bar_button"
-                    android:scaleType="centerCrop"
-                    android:alpha=".95"/>
-
-                <ImageView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_alignBottom="@id/offerButton2"
-                    android:layout_alignTop="@id/offerButton2"
-                    android:id="@+id/vendorImageSmall"
-                    android:adjustViewBounds="true"
-                    android:src="@drawable/artist_icon"
-                    android:scaleType="centerCrop"
-                    android:layout_marginLeft="18dp"
-                    android:layout_centerVertical="true"
-                    android:layout_marginTop="14dp"
-                    android:layout_marginBottom="13dp"/>
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="Free Stuff"
-                    android:id="@+id/offerText2"
-                    android:singleLine="true"
-                    android:layout_alignWithParentIfMissing="false"
-                    android:layout_alignTop="@+id/vendorImageSmall"
-                    android:layout_alignBottom="@+id/vendorImageSmall"
-                    android:textColor="@color/setmine_dark_gray"
-                    android:layout_marginRight="20dp"
-                    android:gravity="center"
-                    android:textSize="13dp"
-                    android:layout_alignLeft="@+id/vendorImageSmall"
-                    android:layout_alignStart="@+id/vendorImageSmall"
-                    android:paddingLeft="14dp"/>
-            </RelativeLayout>
-        </LinearLayout>
-
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Exclusive Stuff"
+                android:id="@+id/offerText1"
+                android:singleLine="true"
+                android:layout_alignWithParentIfMissing="false"
+                android:layout_alignTop="@+id/lockIcon"
+                android:layout_alignBottom="@+id/lockIcon"
+                android:textColor="@color/setmine_dark_gray"
+                android:layout_marginRight="20dp"
+                android:gravity="center"
+                android:textSize="13dp"
+                android:layout_alignLeft="@+id/lockIcon"
+                android:layout_alignStart="@+id/lockIcon"
+                android:paddingLeft="14dp"/>
+        </RelativeLayout>
     </LinearLayout>
 
     <RelativeLayout
@@ -236,7 +277,7 @@
             android:text="Congratulations!"
             android:id="@+id/congratsText"
             android:layout_gravity="center"
-            android:textSize="35dp"
+            android:textSize="30dp"
             android:textColor="@color/setmine_dark_gray"
             android:gravity="center_horizontal"
             android:layout_below="@id/closeButton"
@@ -253,66 +294,6 @@
             android:layout_marginTop="15dp"
             android:layout_marginRight="35dp"
             android:layout_marginLeft="35dp"/>
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@+id/blueBar1"
-            android:layout_alignRight="@+id/closeButton"
-            android:layout_alignEnd="@+id/closeButton"
-            android:layout_marginTop="15dp"
-            android:id="@+id/relativeLayout2"
-            android:gravity="center_horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="You have "
-                android:id="@+id/textView"
-                android:textColor="@color/setmine_dark_gray"
-                android:textSize="15dp"
-
-                android:layout_alignParentTop="true"
-                />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="0 min "
-                android:id="@+id/minutesLeftText"
-                android:textColor="@color/setmine_dark_gray"
-                android:typeface="normal"
-                android:textStyle="bold"
-                android:textSize="15dp"
-                android:layout_alignTop="@+id/textView"
-                android:layout_toRightOf="@+id/textView"
-                android:layout_toEndOf="@+id/textView"
-                android:layout_centerHorizontal="true"
-                />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="left to"
-                android:id="@+id/textView2"
-                android:textColor="@color/setmine_dark_gray"
-                android:textSize="15dp"
-
-
-                android:layout_toRightOf="@+id/minutesLeftText"
-                android:layout_toEndOf="@+id/minutesLeftText"/>
-
-        </RelativeLayout>
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="redeem offer."
-            android:id="@+id/textView3"
-            android:textSize="15dp"
-            android:textColor="@color/setmine_dark_gray"
-            android:layout_below="@+id/relativeLayout2"
-            android:layout_centerHorizontal="true"/>
 
         <RelativeLayout
             android:layout_width="match_parent"
@@ -356,26 +337,39 @@
 
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:id="@+id/layoutVendorPic"
             android:layout_gravity="center"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
-            android:layout_below="@id/textView3"
-            android:layout_above="@id/vendorMessageLayout">
+            android:layout_above="@id/vendorMessageLayout"
+            android:layout_below="@+id/blueBar1"
+            >
 
             <ImageView
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:id="@+id/vendorIcon"
                 android:src="@drawable/logo"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
-                android:scaleType="fitCenter"
+                android:scaleType="centerCrop"
                 />
         </RelativeLayout>
 
     </RelativeLayout>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/offerLatitude"
+        android:visibility="invisible"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/offerLongitude"
+        android:visibility="invisible"/>
 
 </RelativeLayout>

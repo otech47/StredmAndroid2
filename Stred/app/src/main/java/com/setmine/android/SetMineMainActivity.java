@@ -34,6 +34,7 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.setmine.android.Offer.OfferDetailFragment;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.artist.ArtistDetailFragment;
@@ -102,6 +103,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public UserFragment userFragment;
     public EventDetailFragment eventDetailFragment;
     public ArtistDetailFragment artistDetailFragment;
+    public OfferDetailFragment offerDetailFragment;
 
 
     public ModelsContentProvider modelsCP;
@@ -349,11 +351,8 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
             else {
                 Log.d(TAG, "services NOT Connected");
-                currentLocation = new Location("default");
-                currentLocation.setLatitude(29.652175);
-                currentLocation.setLongitude(-82.325856);
-                String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
-                        +currentLocation.getLongitude();
+                currentLocation= null;
+                String eventSearchUrl = "upcoming";
                 new SetMineApiGetRequestAsyncTask(this, this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                                 eventSearchUrl,
@@ -767,6 +766,18 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.commitAllowingStateLoss();
     }
 
+    public void openOfferDetailFragment(String offerId){
+        offerDetailFragment = new OfferDetailFragment();
+        Bundle args = new Bundle();
+        args.putString("currentOffer", offerId);
+        offerDetailFragment.setArguments(args);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.currentFragmentContainer, offerDetailFragment);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("offerDetail");
+        transaction.commitAllowingStateLoss();
+    }
+
     // Open Event Detail Fragment from anywhere in the app given a valid Event object
 
     public void openEventDetailPage(Event event, String eventType) {
@@ -869,7 +880,11 @@ public class SetMineMainActivity extends FragmentActivity implements
                 }
             }
 
-        } else {
+        } else if(intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("offer")){
+            String offerId = segments[segments.length-1];
+            openOfferDetailFragment(offerId);
+        }
+        else {
             openMainViewPager(-1);
         }
 
@@ -968,20 +983,19 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     public void onConnected(Bundle bundle) {
 
-        // Default to Gainesville coordinates if location not available and disconnect
+        String eventSearchUrl ="upcoming";
 
         if(locationClient.getLastLocation() != null) {
             currentLocation = locationClient.getLastLocation();
+            eventSearchUrl =eventSearchUrl+"/?latitude=" + currentLocation.getLatitude();
+            eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
         }
         else {
-            currentLocation = new Location("default");
-            currentLocation.setLatitude(29.652175);
-            currentLocation.setLongitude(-82.325856);
+            currentLocation = null;
         }
         locationClient.disconnect();
 
-        String eventSearchUrl = "upcoming/?latitude=" + currentLocation.getLatitude();
-        eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
+
         new SetMineApiGetRequestAsyncTask(this, this)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl, "upcomingEvents");
@@ -1007,11 +1021,8 @@ public class SetMineMainActivity extends FragmentActivity implements
 
 
         locationClient.disconnect();
-        currentLocation = new Location("default");
-        currentLocation.setLatitude(29.652175);
-        currentLocation.setLongitude(-82.325856);
-        String eventSearchUrl = "upcoming?latitude=" + currentLocation.getLatitude() + "&longitude="
-                + currentLocation.getLongitude();
+        currentLocation = null;
+        String eventSearchUrl = "upcoming";
         new SetMineApiGetRequestAsyncTask(this, this)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         eventSearchUrl,
