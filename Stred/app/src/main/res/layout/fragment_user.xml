@@ -16,7 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/setmine_white"
-            android:id="@+id/homeScroll">
+            android:id="@+id/homeScroll"
+            android:fillViewport="false">
 
             <RelativeLayout
                 android:layout_width="match_parent"
