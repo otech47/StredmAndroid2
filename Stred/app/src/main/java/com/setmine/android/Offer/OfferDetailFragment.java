@@ -232,30 +232,35 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
     ImageLoader.getInstance().loadImage(test, options, new SimpleImageLoadingListener() {
 
-            @Override
-            public void onLoadingStarted(String imageUri, View view) {
-                super.onLoadingStarted(imageUri, view);
-                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
+        @Override
+        public void onLoadingStarted(String imageUri, View view) {
+            super.onLoadingStarted(imageUri, view);
+            rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
+        }
+
+        @Override
+        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+            ImageUtils imageUtils = new ImageUtils();
+            Bitmap roundedBitmap = null;
+            int count = 0;
+            while (roundedBitmap == null) {
+                roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 400);
+                count = 1+count;
             }
+            ImageView mapView = (ImageView) rootView.findViewById(R.id.mapImage);
+            mapView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
+            mapView.setImageBitmap(roundedBitmap);
 
-            @Override
-            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                ImageUtils imageUtils = new ImageUtils();
-                Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 400);
-                ImageView mapView = (ImageView) rootView.findViewById(R.id.mapImage);
-                mapView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
-                mapView.setImageBitmap(roundedBitmap);
-
-                TextView mapAddress =(TextView)rootView.findViewById(R.id.locationText);
-                mapAddress.setText(addressText1.getText()+","+addressText2.getText());
-                mapContainer.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        activity.googleMapsAddressLookup(v);
-                    }
-                });
-                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
-                rootView.findViewById(R.id.circle).setVisibility(View.VISIBLE);
+            TextView mapAddress = (TextView) rootView.findViewById(R.id.locationText);
+            mapAddress.setText(addressText1.getText() + "," + addressText2.getText());
+            mapContainer.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    activity.googleMapsAddressLookup(v);
+                }
+            });
+            rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
+            rootView.findViewById(R.id.circle).setVisibility(View.VISIBLE);
 
             }
         });
