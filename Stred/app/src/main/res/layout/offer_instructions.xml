@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/setmine_white"
+    android:id="@+id/offer_instructions_container">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="20dp"
+        android:gravity="center"
+        android:textColor="@color/setmine_blue"
+        android:text="Navigate"
+        android:id="@+id/header"
+        />
+
+    <ImageView
+        android:layout_width="275dp"
+        android:layout_height="275dp"
+        android:src="@drawable/setmine_splash"
+        android:scaleType="centerInside"
+        android:padding="20dp"
+        android:layout_centerInParent="true"
+        android:layout_below="@id/header"
+        android:id="@+id/mainImage" />
+
+    <TextView
+        android:layout_width="300dp"
+        android:layout_height="match_parent"
+        android:textSize="15sp"
+        android:gravity="center"
+        android:text="Instructions"
+        android:textColor="@color/setmine_black"
+        android:layout_below="@id/mainImage"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/instructions"
+        />
+
+</RelativeLayout>

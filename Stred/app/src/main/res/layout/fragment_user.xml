@@ -653,17 +653,6 @@
                         android:id="@+id/recentSetsDescription"
                         android:textColor="@color/setmine_black"/>
 
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Coming Soon!"
-                        android:gravity="center"
-                        android:textColor="@color/setmine_white"
-                        android:background="@color/setmine_purple"
-                        android:layout_alignParentBottom="true"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"/>
-
                 </RelativeLayout>
 
             </LinearLayout>

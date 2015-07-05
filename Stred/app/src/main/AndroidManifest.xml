@@ -108,6 +108,16 @@
 
         <service android:name=".player.PlayerService" />
 
+        <!--Service for Gimbal-->
+
+        <service
+            android:name="com.gimbal.internal.service.GimbalService"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.setmine.android.service.GIMBAL_SERVICE" />
+            </intent-filter>
+        </service>
+
         <!--Receiver for Push Notifications-->
 
         <receiver android:name="com.mixpanel.android.mpmetrics.GCMReceiver"
@@ -119,9 +129,24 @@
             </intent-filter>
         </receiver>
 
+        <!--Receiver for Remote Controls-->
+
         <receiver android:name=".player.RemoteControlReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
+            </intent-filter>
+        </receiver>
+
+        <!--Receiver for Gimbal-->
+
+        <receiver
+            android:name="com.gimbal.internal.service.GimbalServiceStartStopReceiver"
+            android:enabled="true" >
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.ACTION_SHUTDOWN" />
             </intent-filter>
         </receiver>
 

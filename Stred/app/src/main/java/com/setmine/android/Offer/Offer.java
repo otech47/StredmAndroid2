@@ -2,6 +2,7 @@ package com.setmine.android.Offer;
 
 import com.setmine.android.api.JSONModel;
 import com.setmine.android.artist.Artist;
+import com.setmine.android.set.Set;
 import com.setmine.android.venue.Venue;
 
 import org.json.JSONException;
@@ -21,15 +22,14 @@ public class Offer extends JSONModel{
     private String mDateReleased;
     private String mDateExpired;
     private String mTotalRevenue;
-    private String mTotalConvergences;
+    private String mTotalConvergedSuperfans;
     private String mMessage;
-
-
+    private Set unlockedSet;
 
     public Offer(){}
 
     public Offer(JSONObject json){
-        jsonModelString=json.toString();
+        jsonModelString = json.toString();
 
         try{
             setOfferId(json.getString("id"));
@@ -39,8 +39,13 @@ public class Offer extends JSONModel{
             setDateReleased(json.getString("date_released"));
             setDateExpired(json.getString("date_expired"));
             setTotalRevenue(json.getString("total_revenue"));
-            setTotalConvergences(json.getString("total_convergences"));
+            setTotalConvergedSuperfans(json.getString("total_converged_superfans"));
             setMessage(json.getString("message"));
+            if(json.has("unlocked_set")) {
+                setUnlockedSet(new Set(json.getJSONObject("unlocked_set")));
+            } else {
+                setUnlockedSet(null);
+            }
 
         }catch (JSONException e){
             e.printStackTrace();
@@ -114,11 +119,19 @@ public class Offer extends JSONModel{
         this.mTotalRevenue = totalRevenue;
     }
 
-    public String getTotalConvergences() {
-        return mTotalConvergences;
+    public String getTotalConvergedSuperfans() {
+        return mTotalConvergedSuperfans;
     }
 
-    public void setTotalConvergences(String totalConvergences) {
-        this.mTotalConvergences = totalConvergences;
+    public void setTotalConvergedSuperfans(String totalConvergences) {
+        this.mTotalConvergedSuperfans = totalConvergences;
+    }
+
+    public Set getUnlockedSet() {
+        return unlockedSet;
+    }
+
+    public void setUnlockedSet(Set unlockedSet) {
+        this.unlockedSet = unlockedSet;
     }
 }

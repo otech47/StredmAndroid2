@@ -768,11 +768,10 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     public void populateNewSets() {
         final List<Set> newSets = registeredUser.getNewSets();
-        final List<Offer> newOffers = registeredUser.getNewOffers();
 
         // Get the inflater for inflating XML files into Views
 
-        LayoutInflater inflater = LayoutInflater.from(activity);
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
 
         // Remove all views inside the layout container
 
@@ -784,7 +783,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         if (newSets.size() == 0) {
             Log.d(TAG, "No New Sets");
             TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
-            noNewSets.setText("You have no new sets yet! Hang on, we'll find some for you.");
+            noNewSets.setText("You have no new sets yet... Favorite some sets so we know what you like!");
             ((ViewGroup) newSetsTileContainer).addView(noNewSets);
         }
         for (int i = 0; i < newSets.size(); i++) {
@@ -839,50 +838,64 @@ public class UserFragment extends Fragment implements ApiCaller {
 
 
     public void populateNewOffers() {
-        final List<Set> newSets = registeredUser.getNewSets();
         final List<Offer> newOffers = registeredUser.getNewOffers();
 
         // Get the inflater for inflating XML files into Views
 
-        LayoutInflater inflater = LayoutInflater.from(activity);
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
 
         // Remove all views inside the layout container
 
       //  ((ViewGroup) newSetsTileContainer).removeAllViews();
 
-
         if (newOffers.size() == 0) {
             Log.d(TAG, "No New Offers");
-            TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
-            noNewSets.setText("You have no new sets yet! Hang on, we'll find some for you.");
-            ((ViewGroup) newSetsTileContainer).addView(noNewSets);
+//            TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
+//            noNewSets.setText("You have no new sets yet... Favorite some sets so we know what you like!");
+//            ((ViewGroup) newSetsTileContainer).addView(noNewSets);
         }
         for (int j = 0; j < newOffers.size(); j++) {
             final Offer offer = newOffers.get(j);
             View myOfferTile = inflater.inflate(R.layout.offer_tile, null);
 
-            Artist test =offer.getArtist();
+            Artist offerArtist = offer.getArtist();
 
-            ((TextView) myOfferTile.findViewById(R.id.offerTileArtist))
-                    .setText(offer.getArtist().getArtist());
+            TextView offerTileArtist = ((TextView) myOfferTile.findViewById(R.id.offerTileArtist));
+            final ImageView artistImage = ((ImageView) myOfferTile.findViewById(R.id.offerArtistImage));
+
+            offerTileArtist.setText(offerArtist.getArtist());
+            offerTileArtist.setTag(offerArtist);
+            View.OnClickListener goToArtistDetail = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((SetMineMainActivity)getActivity()).openArtistDetailPage((Artist) v.getTag());
+                }
+            };
+            offerTileArtist.setOnClickListener(goToArtistDetail);
             ((TextView) myOfferTile.findViewById(R.id.offerVenueText))
                     .setText(offer.getVenue().getVenueName());
 
-
-            // ((ImageView) myOfferTile.findViewById(R.id.offerArtistImage)).setImageResource(timeID);
+            artistImage.setTag(offerArtist);
+            artistImage.setOnClickListener(goToArtistDetail);
+            ImageLoader.getInstance()
+                    .loadImage(offerArtist.getImageUrl(), options, new SimpleImageLoadingListener() {
+                        @Override
+                        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                            artistImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), loadedImage));
+                        }
+                    });
 
             myOfferTile.setTag(offer);
-
-            ((ViewGroup) newSetsTileContainer).addView(myOfferTile);
-
 
             myOfferTile.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    activity.openOfferDetailFragment(offer.getOfferId());
+                    ((SetMineMainActivity)getActivity()).openOfferDetailFragment(offer.getOfferId());
 
                 }
             });
+
+            ((ViewGroup) newSetsTileContainer).addView(myOfferTile);
         }
         // Remove the loader
         rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);

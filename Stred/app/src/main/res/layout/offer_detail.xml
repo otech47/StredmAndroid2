@@ -1,16 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-              android:orientation="vertical"
-              android:layout_width="match_parent"
-              android:layout_height="match_parent"
-                android:background="@android:color/black"
-                android:id="@+id/relativeLayout1">
-
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/imageView3"
-        android:background="@android:color/black"/>
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@android:color/black"
+    android:id="@+id/offer_detail">
 
     <ImageView
         android:layout_width="match_parent"
@@ -20,13 +14,18 @@
         android:layout_alignParentTop="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:scaleType="centerCrop"
-        android:alpha=".8"/>
+        android:scaleType="centerCrop"/>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/setmine_gray_75_alpha"
+        />
 
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:id="@+id/imageView"
+        android:id="@+id/artistBorder"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/offerDetailArtistName"
         android:layout_marginLeft="40dp"
@@ -36,13 +35,13 @@
     <ImageView
         android:layout_width="match_parent"
         android:layout_height="2dp"
-        android:id="@+id/imageView2"
+        android:id="@+id/venueBorder"
         android:layout_centerHorizontal="true"
         android:layout_below="@+id/offerVenueText"
         android:layout_marginLeft="40dp"
         android:layout_marginRight="40dp"
-        android:background="@color/setmine_blue"
-        android:layout_marginTop="10dp"/>
+        android:layout_marginTop="10dp"
+        android:background="@color/setmine_gold"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -60,76 +59,65 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="___  miles"
+        android:text="14 miles"
         android:id="@+id/distanceText"
         android:layout_below="@+id/mapContainer"
         android:layout_centerHorizontal="true"
         android:textStyle="bold"
         android:textColor="#ffd5d5d5"
-        android:textSize="18dp"
+        android:textSize="14dp"
+        android:visibility="invisible"
         android:layout_marginTop="3dp"/>
 
     <RelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="200dp"
         android:layout_below="@id/offerDetailArtistName"
         android:layout_marginTop="10dp"
         android:id="@+id/mapContainer"
         android:clickable="true"
-
         >
+
 
 
         <ImageView
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:id="@+id/circle"
             android:src="@drawable/circle"
             android:layout_centerInParent="true"
-            android:layout_alignTop="@+id/mapImage"
-            android:layout_alignLeft="@+id/mapImage"
-            android:layout_alignRight="@+id/mapImage"
-            android:layout_alignBottom="@+id/mapImage"
+            android:layout_alignTop="@+id/offer_center_image"
+            android:layout_alignLeft="@+id/offer_center_image"
+            android:layout_alignRight="@+id/offer_center_image"
+            android:layout_alignBottom="@+id/offer_center_image"
             android:visibility="invisible"/>
 
         <ImageView
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/mapImage"
+            android:layout_height="match_parent"
+            android:id="@+id/offer_center_image"
             android:src="@drawable/logo"
             android:clickable="false"
             android:padding="5dp"/>
 
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/centered_loader_container"
-            android:background="@color/setmine_gray_50_alpha"
-            android:layout_alignBottom="@+id/mapImage"
-            >
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:id="@+id/centered_loader"
-                android:layout_margin="@dimen/progress_padding"
-                android:text="Loading..."
-                android:textSize="25dp"
-                android:layout_centerInParent="true"
-                android:gravity="center|bottom"
-                android:indeterminate="true" />
-        </RelativeLayout>
-
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="New Text"
+            android:text=""
             android:id="@+id/locationText"
             android:visibility="gone"/>
 
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:padding="30dp"
+            android:layout_centerInParent="true"
+            android:visibility="invisible"
+            android:id="@+id/play_overlay"
+            android:alpha=".75"
+            android:src="@drawable/ic_action_play_white" />
+
     </RelativeLayout>
-
-
 
     <TextView
         android:layout_width="match_parent"
@@ -141,7 +129,7 @@
         android:textAlignment="center"
         android:layout_below="@id/distanceText"
         android:gravity="center"
-        android:textSize="35dp"
+        android:textSize="27dp"
         android:layout_marginTop="4dp"
         android:singleLine="false"
         android:scrollHorizontally="true"
@@ -150,123 +138,86 @@
         android:focusableInTouchMode="true"
         />
 
-
     <TextView
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/redemptionText"
-        android:textSize="18dp"
+        android:textSize="13dp"
         android:gravity="center"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
         android:layout_alignParentStart="true"
-        android:textColor="#ffd5d5d5"
-        android:paddingLeft="60dp"
-        android:paddingRight="60dp"
+        android:textColor="@color/setmine_white"
+        android:paddingLeft="30dp"
+        android:paddingRight="30dp"
+        android:paddingBottom="5dp"
         android:visibility="visible"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="69 Tittylicious Blv."
-        android:id="@+id/addressText1"
-        android:layout_below="@+id/offerVenueText"
-        android:layout_centerHorizontal="true"
-        android:textColor="#ffd5d5d5"
-        android:textSize="15dp"
-        android:password="false"
-        android:visibility="gone"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Whore Island, FL 32456"
-        android:id="@+id/addressText2"
-        android:layout_below="@+id/addressText1"
-        android:layout_centerHorizontal="true"
-        android:textColor="#ffd5d5d5"
-        android:textSize="15dp"
-        android:password="false"
-        android:visibility="gone"/>
 
-    <LinearLayout
+    <RelativeLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:weightSum="2"
-        android:gravity="center_horizontal"
-        android:layout_weight="1"
-        android:layout_below="@+id/imageView2"
+        android:padding="30dp"
+        android:id="@+id/actionContainer"
+        android:layout_below="@+id/venueBorder"
         android:layout_above="@id/redemptionText">
 
         <RelativeLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:id="@+id/offerButton1Layout"
-            android:layout_weight="1"
-            android:layout_gravity="center_vertical">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/howToUnlockLayout"
+            android:padding="5dp"
+            android:background="@drawable/pressable_button_white_to_blue"
+            android:layout_centerInParent="true"
+            >
 
-            <ImageView
-
-                android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/offerButton1"
-                android:src="@mipmap/setmine_bar_button"
-                android:scaleType="centerCrop"
-                android:alpha=".95"
-                android:layout_centerInParent="true"/>
+                android:text="How to Unlock"
+                android:id="@+id/offerText1"
+                android:singleLine="true"
+                android:layout_centerInParent="true"
+                android:paddingTop="5dp"
+                android:paddingLeft="10dp"
+                android:textColor="@color/setmine_dark_gray"
+                android:gravity="center"
+                android:textSize="15dp"/>
 
             <ImageView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_alignBottom="@id/offerButton1"
-                android:layout_alignTop="@id/offerButton1"
+                android:layout_toLeftOf="@id/offerText1"
                 android:id="@+id/lockIcon"
                 android:adjustViewBounds="true"
                 android:src="@android:drawable/ic_lock_lock"
                 android:scaleType="centerCrop"
-                android:layout_marginLeft="18dp"
-                android:layout_centerVertical="true"
-                android:layout_marginTop="14dp"
-                android:layout_marginBottom="14dp"/>
+                android:layout_centerVertical="true"/>
 
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Exclusive Stuff"
-                android:id="@+id/offerText1"
-                android:singleLine="true"
-                android:layout_alignWithParentIfMissing="false"
-                android:layout_alignTop="@+id/lockIcon"
-                android:layout_alignBottom="@+id/lockIcon"
-                android:textColor="@color/setmine_dark_gray"
-                android:layout_marginRight="20dp"
-                android:gravity="center"
-                android:textSize="13dp"
-                android:layout_alignLeft="@+id/lockIcon"
-                android:layout_alignStart="@+id/lockIcon"
-                android:paddingLeft="14dp"/>
         </RelativeLayout>
-    </LinearLayout>
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/unlockedLayout"
-        android:layout_margin="50dp"
+        android:layout_margin="20dp"
         android:background="@color/setmine_white"
         android:visibility="gone">
 
         <ImageButton
-            android:layout_width="68dp"
-            android:layout_height="68dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="10dp"
             android:id="@+id/closeButton"
             android:layout_gravity="right|top"
             android:src="@android:drawable/ic_menu_close_clear_cancel"
             android:background="@android:color/transparent"
             android:clickable="true"
             android:tint="#50000000"
-
             android:layout_alignParentTop="true"
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"/>
@@ -303,7 +254,6 @@
             android:layout_alignParentBottom="true"
             android:gravity="center"
             android:id="@+id/vendorMessageLayout"
-
             >
 
             <TextView
@@ -336,12 +286,9 @@
             android:adjustViewBounds="false"/>
 
         <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="100dp"
+            android:layout_height="100dp"
             android:id="@+id/layoutVendorPic"
-            android:layout_gravity="center"
-            android:layout_alignParentLeft="true"
-            android:layout_alignParentStart="true"
             android:layout_centerInParent="true"
             android:layout_above="@id/vendorMessageLayout"
             android:layout_below="@+id/blueBar1"
@@ -354,22 +301,28 @@
                 android:src="@drawable/logo"
                 android:layout_centerVertical="true"
                 android:layout_centerHorizontal="true"
-                android:scaleType="centerCrop"
+                android:scaleType="centerInside"
                 />
         </RelativeLayout>
 
     </RelativeLayout>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/offerLatitude"
-        android:visibility="invisible"/>
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone"
+        android:id="@+id/centered_loader_container"
+        android:background="@color/setmine_gray_75_alpha"
+        >
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/offerLongitude"
-        android:visibility="invisible"/>
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="150dp"
+            android:gravity="center|bottom"
+            android:layout_centerInParent="true"
+            android:indeterminate="true"
+            />
+    </RelativeLayout>
 
 </RelativeLayout>

@@ -3,6 +3,8 @@ package com.setmine.android;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +19,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,7 +29,17 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.gimbal.android.BeaconEventListener;
+import com.gimbal.android.BeaconManager;
+import com.gimbal.android.BeaconSighting;
+import com.gimbal.android.Communication;
+import com.gimbal.android.CommunicationListener;
+import com.gimbal.android.CommunicationManager;
 import com.gimbal.android.Gimbal;
+import com.gimbal.android.PlaceEventListener;
+import com.gimbal.android.PlaceManager;
+import com.gimbal.android.Push;
+import com.gimbal.android.Visit;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -34,6 +47,7 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.setmine.android.Offer.Offer;
 import com.setmine.android.Offer.OfferDetailFragment;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
@@ -57,6 +71,7 @@ import com.setmine.android.util.HttpUtils;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -65,6 +80,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -163,9 +179,32 @@ public class SetMineMainActivity extends FragmentActivity implements
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
+                } else if(finalIdentifier.equals("offers/venue")) {
+                    Log.d(TAG, finalJsonObject.toString());
+                    try {
+                        JSONArray availableOffersJson = finalJsonObject.getJSONObject("payload")
+                                .getJSONArray("offer");
+                        if(availableOffersJson.length() > 0) {
+                            unlockOffers(availableOffersJson);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (finalIdentifier.equals("offers/unlock")) {
+                    Log.d(TAG, finalJsonObject.toString());
+                    try {
+                        JSONObject payload = finalJsonObject.getJSONObject("payload");
+                        if(payload.getString("unlock_status").equals("success")) {
+                            Offer unlockedOffer = new Offer(payload.getJSONObject("offer"));
+                            showUnlockedOfferNotification(unlockedOffer);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+
                 } else {
                     modelsCP.setModel(finalJsonObject, finalIdentifier);
-                    if(modelsCP.initialModelsReady) {
+                    if (modelsCP.initialModelsReady) {
                         handler.post(updateUI);
                     }
                 }
@@ -277,11 +316,159 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
     }
 
+    // Gimbal Functionality
+
+    private PlaceEventListener placeEventListener;
+    private CommunicationListener communicationListener;
+    private BeaconEventListener beaconSightingListener;
+    private BeaconManager beaconManager;
+
+    private boolean verifiedPlaceID;
+
     public void initializeGimbal() {
         Gimbal.setApiKey(this.getApplication(), "c06f63bf-ef5f-45e9-9edf-4f600c86c67a");
         Gimbal.registerForPush("699004373125");
 
+        verifiedPlaceID = false;
+
+        createPlaceListener();
+        createCommunicationListener();
+
+        Log.i(TAG, "initializeGimbal");
+
+
+        PlaceManager.getInstance().startMonitoring();
+        CommunicationManager.getInstance().startReceivingCommunications();
     }
+
+    public void createPlaceListener() {
+        final SetMineMainActivity activity = this;
+        placeEventListener = new PlaceEventListener() {
+            @Override
+            public void onVisitStart(Visit visit) {
+                // This will be invoked when a place is entered. Example below shows a simple log upon enter
+                Log.d(TAG, "Enter: " + visit.getPlace().getName() + ", at: " + new Date(visit.getArrivalTimeInMillis()));
+            }
+
+            @Override
+            public void onVisitEnd(Visit visit) {
+                // This will be invoked when a place is exited. Example below shows a simple log upon exit
+                Log.d(TAG, "Exit: " + visit.getPlace().getName() + ", at: " + new Date(visit.getDepartureTimeInMillis()));
+            }
+
+            @Override
+            public void onBeaconSighting(BeaconSighting beaconSighting, List<Visit> list) {
+                Log.d(TAG, beaconSighting.toString());
+                Log.d(TAG, Float.toString(beaconSighting.getRSSI()));
+
+                Log.d(TAG, Boolean.toString(verifiedPlaceID));
+
+
+                if(beaconSighting.getRSSI() > -45 && !verifiedPlaceID) {
+                    verifiedPlaceID = true;
+                    Log.i(TAG, beaconSighting.toString());
+                    for(int i = 0; i < list.size(); i++) {
+                        String placeName = list.get(i).getPlace().getName();
+                        String placeID = list.get(i).getPlace().getIdentifier();
+                        Log.d(TAG, placeName);
+
+                        // Send place identifier to server to verify Place with offers to unlock
+
+                        new SetMineApiGetRequestAsyncTask(activity, activity)
+                                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                        , "offers/venue/" + placeID, "offers/venue");
+
+                        if(placeName.equals("Sethau5")) {
+                            Log.d(TAG, "Sethau5 detected");
+                            Log.d(TAG, placeID);
+                        }
+                    }
+                }
+
+            }
+        };
+        PlaceManager.getInstance().addListener(placeEventListener);
+    }
+
+    public void createCommunicationListener() {
+        communicationListener = new CommunicationListener() {
+            @Override
+            public Collection<Communication> presentNotificationForCommunications(Collection<Communication> communications, Visit visit) {
+                for (Communication comm : communications) {
+                    Log.i("INFO", "Place Communication: " + visit.getPlace().getName() + ", message: " + comm.getTitle());
+                }
+                //allow Gimbal to show the notification for all communications
+                return communications;
+            }
+
+            @Override
+            public Collection<Communication> presentNotificationForCommunications(Collection<Communication> communications, Push push) {
+                for (Communication comm : communications) {
+                    Log.i("INFO", "Received a Push Communication with message: " + comm.getTitle());
+                }
+                //allow Gimbal to show the notification for all communications
+                return communications;
+            }
+
+            @Override
+            public void onNotificationClicked(List<Communication> communications) {
+                Log.i("INFO", "Notification was clicked on");
+            }
+        };
+        CommunicationManager.getInstance().addListener(communicationListener);
+    }
+
+    public void showUnlockedOfferNotification(Offer unlockedOffer) {
+        Log.d(TAG, "showUnlockedOfferNotification");
+
+        Artist offerArtist = unlockedOffer.getArtist();
+
+        // reusable variables
+        PendingIntent pendingIntent;
+        Intent intent;
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.logo_small)
+                        .setContentTitle("Offer Unlocked!")
+                        .setContentText("You've unlocked a new set by " + offerArtist.getArtist())
+                        .setAutoCancel(true);
+
+        intent = new Intent(getApplicationContext(), SetMineMainActivity.class)
+                .setAction("OFFER_UNLOCKED");
+        intent.putExtra("offer_id", unlockedOffer.getOfferId());
+        pendingIntent = PendingIntent.getActivity(getApplicationContext(),
+                0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder.setContentIntent(pendingIntent);
+
+        // Show the notification in the notification bar.
+
+        try {
+            NotificationManager mNotifyManager =
+                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            mNotifyManager.notify(001, mBuilder.build());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void unlockOffers(JSONArray availableOffersJson) {
+        Log.d(TAG, "unlockOffers");
+        try {
+            for(int i = 0; i < availableOffersJson.length(); i++) {
+                JSONObject availableOffer = availableOffersJson.getJSONObject(0);
+                Offer unlockedOffer = new Offer(availableOffer);
+                new SetMineApiGetRequestAsyncTask(this, this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                , "offers/unlock/" + unlockedOffer.getOfferId() + "/user/" + user.getId(), "offers/unlock");
+            }
+
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     // Activity Handling
 
@@ -302,7 +489,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         user = new User();
 
-//        initializeGimbal();
+        initializeGimbal();
 
         // Create the ServiceConnection to the PlayerService every time the activity is created, regardless of savedInstanceState
 
@@ -362,6 +549,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                                 "upcoming",
                                 "upcomingEvents");
             }
+
 
             new SetMineApiGetRequestAsyncTask(this, this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
@@ -574,7 +762,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.INVISIBLE);
 
-
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
         }
@@ -767,6 +954,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
 
     public void openOfferDetailFragment(String offerId){
+        Log.d(TAG, "openOfferDetailFragment");
         offerDetailFragment = new OfferDetailFragment();
         Bundle args = new Bundle();
         args.putString("currentOffer", offerId);
@@ -815,11 +1003,21 @@ public class SetMineMainActivity extends FragmentActivity implements
             segments = null;
         }
 
+        Log.d(TAG, intent.getAction());
+
 
         // Intents for Playing Sets, Artist Details, Event Details, Remote Controls and the Notification player
 
         if (intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
             startPlayerFragment();
+        } else if(intent.getAction().equals("OFFER_UNLOCKED")) {
+            Log.d(TAG, intent.getStringExtra("offer_id"));
+
+            Log.d(TAG, "OFFER_UNLOCKED");
+
+            Log.d(TAG, intent.getStringExtra("offer_id"));
+
+            openOfferDetailFragment(intent.getStringExtra("offer_id"));
         } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?play")) {
 
             Log.d("track id: ", segments[segments.length - 1]);

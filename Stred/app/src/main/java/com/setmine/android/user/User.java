@@ -25,10 +25,12 @@ public class User extends JSONModel {
     private List<Set> favoriteSets;
     private Event nextEvent;
     private List<Set> newSets;
-    private boolean isRegistered = false;
+    private boolean isRegistered;
     private List<Offer> mOffers;
 
     public User() {
+        jsonModelString = "";
+        isRegistered = false;
     }
 
     public User(JSONObject json) {

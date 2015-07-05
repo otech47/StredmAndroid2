@@ -113,15 +113,7 @@ public class MainPagerContainerFragment extends Fragment {
             int lastPosition = savedInstanceState.getInt("lastPosition");
             mViewPager.setCurrentItem(lastPosition);
         } else {
-            if(pageToScrollTo == -1) {
-                if(user.isRegistered()) {
-                    mViewPager.setCurrentItem(0);
-                } else {
-                    mViewPager.setCurrentItem(2);
-                }
-            } else {
-                mViewPager.setCurrentItem(pageToScrollTo);
-            }
+            changePage(pageToScrollTo);
         }
 
 
@@ -141,5 +133,13 @@ public class MainPagerContainerFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("lastPosition", mViewPager.getCurrentItem());
+    }
+
+    public void changePage(int page) {
+        if(page == -1) {
+            mViewPager.setCurrentItem(0);
+        } else {
+            mViewPager.setCurrentItem(page);
+        }
     }
 }
