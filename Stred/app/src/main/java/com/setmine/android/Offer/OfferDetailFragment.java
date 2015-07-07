@@ -52,14 +52,17 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public View mapContainer;
     public View rootView;
     public View offerButton1;
+    public View unlockedLayout;
     public View loader;
     public TextView artistNameText;
     public TextView offerVenueText;
+    public TextView offerEventText;
     public TextView distanceText;
     public TextView offerButtonText1;
     public TextView redemptionText;
     public TextView vendorMessageText;
     public TextView addressText;
+
 
     // Models
     public User registeredUser;
@@ -100,7 +103,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             @Override
             public void run() {
 
-                if (finalIdentifier == "offers") {
+                if (finalIdentifier.equals("offers")) {
                     try {
                         createOffer(finalJsonObject.getJSONObject("payload").getJSONObject("offer"));
                         offerHandler.post(updateUI);
@@ -137,10 +140,11 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         //text views
         artistNameText = (TextView) rootView.findViewById(R.id.offerDetailArtistName);
         offerVenueText = (TextView) rootView.findViewById(R.id.offerVenueText);
+        offerEventText = (TextView) rootView.findViewById(R.id.offerEventText);
+
         distanceText = (TextView) rootView.findViewById(R.id.distanceText);
         offerButtonText1 = (TextView) rootView.findViewById(R.id.offerText1);
         redemptionText = (TextView) rootView.findViewById(R.id.redemptionText);
-        vendorMessageText = (TextView) rootView.findViewById(R.id.vendorMessage);
 
         if (savedInstanceState == null) {
             Log.v(TAG, "savedInstanceState is null");
@@ -151,6 +155,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             if(registeredUser.isRegistered()) {
                 query += "/user/" + registeredUser.getId();
             }
+            Log.d(TAG, query);
             new SetMineApiGetRequestAsyncTask((SetMineMainActivity) getActivity(), this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                             query, "offers");
@@ -279,7 +284,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             int daysInt = period.getDays();
 
 
-            if (hoursInt < 24 && hoursInt > 1) {
+            if (daysInt < 1 && hoursInt < 24 && hoursInt > 1) {
                 redemptionText.setText("This offer expires in " + hoursInt + " hours and " + minutesInt + " minutes.");
             } else if (hoursInt == 1) {
                 redemptionText.setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
@@ -320,8 +325,9 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         //changing text views
         artistNameText.setText(currentOffer.getArtist().getArtist());
         artistNameText.setTypeface(null, Typeface.BOLD);
-        vendorMessageText.setText(currentOffer.getMessage());
         offerVenueText.setText(currentOffer.getVenue().getVenueName());
+        offerEventText.setText(currentOffer.getEventName());
+
         addressText.setText(currentOffer.getVenue().getAddress());
 
     }
@@ -395,8 +401,80 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             }
         });
         rootView.findViewById(R.id.play_overlay).setVisibility(View.VISIBLE);
-        distanceText.setText("Click to Play");
+        mapContainer.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                activity = (SetMineMainActivity) getActivity();
+                if(activity.playerService != null) {
+                    if(activity.playerService.playerManager.getSelectedSet() != null) {
+                        if (activity.playerService.playerManager.getSelectedSet().getId().equals(currentOffer.getUnlockedSet().getId())) {
+                            activity.startPlayerFragment();
+                        } else {
+                            activity.playerService.playerManager.addToPlaylist(currentOffer.getUnlockedSet());
+                            activity.playerService.playerManager.selectSetById(currentOffer.getUnlockedSet().getId());
+                            activity.startPlayerFragment();
+                            activity.playSelectedSet();
+                        }
+                    } else {
+                        activity.playerService.playerManager.addToPlaylist(currentOffer.getUnlockedSet());
+                        activity.playerService.playerManager.selectSetById(currentOffer.getUnlockedSet().getId());
+                        activity.startPlayerFragment();
+                        activity.playSelectedSet();
+                    }
+                }
 
+            }
+        });
+        distanceText.setText("Click to Play");
+        distanceText.setVisibility(View.VISIBLE);
+        ((TextView)offerButton1.findViewById(R.id.offerText1)).setText("Redeem Extra Content");
+        ((ImageView)offerButton1.findViewById(R.id.lockIcon)).setImageResource(R.drawable.reward);
+        offerButton1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                OfferInstructionsFragment redeemOffer = new OfferInstructionsFragment();
+                Bundle args = new Bundle();
+                if(currentOffer.getImageURL().equals("null")) {
+                    Log.d(TAG, "image null");
+
+                    args.putString("image", currentOffer.getVenue().getIconImageUrl());
+                } else {
+                    Log.d(TAG, "image not null");
+                    Log.d(TAG, currentOffer.getImageURL());
+
+
+                    args.putString("image", currentOffer.getImageURL());
+                }
+                if(currentOffer.getLink().equals("null")) {
+                    Log.d(TAG, "link null");
+                    args.putString("link", null);
+                } else {
+                    Log.d(TAG, "link not null");
+                    Log.d(TAG, currentOffer.getLink());
+
+                    args.putString("link", currentOffer.getLink());
+                }
+                args.putString("message", currentOffer.getMessage());
+                args.putInt("page", 3);
+                redeemOffer.setArguments(args);
+                FragmentTransaction transaction = getFragmentManager().beginTransaction();
+                transaction.add(R.id.offer_detail, redeemOffer);
+                transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+                transaction.addToBackStack("redeemOffer");
+                transaction.commitAllowingStateLoss();
+            }
+        });
+
+    }
+
+    public void refreshUnlockStatus() {
+        String query = "offers/id/" + currentOffer.getOfferId();
+        if(registeredUser != null && registeredUser.isRegistered()) {
+            query += "/user/" + registeredUser.getId();
+        }
+        new SetMineApiGetRequestAsyncTask((SetMineMainActivity) getActivity(), this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        query, "offers");
     }
 
 }

@@ -19,8 +19,9 @@
     <ImageView
         android:layout_width="275dp"
         android:layout_height="275dp"
-        android:src="@drawable/setmine_splash"
+        android:src="@drawable/logo_small"
         android:scaleType="centerInside"
+        android:clickable="true"
         android:padding="20dp"
         android:layout_centerInParent="true"
         android:layout_below="@id/header"

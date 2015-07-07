@@ -2,6 +2,7 @@ package com.setmine.android.Offer;
 
 import com.setmine.android.api.JSONModel;
 import com.setmine.android.artist.Artist;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.set.Set;
 import com.setmine.android.venue.Venue;
 
@@ -13,7 +14,7 @@ import org.json.JSONObject;
  */
 
 
-public class Offer extends JSONModel{
+public class Offer extends JSONModel implements ApiCaller {
 
     private String mOfferId;
     private Artist mArtist;
@@ -24,7 +25,11 @@ public class Offer extends JSONModel{
     private String mTotalRevenue;
     private String mTotalConvergedSuperfans;
     private String mMessage;
+    private String mImageURL;
+    private String mLink;
+
     private Set unlockedSet;
+    private String mEventName;
 
     public Offer(){}
 
@@ -41,6 +46,19 @@ public class Offer extends JSONModel{
             setTotalRevenue(json.getString("total_revenue"));
             setTotalConvergedSuperfans(json.getString("total_converged_superfans"));
             setMessage(json.getString("message"));
+            setEventName(json.getString("event"));
+            setLink(json.getString("link"));
+
+            if(json.has("image_url")) {
+                setImageURL(json.getString("image_url"));
+            } else {
+                setImageURL(null);
+            }
+            if(json.has("link")) {
+                setLink(json.getString("link"));
+            } else {
+                setLink(null);
+            }
             if(json.has("unlocked_set")) {
                 setUnlockedSet(new Set(json.getJSONObject("unlocked_set")));
             } else {
@@ -127,11 +145,44 @@ public class Offer extends JSONModel{
         this.mTotalConvergedSuperfans = totalConvergences;
     }
 
+    public String getImageURL() {
+        return mImageURL;
+    }
+
+    public void setImageURL(String mImageURL) {
+        this.mImageURL = mImageURL;
+    }
+
+    public String getLink() {
+        return mLink;
+    }
+
+    public void setLink(String mLink) {
+        this.mLink = mLink;
+    }
+
     public Set getUnlockedSet() {
         return unlockedSet;
     }
 
     public void setUnlockedSet(Set unlockedSet) {
         this.unlockedSet = unlockedSet;
+    }
+
+    public String getEventName() {
+        return mEventName;
+    }
+
+    public void setEventName(String mEventName) {
+        this.mEventName = mEventName;
+    }
+
+    public boolean checkUnlock(String userID) {
+        return false;
+    }
+
+    @Override
+    public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
+
     }
 }

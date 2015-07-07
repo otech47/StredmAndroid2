@@ -143,9 +143,13 @@ public class UserFragment extends Fragment implements ApiCaller {
         public void run() {
             if (activity != null) {
                 activity.user = registeredUser;
+                Log.d(TAG, "user registered in activity");
 //      
                 registerMixpanelUser();
                 ((MainPagerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(0);
+                if(activity.offerDetailFragment != null) {
+                    activity.offerDetailFragment.refreshUnlockStatus();
+                }
 
             }
 
@@ -839,6 +843,8 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     public void populateNewOffers() {
         final List<Offer> newOffers = registeredUser.getNewOffers();
+
+        Log.d(TAG, Integer.toString(newOffers.size()));
 
         // Get the inflater for inflating XML files into Views
 

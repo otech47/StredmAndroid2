@@ -7,7 +7,6 @@ import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.user.UserFragment;
 
 /**
  * Created by oscarlafarga on 7/3/15.
@@ -40,7 +39,7 @@ public class OfferPagerAdapter extends FragmentStatePagerAdapter {
 
         OfferInstructionsFragment offerInstructionsFragment = new OfferInstructionsFragment();
         Bundle args = new Bundle();
-        args.putInt(UserFragment.ARG_OBJECT, i);
+        args.putInt(OfferInstructionsFragment.ARG_OBJECT, i);
         offerInstructionsFragment.setArguments(args);
         return offerInstructionsFragment;
 

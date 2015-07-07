@@ -192,6 +192,8 @@ public class SetMineMainActivity extends FragmentActivity implements
                     }
                 } else if (finalIdentifier.equals("offers/unlock")) {
                     Log.d(TAG, finalJsonObject.toString());
+                    Log.d(TAG, "offers/unlock");
+
                     try {
                         JSONObject payload = finalJsonObject.getJSONObject("payload");
                         if(payload.getString("unlock_status").equals("success")) {
@@ -333,11 +335,13 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         createPlaceListener();
         createCommunicationListener();
+        createBeaconListener();
 
         Log.i(TAG, "initializeGimbal");
 
 
         PlaceManager.getInstance().startMonitoring();
+        beaconManager.startListening();
         CommunicationManager.getInstance().startReceivingCommunications();
     }
 
@@ -362,29 +366,48 @@ public class SetMineMainActivity extends FragmentActivity implements
                 Log.d(TAG, Float.toString(beaconSighting.getRSSI()));
 
                 Log.d(TAG, Boolean.toString(verifiedPlaceID));
-
+                Log.d(TAG, Integer.toString(list.size()));
 
                 if(beaconSighting.getRSSI() > -45 && !verifiedPlaceID) {
                     verifiedPlaceID = true;
                     Log.i(TAG, beaconSighting.toString());
-                    for(int i = 0; i < list.size(); i++) {
-                        String placeName = list.get(i).getPlace().getName();
-                        String placeID = list.get(i).getPlace().getIdentifier();
-                        Log.d(TAG, placeName);
+                    if(list.size() > 0) {
+                        for(int i = 0; i < list.size(); i++) {
 
-                        // Send place identifier to server to verify Place with offers to unlock
+                            // Gimbal SHIT broken
+//                            String placeName = list.get(i).getPlace().getName();
+//                            String placeID = list.get(i).getPlace().getIdentifier();
+//                            Log.d(TAG, placeName);
+//
+//                            // Send place identifier to server to verify Place with offers to unlock
+//
+//                            new SetMineApiGetRequestAsyncTask(activity, activity)
+//                                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                                            , "offers/venue/" + placeID, "offers/venue");
+//
+//                            if(placeName.equals("Sethau5")) {
+//                                Log.d(TAG, "Sethau5 detected");
+//                                Log.d(TAG, placeID);
+//                            }
+
+
+                            String beaconID = beaconSighting.getBeacon().getIdentifier();
+                            Log.d(TAG, beaconID);
+
+                            new SetMineApiGetRequestAsyncTask(activity, activity)
+                                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                            , "offers/venue/" + beaconID, "offers/venue");
+                        }
+                    } else {
+                        String beaconID = beaconSighting.getBeacon().getIdentifier();
+                        Log.d(TAG, beaconID);
 
                         new SetMineApiGetRequestAsyncTask(activity, activity)
                                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                                        , "offers/venue/" + placeID, "offers/venue");
-
-                        if(placeName.equals("Sethau5")) {
-                            Log.d(TAG, "Sethau5 detected");
-                            Log.d(TAG, placeID);
-                        }
+                                        , "offers/venue/" + beaconID, "offers/venue");
                     }
-                }
 
+                }
             }
         };
         PlaceManager.getInstance().addListener(placeEventListener);
@@ -416,6 +439,17 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
         };
         CommunicationManager.getInstance().addListener(communicationListener);
+    }
+
+    public void createBeaconListener() {
+        beaconSightingListener = new BeaconEventListener() {
+            @Override
+            public void onBeaconSighting(BeaconSighting sighting) {
+                Log.i("INFO", sighting.toString());
+            }
+        };
+        beaconManager = new BeaconManager();
+        beaconManager.addListener(beaconSightingListener);
     }
 
     public void showUnlockedOfferNotification(Offer unlockedOffer) {
@@ -454,15 +488,17 @@ public class SetMineMainActivity extends FragmentActivity implements
     }
     public void unlockOffers(JSONArray availableOffersJson) {
         Log.d(TAG, "unlockOffers");
+        Log.d(TAG, availableOffersJson.toString());
+
         try {
             for(int i = 0; i < availableOffersJson.length(); i++) {
                 JSONObject availableOffer = availableOffersJson.getJSONObject(0);
                 Offer unlockedOffer = new Offer(availableOffer);
+                Log.d(TAG, "offers/unlock/" + unlockedOffer.getOfferId() + "/user/" + user.getId());
                 new SetMineApiGetRequestAsyncTask(this, this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
                                 , "offers/unlock/" + unlockedOffer.getOfferId() + "/user/" + user.getId(), "offers/unlock");
             }
-
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -861,7 +897,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             @Override
             public void run() {
                 try {
-                    String apiRequest = "set/id?setID=" + finalSetId;
+                    String apiRequest = "sets/id/" + finalSetId;
                     String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
                     JSONObject jsonResponse = new JSONObject(jsonString);
                     if (jsonResponse.get("status").equals("success")) {
@@ -897,7 +933,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("mainPagerContainer");
-
         transaction.commitAllowingStateLoss();
     }
 
@@ -1003,20 +1038,15 @@ public class SetMineMainActivity extends FragmentActivity implements
             segments = null;
         }
 
-        Log.d(TAG, intent.getAction());
-
-
         // Intents for Playing Sets, Artist Details, Event Details, Remote Controls and the Notification player
 
         if (intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
             startPlayerFragment();
         } else if(intent.getAction().equals("OFFER_UNLOCKED")) {
-            Log.d(TAG, intent.getStringExtra("offer_id"));
-
             Log.d(TAG, "OFFER_UNLOCKED");
-
             Log.d(TAG, intent.getStringExtra("offer_id"));
 
+            openMainViewPager(-1);
             openOfferDetailFragment(intent.getStringExtra("offer_id"));
         } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?play")) {
 

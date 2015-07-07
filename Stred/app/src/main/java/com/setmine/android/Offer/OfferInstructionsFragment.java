@@ -1,5 +1,9 @@
 package com.setmine.android.Offer;
 
+import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.drawable.BitmapDrawable;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -10,6 +14,9 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.nostra13.universalimageloader.core.DisplayImageOptions;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.R;
 import com.setmine.android.user.User;
 
@@ -23,7 +30,7 @@ public class OfferInstructionsFragment extends Fragment {
 
     // Statics
     private static final String TAG = "OfferInstrFragment";
-    private static final String ARG_OBJECT = "page";
+    public static final String ARG_OBJECT = "page";
 
     public static int page;
 
@@ -81,16 +88,49 @@ public class OfferInstructionsFragment extends Fragment {
     public void populateInstructionPages(int page) {
         if(page == 0) {
             header.setText("Find Location");
-            mainImage.setImageResource(R.drawable.setmine_splash);
+            mainImage.setImageResource(R.drawable.locked_offer);
             instructions.setText("Click the map and navigate to the unlock location.");
         } else if(page == 1) {
             header.setText("Enter");
             mainImage.setImageResource(R.drawable.offer_instructions_2);
             instructions.setText("Check out the place your favorite artist sent you to unlock their music.");
-        } else {
+        } else if(page == 2) {
             header.setText("Enjoy");
-            mainImage.setImageResource(R.drawable.setmine_splash);
+            mainImage.setImageResource(R.drawable.unlocked_offer);
             instructions.setText("Check your notifications to receive full access to the artist's content and enjoy exclusive discounts from the retailer.");
+        } else {
+            header.setText("Redeem");
+
+            mainImage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if(getArguments().get("link") != null) {
+                        Uri ticketUrl = Uri.parse(getArguments().getString("link"));
+                        Intent launchBrowser = new Intent(Intent.ACTION_VIEW, ticketUrl);
+                        startActivity(launchBrowser);
+                    }
+
+                }
+            });
+            Log.d(TAG, getArguments().toString());
+
+            DisplayImageOptions options = new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(false)
+                    .cacheOnDisk(false)
+                    .considerExifParams(true)
+                    .build();
+
+            ImageLoader.getInstance().loadImage(getArguments().getString("image"), options, new SimpleImageLoadingListener() {
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    Log.d(TAG, imageUri);
+                    mainImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), loadedImage));
+                }
+            });
+            instructions.setText(getArguments().getString("message"));
         }
 
     }
