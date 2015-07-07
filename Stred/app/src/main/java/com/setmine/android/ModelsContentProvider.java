@@ -280,7 +280,13 @@ public class ModelsContentProvider {
     }
 
     public List<Activity> getActivities() {
-        return activities;
+        try{
+            return activities;
+
+        }finally{
+            activities = null;
+        }
+
     }
 
     public void setLineups(JSONObject response) {

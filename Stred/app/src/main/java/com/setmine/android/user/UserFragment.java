@@ -62,10 +62,11 @@ public class UserFragment extends Fragment implements ApiCaller {
     public SetMineMainActivity activity;
     public JSONObject jsonUser;
     public User registeredUser;
+    public  List<Activity> userActivities;
+
 
     private Location userLocation;
     private int timeID;
-
 
     public View homeView;
     public View loginView;
@@ -527,7 +528,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             // Get all activities
 
-            final List<Activity> userActivities = modelsCP.getActivities();
+            userActivities = modelsCP.getActivities();
 
 
             // Get the inflater for inflating XML files into Views
