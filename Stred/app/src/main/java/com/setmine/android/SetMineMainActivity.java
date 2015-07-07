@@ -45,8 +45,6 @@ import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
-import com.nostra13.universalimageloader.core.ImageLoader;
-import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.setmine.android.Offer.Offer;
 import com.setmine.android.Offer.OfferDetailFragment;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
@@ -549,17 +547,8 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Fragment Manager handles all fragments and the navigation between them
 
-        fragmentManager = getSupportFragmentManager();
+//        fragmentManager = getSupportFragmentManager();
 
-        if(modelsCP == null) {
-            modelsCP = new ModelsContentProvider();
-        }
-
-        // PlayerManager handles updating the playlist and keeping track of set results
-
-//        if(playerManager == null) {
-//            playerManager = new PlayerManager();
-//        }
 
         if(savedInstanceState == null) {
             userIsRegistered = false;
@@ -575,85 +564,84 @@ public class SetMineMainActivity extends FragmentActivity implements
             else {
                 Log.d(TAG, "services NOT Connected");
                 currentLocation= null;
-                String eventSearchUrl = "upcoming";
-                new SetMineApiGetRequestAsyncTask(this, this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                eventSearchUrl,
-                                "searchEvents");
-                new SetMineApiGetRequestAsyncTask(this, this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "upcoming",
-                                "upcomingEvents");
+//                String eventSearchUrl = "upcoming";
+//                new SetMineApiGetRequestAsyncTask(this, this)
+//                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+//                                eventSearchUrl,
+//                                "searchEvents");
+//                new SetMineApiGetRequestAsyncTask(this, this)
+//                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+//                                "upcoming",
+//                                "upcomingEvents");
             }
 
 
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                            "featured", "recentEvents");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "artist", "artists");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "festival", "festivals");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "mix", "mixes");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "genre", "genres");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "popular", "popularSets");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "recent", "recentSets");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "artist?all=true", "allArtists");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "activity?all=true", "activities");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+//                            "featured", "recentEvents");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "artist", "artists");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "festival", "festivals");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "mix", "mixes");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "genre", "genres");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "popular", "popularSets");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "recent", "recentSets");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "artist?all=true", "allArtists");
+//            new SetMineApiGetRequestAsyncTask(this, this)
+//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                            , "activity?all=true", "activities");
 
         } else {
             Log.d(TAG, "getting instance state");
             userIsRegistered = savedInstanceState.getBoolean("userIsRegistered");
             currentLocation = savedInstanceState.getParcelable("currentLocation");
-            String upcomingEventsModel = savedInstanceState.getString("upcomingEvents");
-            String searchEventsModel = savedInstanceState.getString("searchEvents");
-            String recentEventsModel = savedInstanceState.getString("recentEvents");
-            String artistsModel = savedInstanceState.getString("artists");
-            String festivalsModel = savedInstanceState.getString("festivals");
-            String mixesModel = savedInstanceState.getString("mixes");
-            String genresModel = savedInstanceState.getString("genres");
-            String popularSetsModel = savedInstanceState.getString("popularSets");
-            String recentSetsModel = savedInstanceState.getString("recentSets");
-            String allArtistsModel = savedInstanceState.getString("allArtists");
-            String activitiesModel = savedInstanceState.getString("activities");
+//            String upcomingEventsModel = savedInstanceState.getString("upcomingEvents");
+//            String searchEventsModel = savedInstanceState.getString("searchEvents");
+//            String recentEventsModel = savedInstanceState.getString("recentEvents");
+//            String artistsModel = savedInstanceState.getString("artists");
+//            String festivalsModel = savedInstanceState.getString("festivals");
+//            String mixesModel = savedInstanceState.getString("mixes");
+//            String genresModel = savedInstanceState.getString("genres");
+//            String popularSetsModel = savedInstanceState.getString("popularSets");
+//            String recentSetsModel = savedInstanceState.getString("recentSets");
+//            String allArtistsModel = savedInstanceState.getString("allArtists");
+//            String activitiesModel = savedInstanceState.getString("activities");
             try {
-                JSONObject jsonUpcomingEventsModel = new JSONObject(upcomingEventsModel);
-                JSONObject jsonSearchEventsModel = new JSONObject(searchEventsModel);
-                JSONObject jsonRecentEventsModel = new JSONObject(recentEventsModel);
-                JSONObject jsonArtistsModel = new JSONObject(artistsModel);
-                JSONObject jsonFestivalsModel = new JSONObject(festivalsModel);
-                JSONObject jsonMixesModel = new JSONObject(mixesModel);
-                JSONObject jsonGenresModel = new JSONObject(genresModel);
-                JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
-                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
-                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
-                JSONObject jsonActivitiesModel = new JSONObject(activitiesModel);
-                modelsCP.setModel(jsonUpcomingEventsModel, "upcomingEvents");
-                modelsCP.setModel(jsonSearchEventsModel, "searchEvents");
-                modelsCP.setModel(jsonRecentEventsModel, "recentEvents");
-                modelsCP.setModel(jsonArtistsModel, "artists");
-                modelsCP.setModel(jsonFestivalsModel, "festivals");
-                modelsCP.setModel(jsonMixesModel, "mixes");
-                modelsCP.setModel(jsonGenresModel, "genres");
-                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
-                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
-                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
-                modelsCP.setModel(jsonActivitiesModel, "activities");
-                finishOnCreate();
+//                JSONObject jsonUpcomingEventsModel = new JSONObject(upcomingEventsModel);
+//                JSONObject jsonSearchEventsModel = new JSONObject(searchEventsModel);
+//                JSONObject jsonRecentEventsModel = new JSONObject(recentEventsModel);
+//                JSONObject jsonArtistsModel = new JSONObject(artistsModel);
+//                JSONObject jsonFestivalsModel = new JSONObject(festivalsModel);
+//                JSONObject jsonMixesModel = new JSONObject(mixesModel);
+//                JSONObject jsonGenresModel = new JSONObject(genresModel);
+//                JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
+//                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
+//                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
+//                JSONObject jsonActivitiesModel = new JSONObject(activitiesModel);
+//                modelsCP.setModel(jsonUpcomingEventsModel, "upcomingEvents");
+//                modelsCP.setModel(jsonSearchEventsModel, "searchEvents");
+//                modelsCP.setModel(jsonRecentEventsModel, "recentEvents");
+//                modelsCP.setModel(jsonArtistsModel, "artists");
+//                modelsCP.setModel(jsonFestivalsModel, "festivals");
+//                modelsCP.setModel(jsonMixesModel, "mixes");
+//                modelsCP.setModel(jsonGenresModel, "genres");
+//                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
+//                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
+//                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
+//                modelsCP.setModel(jsonActivitiesModel, "activities");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -669,17 +657,17 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Image utilities for smoothly loading and caching images
 
-        imageUtils = new ImageUtils();
-        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
-                .diskCacheExtraOptions(480, 800, null)
-                .diskCacheSize(50 * 1024 * 1024)
-                .diskCacheFileCount(100)
-                .build();
-        ImageLoader.getInstance().init(config);
+//        imageUtils = new ImageUtils();
+//        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
+//                .diskCacheExtraOptions(480, 800, null)
+//                .diskCacheSize(50 * 1024 * 1024)
+//                .diskCacheFileCount(100)
+//                .build();
+//        ImageLoader.getInstance().init(config);
 
         // See utils/DateUtils.java for documentation
 
-        dateUtils = new DateUtils();
+//        dateUtils = new DateUtils();
 
         // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
         // button depending on if the user is at the top level
@@ -701,6 +689,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         // Sets the Activity view for container fragments
 
         setContentView(R.layout.fragment_main);
+
+        finishOnCreate();
 
 //        createSecondLevelFragments();
 
