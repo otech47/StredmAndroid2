@@ -98,12 +98,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             @Override
             public void run() {
                 Log.d(TAG, "onApiResponse: "+finalIdentifier);
-                if(modelsCP == null) {
-                    Log.d(TAG, "modelsCP is null");
-                    modelsCP = new ModelsContentProvider();
-                }
-                modelsCP.setModel(finalJsonObject, finalIdentifier);
-                currentEvents = modelsCP.searchEvents;
+
+                currentEvents= ModelsContentProvider.setModel(finalJsonObject, finalIdentifier);
+
                 handler.post(updateUI);
             }
         }).start();
@@ -140,6 +137,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             }
             else if(page == 3) {
                 currentEvents = modelsCP.recentEvents;
+                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                            "featured", "recentEvents");
             }
             else if(page == 4) {
                 currentEvents = modelsCP.searchEvents;
