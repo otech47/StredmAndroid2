@@ -26,25 +26,11 @@ public class ModelsContentProvider {
 
     private int readyModels;
 
-    private List<Artist> artists;
-    private List<Artist> allArtists;
-    private List<Event> events; //all past events
-    private List<Mix> mixes;
-    private List<Genre> genres;
-    public List<Set> searchedSets;
-    public List<Set> allSets;
-    private List<Set> popularSets;
-    private List<Set> recentSets;
     private List<Track> tracks = null;
-    public List<TrackResponse> searchedTracks;
     public HashMap<String, Lineup> lineups;
-    public List<Event> soonestEvents;//upcoming events
     public List<Event> closestEvents;
-    public List<Event> soonestEventsAroundMe;
     public List<Event> upcomingEvents;
-    public List<Event> searchedUpcomingEvents;
-    public List<Event> searchEvents;
-    public List<Activity> activities;
+
     public HashMap<String, List<Set>> detailSets;
     public HashMap<String, List<Event>> detailEvents;
     public boolean initialModelsReady = false;
@@ -52,26 +38,12 @@ public class ModelsContentProvider {
     public HashMap<String, String> jsonMappings;
 
     public ModelsContentProvider() {
-        soonestEvents = new ArrayList<Event>();
         closestEvents = new ArrayList<Event>();
-        soonestEventsAroundMe = new ArrayList<Event>();
         upcomingEvents = new ArrayList<Event>();
-        searchedUpcomingEvents = new ArrayList<Event>();
-        searchEvents = new ArrayList<Event>();
         lineups = new HashMap<String, Lineup>();
-        allSets = new ArrayList<Set>();
-        artists = new ArrayList<Artist>();
-        allArtists = new ArrayList<Artist>();
-        events = new ArrayList<Event>();
-        mixes = new ArrayList<Mix>();
-        genres = new ArrayList<Genre>();
-        searchedSets = new ArrayList<Set>();
-        popularSets = new ArrayList<Set>();
-        recentSets = new ArrayList<Set>();
+
         detailSets = new HashMap<String, List<Set>>();
         detailEvents = new HashMap<String, List<Event>>();
-        activities = new ArrayList<Activity>();
-        searchedTracks = new ArrayList<TrackResponse>();
         jsonMappings = new HashMap<String, String>();
     }
 
@@ -99,19 +71,13 @@ public class ModelsContentProvider {
                 payload = model.getJSONObject("payload");
                 if(modelName.equals("upcomingEvents")) {
                     JSONObject upcoming = payload.getJSONObject("upcoming");
-                    JSONArray soonest = upcoming.getJSONArray("soonestEvents");
-                    JSONArray closest = upcoming.getJSONArray("closestEvents");
                     JSONArray around = upcoming.getJSONArray("soonestEventsAroundMe");
 
-                    for(int i = 0 ; i < soonest.length() ; i++) {
-                        soonestEvents.add(new Event(soonest.getJSONObject(i)));
-                    }
-                    for(int i = 0 ; i < closest.length() ; i++) {
-                        closestEvents.add(new Event(closest.getJSONObject(i)));
-                    }
+                    List<Event> soonestEventsAroundMe = new ArrayList<Event>();
                     for(int i = 0 ; i < around.length() ; i++) {
                         soonestEventsAroundMe.add(new Event(around.getJSONObject(i)));
                     }
+                    return soonestEventsAroundMe;
                 }
                 else if(modelName.equals("recentEvents")) {
                     List<Event> recentEvents = new ArrayList<Event>();
@@ -124,42 +90,53 @@ public class ModelsContentProvider {
                 else if(modelName.equals("searchEvents")) {
                     JSONObject upcoming = payload.getJSONObject("upcoming");
                     JSONArray around = upcoming.getJSONArray("closestEvents");
+                    List<Event> searchEvents = new ArrayList<Event>();
                     for(int i = 0 ; i < around.length() ; i++) {
                         searchEvents.add(new Event(around.getJSONObject(i)));
                     }
+                    return searchEvents;
                 }
                 else if(modelName.equals("sets")) {
                     JSONObject festival = payload.getJSONObject("festival");
                     JSONArray sets = festival.getJSONArray("sets");
+                    List<Set> allSets = new ArrayList<Set>();
                     for(int i = 0 ; i < sets.length() ; i++) {
                         allSets.add(new Set(sets.getJSONObject(i)));
                     }
                 }
                 else if(modelName.equals("artists")) {
                     JSONArray artistsArray = payload.getJSONArray("artist");
+                    List<Artist> artists= new ArrayList<Artist>();
                     for(int i = 0 ; i < artistsArray.length() ; i++) {
                         artists.add(new Artist(artistsArray.getJSONObject(i)));
                     }
+                    return artists;
                 }
                 else if(modelName.equals("festivals")) {
                     JSONArray allFestivals = payload.getJSONArray("festival");
+                    List<Event> events = new ArrayList<Event>();
                     for(int i = 0 ; i < allFestivals.length() ; i++) {
                         events.add(new Event(allFestivals.getJSONObject(i)));
                     }
+                    return events;
                 }
                 else if(modelName.equals("mixes")) {
                     JSONArray allMixes = payload.getJSONArray("mix");
+                    List<Mix> mixes= new ArrayList<Mix>();
                     for(int i = 0 ; i < allMixes.length() ; i++) {
                         mixes.add(new Mix(allMixes.getJSONObject(i)));
                     }
+                    return mixes;
                 }
                 else if(modelName.equals("genres")) {
                     JSONArray allGenres = payload.getJSONArray("genre");
+                    List<Genre> genres = new ArrayList<Genre>();
                     for(int i = 0 ; i < allGenres.length() ; i++) {
                         Genre newGenre = new Genre();
                         newGenre.setGenre(allGenres.getString(i));
                         genres.add(newGenre);
                     }
+                    return genres;
                 }
                 else if(modelName.equals("searchedSets")) {
                     JSONArray sets = payload.getJSONObject("search").getJSONArray("sets");
@@ -187,101 +164,50 @@ public class ModelsContentProvider {
                 }
                 else if(modelName.equals("popularSets")) {
                     JSONArray sets = payload.getJSONArray("popular");
+                    List<Set> popularSets = new ArrayList<Set>();
+
                     for(int i = 0 ; i < sets.length() ; i++) {
                         popularSets.add(new Set(sets.getJSONObject(i)));
                     }
+                    return popularSets;
                 }
                 else if(modelName.equals("recentSets")) {
                     JSONArray sets = payload.getJSONArray("recent");
+                    List<Set> recentSets  = new ArrayList<Set>();
                     for(int i = 0 ; i < sets.length() ; i++) {
                         recentSets.add(new Set(sets.getJSONObject(i)));
                     }
+                    return recentSets;
                 }
                 else if(modelName.equals("allArtists")) {
                     JSONArray allArtistsArray = payload.getJSONArray("artist");
+                    List<Artist> allArtists  = new ArrayList<Artist>();
                     for(int i = 0 ; i < allArtistsArray.length() ; i++) {
                         allArtists.add(new Artist(allArtistsArray.getJSONObject(i)));
                     }
+                    return allArtists;
                 }
                 else if(modelName.equals("activities")) {
                     JSONArray activitiesArray = payload.getJSONArray("activity");
+                    List<Activity> activities  = new ArrayList<Activity>();
                     for(int i = 0 ; i < activitiesArray.length() ; i++) {
                         activities.add(new Activity(activitiesArray.getJSONObject(i)));
                     }
+                    return activities;
                 }
-                onModelsChange();
             } else {
                 Log.d(TAG, "Failed: " + modelName);
+                return null;
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    public void onModelsChange() {
-        readyModels++;
-        Log.d(TAG, Integer.toString(readyModels));
 
-        if(readyModels == Constants.initialRequiredModels) {
-            initialModelsReady = true;
-        }
-    }
 
-    public List<Set> getAllSets() {
-        return allSets;
-    }
 
-    public List<Artist> getArtists() { return artists; }
-
-    public List<Artist> getAllArtists() {
-        return allArtists;
-    }
-
-    public List<Event> getEvents() {
-        return events;
-    }
-
-    public List<Mix> getMixes() {
-        return mixes;
-    }
-
-    public List<Genre> getGenres() {
-        return genres;
-    }
-
-    public Lineup getLineups(String key) {
-        return lineups.get(key);
-    }
-
-    public List<Set> getSearchedSets() {
-        return searchedSets;
-    }
-
-    public List<Set> getPopularSets() {
-        return popularSets;
-    }
-
-    public List<Set> getRecentSets() {
-        return recentSets;
-    }
-
-    public List<Set> getDetailSets(String key) {
-        return detailSets.get(key);
-    }
-
-    public List<Event> getDetailEvents(String key) {
-        return detailEvents.get(key);
-    }
-
-    public List<Activity> getActivities() {
-        try{
-            return activities;
-
-        }finally{
-            activities = null;
-        }
-
-    }
 
     public void setLineups(JSONObject response) {
         JSONObject payload;
@@ -342,51 +268,5 @@ public class ModelsContentProvider {
         }
     }
 
-    public List<Event> getSoonestEvents() {
-        return soonestEvents;
-    }
 
-    public void setSoonestEvents(List<Event> soonestEvents) {
-        this.soonestEvents = soonestEvents;
-    }
-
-    public List<Event> getClosestEvents() {
-        return closestEvents;
-    }
-
-    public void setClosestEvents(List<Event> closestEvents) {
-        this.closestEvents = closestEvents;
-    }
-
-    public List<Event> getSoonestEventsAroundMe() {
-        return soonestEventsAroundMe;
-    }
-
-    public void setSoonestEventsAroundMe(List<Event> soonestEventsAroundMe) {
-        this.soonestEventsAroundMe = soonestEventsAroundMe;
-    }
-
-    public List<Event> getUpcomingEvents() {
-        return upcomingEvents;
-    }
-
-    public void setUpcomingEvents(List<Event> upcomingEvents) {
-        this.upcomingEvents = upcomingEvents;
-    }
-
-    public List<Event> getRecentEvents() {
-        return recentEvents;
-    }
-
-    public void setRecentEvents(List<Event> recentEvents) {
-        this.recentEvents = recentEvents;
-    }
-
-    public List<Event> getSearchEvents() {
-        return searchEvents;
-    }
-
-    public void setSearchEvents(List<Event> searchEvents) {
-        this.searchEvents = searchEvents;
-    }
 }
