@@ -46,7 +46,7 @@ public class GetSetsTask extends AsyncTask<String, Integer, JSONObject> {
     protected void onPostExecute(JSONObject jsonObject) {
         if(jsonObject != null) {
             activity.modelsCP.setModel(jsonObject, modelType);
-            listener.onTaskCompleted(activity.modelsCP.getSearchedSets());
+            listener.onTaskCompleted(activity.modelsCP.getSearchedSets(), );
         } else {
 
         }

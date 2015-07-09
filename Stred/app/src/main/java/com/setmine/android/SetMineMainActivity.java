@@ -582,24 +582,24 @@ public class SetMineMainActivity extends FragmentActivity implements
 //            new SetMineApiGetRequestAsyncTask(this, this)
 //                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
 //                            , "artist", "artists");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "festival", "festivals");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "mix", "mixes");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "genre", "genres");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "popular", "popularSets");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "recent", "recentSets");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "artist?all=true", "allArtists");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "festival", "festivals");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "mix", "mixes");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "genre", "genres");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "popular", "popularSets");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "recent", "recentSets");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "artist?all=true", "allArtists");
 //            new SetMineApiGetRequestAsyncTask(this, this)
 //                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
 //                            , "activity?all=true", "activities");

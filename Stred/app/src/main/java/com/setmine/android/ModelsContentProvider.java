@@ -163,20 +163,27 @@ public class ModelsContentProvider {
                 }
                 else if(modelName.equals("searchedSets")) {
                     JSONArray sets = payload.getJSONObject("search").getJSONArray("sets");
-                    searchedSets.clear();
-                    for(int i = 0 ; i < sets.length() ; i++) {
+                    List<Set> searchedSets = new ArrayList<Set>();
+                    for (int i = 0; i < sets.length(); i++) {
                         searchedSets.add(new Set(sets.getJSONObject(i)));
                     }
+                    return searchedSets;
+                }
+                else if(modelName.equals("searchedEvents")) {
                     JSONArray upcomingEvents = payload.getJSONObject("search").getJSONArray("upcomingEvents");
-                    searchedUpcomingEvents.clear();
+                    List<Event> searchedUpcomingEvents = new ArrayList<Event>();
                     for(int i = 0 ; i < upcomingEvents.length() ; i++) {
                         searchedUpcomingEvents.add(new Event(upcomingEvents.getJSONObject(i)));
                     }
+                    return searchedUpcomingEvents;
+                }
+                else if(modelName.equals("searchedTracks")) {
                     JSONArray tracks = payload.getJSONObject("search").getJSONArray("tracks");
-                    searchedTracks.clear();
+                    List<TrackResponse> searchedTracks = new ArrayList<TrackResponse>();
                     for(int i = 0 ; i < tracks.length() ; i++) {
                         searchedTracks.add(new TrackResponse(tracks.getJSONObject(i)));
                     }
+                    return searchedTracks;
                 }
                 else if(modelName.equals("popularSets")) {
                     JSONArray sets = payload.getJSONArray("popular");

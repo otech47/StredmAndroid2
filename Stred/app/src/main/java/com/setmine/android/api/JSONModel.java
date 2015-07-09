@@ -5,6 +5,9 @@ package com.setmine.android.api;
  */
 public class JSONModel {
 
+
     public String jsonModelString;
+
+
 
 }

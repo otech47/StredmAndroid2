@@ -3,6 +3,7 @@ package com.setmine.android.search;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -21,58 +22,69 @@ import android.widget.TextView;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
-import com.setmine.android.Constants;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.event.Event;
 import com.setmine.android.event.EventDetailFragment;
 import com.setmine.android.genre.Genre;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.interfaces.OnTaskCompleted;
 import com.setmine.android.object.SearchResultEventHolder;
 import com.setmine.android.object.SearchResultTrackHolder;
 import com.setmine.android.object.TrackResponse;
-import com.setmine.android.set.GetSetsTask;
 import com.setmine.android.set.Mix;
 import com.setmine.android.set.SearchResultSetViewHolder;
 import com.setmine.android.set.Set;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set> {
+public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>, ApiCaller {
 
+    // Statics
     private static final String TAG = "SearchSetsFragment";
 
-    private SetMineMainActivity activity;
-    public DisplayImageOptions options;
-    public String searchQuery;
-    public GetSetsTask getSetsTask;
-
-    public ModelsContentProvider modelsCP;
-    public boolean modelsReady;
-    private enum ListOptions {SETS, EVENTS, TRACKRESPONSES};
-
+    // Views
     public View rootView;
     public SearchView searchView;
     public ListView browseItemList;
     public ListView searchedSetsList;
     public LinearLayout listOptionButtons;
     public TextView noResults;
+    public View loader;
     public ProgressBar setsLoading;
     public ViewGroup browseNavContainer;
     public View browseItemListContainer;
     public View selectedBrowseView;
 
+    // Models
     public List<Artist> artists;
     public List<Event> festivals;
     public List<Mix> mixes;
     public List<Genre> genres;
     public List<Set> popularSets;
     public List<Set> recentSets;
+    public List<Set> searchedSets;
+    public List<Event> searchedEvents;
+    public List<TrackResponse> searchedTracks;
+
+    public int initialModels;
+
+    private SetMineMainActivity activity;
+    public String searchQuery;
+    public SetMineApiGetRequestAsyncTask getSetsTask;
+
+    public ModelsContentProvider modelsCP;
+    public boolean modelsReady;
+    private enum ListOptions {SETS, EVENTS, TRACKRESPONSES};
+
+
 
     public SearchResultSetAdapter searchResultSetAdapter;
     public ArtistAdapter artistAdapter;
@@ -80,54 +92,167 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     public MixAdapter mixAdapter;
     public GenreAdapter genreAdapter;
 
+    final Handler handler = new Handler();
+
+    final Runnable updateUI = new Runnable() {
+        @Override
+        public void run() {
+            // updateUI
+        }
+    };
+
+    @Override
+    public void onApiResponseReceived(final JSONObject jsonObject, final String identifier) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                if(identifier.equals("artists")) {
+                    artists = ModelsContentProvider.setModel(jsonObject, identifier);
+                    initialModels++;
+                } else if(identifier.equals("festivals")) {
+                    festivals = ModelsContentProvider.setModel(jsonObject, identifier);
+                    initialModels++;
+                } else if(identifier.equals("mixes")) {
+                    mixes = ModelsContentProvider.setModel(jsonObject, identifier);
+                    initialModels++;
+                } else if(identifier.equals("genres")) {
+                    genres = ModelsContentProvider.setModel(jsonObject, identifier);
+                    initialModels++;
+                } else if(identifier.equals("popularSets")) {
+                    popularSets = ModelsContentProvider.setModel(jsonObject, identifier);
+                    initialModels++;
+                } else if(identifier.equals("recentSets")) {
+                    recentSets = ModelsContentProvider.setModel(jsonObject, identifier);
+                    initialModels++;
+                } else if(identifier.equals("search")) {
+                    searchedSets = ModelsContentProvider.setModel(jsonObject, "searchedSets");
+                    searchedEvents = ModelsContentProvider.setModel(jsonObject, "searchedEvents");
+                    searchedTracks = ModelsContentProvider.setModel(jsonObject, "searchedTracks");
+
+                }
+                finishOnCreate();
+            }
+        }).start();
+    }
+
+    public void finishOnCreate() {
+        if(initialModels == 6) {
+            artistAdapter = new ArtistAdapter(artists);
+            eventAdapter = new EventAdapter(festivals);
+            mixAdapter = new MixAdapter(mixes);
+            genreAdapter = new GenreAdapter(genres);
+        }
+
+    }
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG, "onCreate");
-        this.activity = (SetMineMainActivity)getActivity();
+        initialModels = 0;
+        artists = new ArrayList<Artist>();
+        festivals = new ArrayList<Event>();
+        mixes = new ArrayList<Mix>();
+        genres = new ArrayList<Genre>();
+        popularSets = new ArrayList<Set>();
+        recentSets = new ArrayList<Set>();
 
-        // Recover data from saved instance or retrieve from activity
+
+        // Recover data from saved instance or make API calls
 
         if(savedInstanceState == null) {
             this.activity = (SetMineMainActivity)getActivity();
-            modelsCP = activity.modelsCP;
+            new SetMineApiGetRequestAsyncTask(activity, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "artist", "artists");
+            new SetMineApiGetRequestAsyncTask(activity, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "festival", "festivals");
+            new SetMineApiGetRequestAsyncTask(activity, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "mix", "mixes");
+            new SetMineApiGetRequestAsyncTask(activity, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "genre", "genres");
+            new SetMineApiGetRequestAsyncTask(activity, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "popular", "popularSets");
+            new SetMineApiGetRequestAsyncTask(activity, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "recent", "recentSets");
         } else {
-            if(modelsCP == null) {
-                modelsCP = new ModelsContentProvider();
-            }
-            String artistsModel = savedInstanceState.getString("artists");
-            String festivalsModel = savedInstanceState.getString("festivals");
-            String mixesModel = savedInstanceState.getString("mixes");
-            String genresModel = savedInstanceState.getString("genres");
-            String popularSetsModel = savedInstanceState.getString("popularSets");
-            String recentSetsModel = savedInstanceState.getString("recentSets");
-            String allArtistsModel = savedInstanceState.getString("allArtists");
-            try {
-                JSONObject jsonArtistsModel = new JSONObject(artistsModel);
-                JSONObject jsonFestivalsModel = new JSONObject(festivalsModel);
-                JSONObject jsonMixesModel = new JSONObject(mixesModel);
-                JSONObject jsonGenresModel = new JSONObject(genresModel);
-                JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
-                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
-                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
-                modelsCP.setModel(jsonArtistsModel, "artists");
-                modelsCP.setModel(jsonFestivalsModel, "festivals");
-                modelsCP.setModel(jsonMixesModel, "mixes");
-                modelsCP.setModel(jsonGenresModel, "genres");
-                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
-                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
-                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            final ArrayList<String> artistsModel = savedInstanceState.getStringArrayList("artists");
+            final ArrayList<String> festivalsModel = savedInstanceState.getStringArrayList("festivals");
+            final ArrayList<String> mixesModel = savedInstanceState.getStringArrayList("mixes");
+            final ArrayList<String> genresModel = savedInstanceState.getStringArrayList("genres");
+            final ArrayList<String> popularSetsModel = savedInstanceState.getStringArrayList("popularSets");
+            final ArrayList<String> recentSetsModel = savedInstanceState.getStringArrayList("recentSets");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; i < artistsModel.size(); i++) {
+                            artists.add(new Artist(new JSONObject(artistsModel.get(i))));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; i < festivalsModel.size(); i++) {
+                            festivals.add(new Event(new JSONObject(festivalsModel.get(i))));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; i < mixesModel.size(); i++) {
+                            mixes.add(new Mix(new JSONObject(mixesModel.get(i))));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; i < genresModel.size(); i++) {
+                            genres.add(new Genre(new JSONObject(genresModel.get(i))));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; i < popularSetsModel.size(); i++) {
+                            popularSets.add(new Set(new JSONObject(popularSetsModel.get(i))));
+                        }
+                        for (int i = 0; i < recentSetsModel.size(); i++) {
+                            recentSets.add(new Set(new JSONObject(recentSetsModel.get(i))));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            finishOnCreate();
         }
-        artists = modelsCP.getArtists();
-        festivals = modelsCP.getEvents();
-        mixes = modelsCP.getMixes();
-        genres = modelsCP.getGenres();
-        popularSets = modelsCP.getPopularSets();
-        recentSets = modelsCP.getRecentSets();
     }
 
     @Override
@@ -146,6 +271,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         searchedSetsList = (ListView)rootView.findViewById(R.id.setSearchResults);
         searchView = (SearchView) rootView.findViewById(R.id.search_sets);
         listOptionButtons = (LinearLayout) rootView.findViewById(R.id.list_option_buttons);
+        loader = rootView.findViewById(R.id.loader);
 
         // Initialize search results list adapter
 
@@ -176,11 +302,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 return false;
             }
         });
-
-        artistAdapter = new ArtistAdapter(artists);
-        eventAdapter = new EventAdapter(festivals);
-        mixAdapter = new MixAdapter(mixes);
-        genreAdapter = new GenreAdapter(genres);
 
         setBrowseClickListeners();
 
@@ -216,13 +337,37 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "onSaveInstanceState");
-        outState.putString("artists", modelsCP.jsonMappings.get("artists"));
-        outState.putString("festivals", modelsCP.jsonMappings.get("festivals"));
-        outState.putString("mixes", modelsCP.jsonMappings.get("mixes"));
-        outState.putString("genres", modelsCP.jsonMappings.get("genres"));
-        outState.putString("popularSets", modelsCP.jsonMappings.get("popularSets"));
-        outState.putString("recentSets", modelsCP.jsonMappings.get("recentSets"));
-        outState.putString("allArtists", modelsCP.jsonMappings.get("allArtists"));
+        ArrayList<String> artistsJsonStringArray = new ArrayList<String>();
+        for(int i = 0 ; i < artists.size() ; i++) {
+            artistsJsonStringArray.add(artists.get(i).jsonModelString);
+        }
+        ArrayList<String> festivalsJsonStringArray = new ArrayList<String>();
+        for(int i = 0 ; i < festivals.size() ; i++) {
+            festivalsJsonStringArray.add(festivals.get(i).jsonModelString);
+        }
+        ArrayList<String> mixesJsonStringArray = new ArrayList<String>();
+        for(int i = 0 ; i < mixes.size() ; i++) {
+            mixesJsonStringArray.add(mixes.get(i).jsonModelString);
+        }
+        ArrayList<String> genresJsonStringArray = new ArrayList<String>();
+        for(int i = 0 ; i < genres.size() ; i++) {
+            genresJsonStringArray.add(genres.get(i).jsonModelString);
+        }
+        ArrayList<String> popularSetsJsonStringArray = new ArrayList<String>();
+        for(int i = 0 ; i < popularSets.size() ; i++) {
+            popularSetsJsonStringArray.add(popularSets.get(i).jsonModelString);
+        }
+        ArrayList<String> recentSetsJsonStringArray = new ArrayList<String>();
+        for(int i = 0 ; i < recentSets.size() ; i++) {
+            recentSetsJsonStringArray.add(recentSets.get(i).jsonModelString);
+        }
+
+        outState.putStringArrayList("artists", artistsJsonStringArray);
+        outState.putStringArrayList("festivals", festivalsJsonStringArray);
+        outState.putStringArrayList("mixes", mixesJsonStringArray);
+        outState.putStringArrayList("genres", genresJsonStringArray);
+        outState.putStringArrayList("popularSets", popularSetsJsonStringArray);
+        outState.putStringArrayList("recentSets", recentSetsJsonStringArray);
         super.onSaveInstanceState(outState);
 
     }
@@ -242,12 +387,13 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
 
     @Override
     public void startTask() {
+        Log.d(TAG, "startTask");
         try {
             cancelTask();
             if (!searchQuery.equals("")) {
-                getSetsTask = new GetSetsTask(activity,
-                        activity.getApplicationContext(), Constants.API_ROOT_URL, this);
-                getSetsTask.execute("search/"+ Uri.encode(searchQuery), "searchedSets");
+                getSetsTask = new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this);
+                getSetsTask.executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                        , "search/" + Uri.encode(searchQuery), "search");
             } else {
                 setsLoading.setVisibility(View.GONE);
                 noResults.setVisibility(View.GONE);
@@ -261,7 +407,9 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
 
     @Override
     public void cancelTask() {
+        Log.d(TAG, "cancelTask");
         if (getSetsTask != null) {
+            Log.d(TAG, "task canceled");
             getSetsTask.cancel(true);
         }
     }
@@ -736,6 +884,16 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             final SearchResultSetViewHolder setViewHolder;
             final SearchResultEventHolder eventHolder;
             final SearchResultTrackHolder trackHolder;
+
+            DisplayImageOptions options = new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(false)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
+
             switch (listState) {
                 case SETS:
                     final Set set = sets.get(position);
@@ -758,14 +916,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     setViewHolder.artistText.setText(set.getArtist());
                     setViewHolder.eventText.setText(set.getEvent());
 
-                    options = new DisplayImageOptions.Builder()
-                            .showImageOnLoading(R.drawable.logo_small)
-                            .showImageForEmptyUri(R.drawable.logo_small)
-                            .showImageOnFail(R.drawable.logo_small)
-                            .cacheInMemory(true)
-                            .cacheOnDisk(true)
-                            .considerExifParams(true)
-                            .build();
+
 
                     ImageLoader.getInstance().displayImage(set.getArtistImage(), setViewHolder.artistImage, options, animateFirstListener);
                     break;
@@ -784,15 +935,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     }
                     eventHolder.dates.setText(event.getStartDate()+ "-"+event.getEndDate());
                     eventHolder.eventText.setText(event.getEvent());
-
-                    options = new DisplayImageOptions.Builder()
-                            .showImageOnLoading(R.drawable.logo_small)
-                            .showImageForEmptyUri(R.drawable.logo_small)
-                            .showImageOnFail(R.drawable.logo_small)
-                            .cacheInMemory(true)
-                            .cacheOnDisk(true)
-                            .considerExifParams(true)
-                            .build();
 
                     ImageLoader.getInstance().displayImage(event.getIconImageUrl(), eventHolder.eventImage, options, animateFirstListener);
 
@@ -814,15 +956,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     trackHolder.setLength.setText(track.getSetLength());
                     trackHolder.artistText.setText(track.getArtist());
                     trackHolder.eventText.setText(track.getEvent());
-
-                    options = new DisplayImageOptions.Builder()
-                            .showImageOnLoading(R.drawable.logo_small)
-                            .showImageForEmptyUri(R.drawable.logo_small)
-                            .showImageOnFail(R.drawable.logo_small)
-                            .cacheInMemory(true)
-                            .cacheOnDisk(true)
-                            .considerExifParams(true)
-                            .build();
 
                     ImageLoader.getInstance().displayImage(track.getArtistImage(), trackHolder.artistImage, options, animateFirstListener);
                     break;
