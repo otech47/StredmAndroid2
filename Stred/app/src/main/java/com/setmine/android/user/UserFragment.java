@@ -241,7 +241,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 JSONObject jsonModel = new JSONObject(activitiesModel);
                 JSONObject jsonUser = new JSONObject(userModel);
 
-                modelsCP.setModel(jsonModel, "activities");
+                userActivities= modelsCP.setModel(jsonModel, "activities");
                 registeredUser = new User(jsonUser);
             } catch (Exception e) {
 
@@ -524,11 +524,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     public void populateActivities() {
 
-        if (modelsCP.getActivities() != null) {
-
-            // Get all activities
-
-            userActivities = modelsCP.getActivities();
+        if (userActivities != null) {
 
 
             // Get the inflater for inflating XML files into Views

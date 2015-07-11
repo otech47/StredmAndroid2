@@ -152,16 +152,13 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             try {
                 JSONObject jsonModel = new JSONObject(model);
                 if(page == 2) {
-                    modelsCP.setModel(jsonModel, "upcomingEvents");
-                    currentEvents = modelsCP.soonestEventsAroundMe;
+                   currentEvents= modelsCP.setModel(jsonModel, "upcomingEvents");
                 }
                 else if(page == 3) {
-                    modelsCP.setModel(jsonModel, "recentEvents");
-                    currentEvents = modelsCP.recentEvents;
+                   currentEvents= modelsCP.setModel(jsonModel, "recentEvents");
                 }
                 else if(page == 4) {
-                    modelsCP.setModel(jsonModel, "searchEvents");
-                    currentEvents = modelsCP.searchEvents;
+                    currentEvents= modelsCP.setModel(jsonModel, "searchEvents");
                 }
             } catch (Exception e) {
                 e.printStackTrace();
