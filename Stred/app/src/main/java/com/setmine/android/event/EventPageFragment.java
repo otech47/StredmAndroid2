@@ -136,7 +136,6 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 currentEvents = modelsCP.soonestEventsAroundMe;
             }
             else if(page == 3) {
-                currentEvents = modelsCP.recentEvents;
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                             "featured", "recentEvents");
