@@ -99,7 +99,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             public void run() {
                 Log.d(TAG, "onApiResponse: "+finalIdentifier);
 
-                currentEvents= ModelsContentProvider.setModel(finalJsonObject, finalIdentifier);
+                currentEvents= ModelsContentProvider.createModel(finalJsonObject, finalIdentifier);
 
                 handler.post(updateUI);
             }
@@ -151,13 +151,13 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             try {
                 JSONObject jsonModel = new JSONObject(model);
                 if(page == 2) {
-                   currentEvents= modelsCP.setModel(jsonModel, "upcomingEvents");
+                   currentEvents= modelsCP.createModel(jsonModel, "upcomingEvents");
                 }
                 else if(page == 3) {
-                   currentEvents= modelsCP.setModel(jsonModel, "recentEvents");
+                   currentEvents= modelsCP.createModel(jsonModel, "recentEvents");
                 }
                 else if(page == 4) {
-                    currentEvents= modelsCP.setModel(jsonModel, "searchEvents");
+                    currentEvents= modelsCP.createModel(jsonModel, "searchEvents");
                 }
             } catch (Exception e) {
                 e.printStackTrace();

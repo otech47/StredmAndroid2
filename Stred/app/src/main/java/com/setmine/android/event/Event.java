@@ -4,12 +4,17 @@ package com.setmine.android.event;
 import android.os.Parcel;
 import android.os.Parcelable;
 
-import com.setmine.android.api.JSONModel;
 import com.setmine.android.Constants;
+import com.setmine.android.api.JSONModel;
+import com.setmine.android.set.Set;
 import com.setmine.android.util.DateUtils;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Event extends JSONModel implements Parcelable {
 
@@ -31,6 +36,7 @@ public class Event extends JSONModel implements Parcelable {
     public double latitude;
     public double longitude;
     public String address;
+    private List<Set> eventSets;
 
     // Parcelable Implementation
 
@@ -119,6 +125,9 @@ public class Event extends JSONModel implements Parcelable {
             setLongitude(json.getDouble("longitude"));
             setAddress(json.getString("address"));
             setPaid(json.getInt("paid"));
+            if(json.has("sets")) {
+                setEventSets(json.getJSONArray("sets"));
+            }
             if(json.has("ticket_link")) {
                 setTicketLink(json.getString("ticket_link"));
             }
@@ -271,5 +280,25 @@ public class Event extends JSONModel implements Parcelable {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public List<Set> getEventSets() {
+        return eventSets;
+    }
+
+    public void setEventSets(List<Set> eventSets) {
+        this.eventSets = eventSets;
+    }
+
+    public void setEventSets(JSONArray eventSetsJson) {
+        this.eventSets = new ArrayList<Set>();
+        try {
+            for(int i = 0; i < eventSetsJson.length(); i++) {
+                Set set = new Set(eventSetsJson.getJSONObject(i));
+                this.eventSets.add(set);
+            }
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
     }
 }

@@ -60,7 +60,6 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public TextView distanceText;
     public TextView offerButtonText1;
     public TextView redemptionText;
-    public TextView vendorMessageText;
     public TextView addressText;
 
 

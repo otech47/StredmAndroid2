@@ -202,10 +202,35 @@ public class SetMineMainActivity extends FragmentActivity implements
                         e.printStackTrace();
                     }
 
-                } else {
-                    modelsCP.setModel(finalJsonObject, finalIdentifier);
-                    if (modelsCP.initialModelsReady) {
-                        handler.post(updateUI);
+                } else if(finalIdentifier.equals("artist/search")) {
+                    try {
+                        if(finalJsonObject.getString("status").equals("success")) {
+                            JSONObject payload = finalJsonObject.getJSONObject("payload");
+                            Artist artist = new Artist(payload.getJSONObject("artist"));
+                            openArtistDetailPage(artist);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if(finalIdentifier.equals("festival/search")) {
+                    try {
+                        if(finalJsonObject.getString("status").equals("success")) {
+                            JSONObject payload = finalJsonObject.getJSONObject("payload");
+                            Event event = new Event(payload.getJSONObject("festival"));
+                            openEventDetailPage(event, "recent");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if(finalIdentifier.equals("upcoming")) {
+                    try {
+                        if(finalJsonObject.getString("status").equals("success")) {
+                            JSONObject payload = finalJsonObject.getJSONObject("payload");
+                            Event event = new Event(payload.getJSONObject("upcoming").getJSONArray("soonestEvents").getJSONObject(0));
+                            openEventDetailPage(event, "upcoming");
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -582,24 +607,24 @@ public class SetMineMainActivity extends FragmentActivity implements
 //            new SetMineApiGetRequestAsyncTask(this, this)
 //                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
 //                            , "artist", "artists");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "festival", "festivals");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "mix", "mixes");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "genre", "genres");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "popular", "popularSets");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "recent", "recentSets");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "artist?all=true", "allArtists");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "festival", "festivals");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "mix", "mixes");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "genre", "genres");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "popular", "popularSets");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "recent", "recentSets");
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "artist?all=true", "allArtists");
 //            new SetMineApiGetRequestAsyncTask(this, this)
 //                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
 //                            , "activity?all=true", "activities");
@@ -631,17 +656,17 @@ public class SetMineMainActivity extends FragmentActivity implements
 //                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
 //                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
 //                JSONObject jsonActivitiesModel = new JSONObject(activitiesModel);
-//                modelsCP.setModel(jsonUpcomingEventsModel, "upcomingEvents");
-//                modelsCP.setModel(jsonSearchEventsModel, "searchEvents");
-//                modelsCP.setModel(jsonRecentEventsModel, "recentEvents");
-//                modelsCP.setModel(jsonArtistsModel, "artists");
-//                modelsCP.setModel(jsonFestivalsModel, "festivals");
-//                modelsCP.setModel(jsonMixesModel, "mixes");
-//                modelsCP.setModel(jsonGenresModel, "genres");
-//                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
-//                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
-//                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
-//                modelsCP.setModel(jsonActivitiesModel, "activities");
+//                modelsCP.createModel(jsonUpcomingEventsModel, "upcomingEvents");
+//                modelsCP.createModel(jsonSearchEventsModel, "searchEvents");
+//                modelsCP.createModel(jsonRecentEventsModel, "recentEvents");
+//                modelsCP.createModel(jsonArtistsModel, "artists");
+//                modelsCP.createModel(jsonFestivalsModel, "festivals");
+//                modelsCP.createModel(jsonMixesModel, "mixes");
+//                modelsCP.createModel(jsonGenresModel, "genres");
+//                modelsCP.createModel(jsonPopularSetsModel, "popularSets");
+//                modelsCP.createModel(jsonRecentSetsModel, "recentSets");
+//                modelsCP.createModel(jsonAllArtistsModel, "allArtists");
+//                modelsCP.createModel(jsonActivitiesModel, "activities");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -742,17 +767,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         super.onSaveInstanceState(outState);
         userIsRegistered = outState.getBoolean("userIsRegistered");
         currentLocation = outState.getParcelable("currentLocation");
-        outState.putString("upcomingEvents", modelsCP.jsonMappings.get("upcomingEvents"));
-        outState.putString("searchEvents", modelsCP.jsonMappings.get("searchEvents"));
-        outState.putString("recentEvents", modelsCP.jsonMappings.get("recentEvents"));
-        outState.putString("artists", modelsCP.jsonMappings.get("artists"));
-        outState.putString("festivals", modelsCP.jsonMappings.get("festivals"));
-        outState.putString("mixes", modelsCP.jsonMappings.get("mixes"));
-        outState.putString("genres", modelsCP.jsonMappings.get("genres"));
-        outState.putString("popularSets", modelsCP.jsonMappings.get("popularSets"));
-        outState.putString("recentSets", modelsCP.jsonMappings.get("recentSets"));
-        outState.putString("allArtists", modelsCP.jsonMappings.get("allArtists"));
-        outState.putString("activities", modelsCP.jsonMappings.get("activities"));
     }
 
     @Override
@@ -978,6 +992,8 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.commitAllowingStateLoss();
     }
 
+    // Open Event Detail Fragment from anywhere in the app given a valid Offer ID
+
     public void openOfferDetailFragment(String offerId){
         Log.d(TAG, "openOfferDetailFragment");
         offerDetailFragment = new OfferDetailFragment();
@@ -1056,15 +1072,10 @@ public class SetMineMainActivity extends FragmentActivity implements
                 }
                 artistName = artistName + artistNameArray[artistNameArray.length - 1];
 
-                List<Artist> allArtists = modelsCP.getAllArtists();
-                Artist artist;
-                for (int i = 0; allArtists.size() > i; i++) {
-                    if (artistName.equals(allArtists.get(i).getArtist())) {
-                        artist = allArtists.get(i);
-                        openArtistDetailPage(artist);
-                        break;
-                    }
-                }
+                new SetMineApiGetRequestAsyncTask(this, this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                , "artist/search/" + artistName, "artist");
+
             } else if (segments[segments.length - 1].equals("festival")) {
                 String eventName = segments[segments.length - 2];
                 String[] eventNameArray = eventName.split("\\+", 0);
@@ -1074,29 +1085,17 @@ public class SetMineMainActivity extends FragmentActivity implements
                 }
                 eventName = eventName + eventNameArray[eventNameArray.length - 1];
 
-                List<Event> allEvents = modelsCP.getEvents();
-                Event event;
-                for (int i = 0; allEvents.size() > i; i++) {
-                    if (eventName.equals(allEvents.get(i).getEvent())) {
-                        event = allEvents.get(i);
-                        openEventDetailPage(event, "recent");
-                        break;
-                    }
-                }
+                new SetMineApiGetRequestAsyncTask(this, this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                , "festival/search/" + eventName, "festival");
+
             }
         } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?event")) {
             String eventId = segments[segments.length - 1];
 
-
-            List<Event> upcomingEvents = modelsCP.getSoonestEvents();
-            Event event;
-            for (int i = 0; upcomingEvents.size() > i; i++) {
-                if (eventId.equals(upcomingEvents.get(i).getId())) {
-                    event = upcomingEvents.get(i);
-                    openEventDetailPage(event, "upcoming");
-                    break;
-                }
-            }
+            new SetMineApiGetRequestAsyncTask(this, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                            , "upcoming?id=" + eventId, "upcoming");
 
         } else if(intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("offer")){
             String offerId = segments[segments.length-1];

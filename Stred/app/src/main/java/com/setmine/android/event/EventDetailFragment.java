@@ -119,7 +119,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
 
         if(savedInstanceState == null) {
             this.activity = (SetMineMainActivity)getActivity();
-            modelsCP = activity.modelsCP;
             Bundle arguments = getArguments();
             EVENT_TYPE = arguments.getString("eventType");
             String eventJsonString = arguments.getString("currentEvent");
@@ -130,9 +129,13 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 e.printStackTrace();
             }
             if(EVENT_TYPE == "recent") {
-                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "festival/search/" + Uri.encode(currentEvent.getEvent()), "sets");
+                if(currentEvent.getEventSets() == null) {
+                    new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                            .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                    "festival/search/" + Uri.encode(currentEvent.getEvent()), "sets");
+                } else {
+
+                }
             } else {
                 new SetMineApiGetRequestAsyncTask(activity, this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
@@ -141,13 +144,17 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
         } else {
             String eventModel = savedInstanceState.getString("currentEvent");
             EVENT_TYPE = savedInstanceState.getString("eventType");
-            if(modelsCP == null) {
-                modelsCP = new ModelsContentProvider();
-            }
             try {
                 JSONObject jsonEventModel = new JSONObject(eventModel);
                 currentEvent = new Event(jsonEventModel);
-                if(EVENT_TYPE == "recent") {
+                if(EVENT_TYPE.equals("recent")) {
+                    if(currentEvent.getEventSets() == null) {
+                        new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                        "festival/search/" + Uri.encode(currentEvent.getEvent()), "sets");
+                    } else {
+
+                    }
                     String setsModel = savedInstanceState.getString("detailSets" + currentEvent.getEvent());
                     JSONObject jsonSetsModel = new JSONObject(setsModel);
                     modelsCP.setDetailSets(jsonSetsModel);

@@ -4,6 +4,24 @@
     android:layout_height="match_parent"
     android:background="@color/setmine_white">
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/loader_container"
+        android:background="@color/setmine_gray_75_alpha"
+        android:visibility="visible">
+
+        <ProgressBar
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/loader"
+            android:layout_margin="@dimen/progress_padding"
+            android:layout_centerInParent="true"
+            android:gravity="center|bottom"
+            android:indeterminate="true" />
+
+    </RelativeLayout>
+
 
     <SearchView
         android:layout_width="match_parent"
