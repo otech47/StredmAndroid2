@@ -31,7 +31,6 @@ import com.setmine.android.event.Event;
 import com.setmine.android.event.EventDetailFragment;
 import com.setmine.android.genre.Genre;
 import com.setmine.android.interfaces.ApiCaller;
-import com.setmine.android.interfaces.OnTaskCompleted;
 import com.setmine.android.object.SearchResultEventHolder;
 import com.setmine.android.object.SearchResultTrackHolder;
 import com.setmine.android.object.TrackResponse;
@@ -45,7 +44,7 @@ import org.json.JSONObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>, ApiCaller {
+public class SearchSetsFragment extends Fragment implements ApiCaller {
 
     // Statics
     private static final String TAG = "SearchSetsFragment";
@@ -97,7 +96,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
     final Runnable updateUI = new Runnable() {
         @Override
         public void run() {
-            // updateUI
+            finishOnCreate();
         }
     };
 
@@ -107,30 +106,30 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             @Override
             public void run() {
                 if(identifier.equals("artists")) {
-                    artists = ModelsContentProvider.setModel(jsonObject, identifier);
+                    artists = ModelsContentProvider.createModel(jsonObject, identifier);
                     initialModels++;
                 } else if(identifier.equals("festivals")) {
-                    festivals = ModelsContentProvider.setModel(jsonObject, identifier);
+                    festivals = ModelsContentProvider.createModel(jsonObject, identifier);
                     initialModels++;
                 } else if(identifier.equals("mixes")) {
-                    mixes = ModelsContentProvider.setModel(jsonObject, identifier);
+                    mixes = ModelsContentProvider.createModel(jsonObject, identifier);
                     initialModels++;
                 } else if(identifier.equals("genres")) {
-                    genres = ModelsContentProvider.setModel(jsonObject, identifier);
+                    genres = ModelsContentProvider.createModel(jsonObject, identifier);
                     initialModels++;
                 } else if(identifier.equals("popularSets")) {
-                    popularSets = ModelsContentProvider.setModel(jsonObject, identifier);
+                    popularSets = ModelsContentProvider.createModel(jsonObject, identifier);
                     initialModels++;
                 } else if(identifier.equals("recentSets")) {
-                    recentSets = ModelsContentProvider.setModel(jsonObject, identifier);
+                    recentSets = ModelsContentProvider.createModel(jsonObject, identifier);
                     initialModels++;
                 } else if(identifier.equals("search")) {
-                    searchedSets = ModelsContentProvider.setModel(jsonObject, "searchedSets");
-                    searchedEvents = ModelsContentProvider.setModel(jsonObject, "searchedEvents");
-                    searchedTracks = ModelsContentProvider.setModel(jsonObject, "searchedTracks");
-
+                    searchedSets = ModelsContentProvider.createModel(jsonObject, "searchedSets");
+                    searchedEvents = ModelsContentProvider.createModel(jsonObject, "searchedEvents");
+                    searchedTracks = ModelsContentProvider.createModel(jsonObject, "searchedTracks");
+                    populateSearchResults(searchedSets, searchedEvents, searchedTracks);
                 }
-                finishOnCreate();
+                handler.post(updateUI);
             }
         }).start();
     }
@@ -141,6 +140,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             eventAdapter = new EventAdapter(festivals);
             mixAdapter = new MixAdapter(mixes);
             genreAdapter = new GenreAdapter(genres);
+            setBrowseClickListeners();
         }
 
     }
@@ -158,6 +158,55 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         popularSets = new ArrayList<Set>();
         recentSets = new ArrayList<Set>();
 
+    }
+
+    @Override
+    public View onCreateView(LayoutInflater inflater, ViewGroup container,
+                             Bundle savedInstanceState) {
+        Log.d(TAG, "onCreateView");
+        rootView = inflater.inflate(R.layout.fragment_search_sets, container, false);
+
+        // Find and store view elements
+
+        noResults = (TextView)rootView.findViewById(R.id.noResults);
+        setsLoading = (ProgressBar)rootView.findViewById(R.id.setsLoading);
+        browseItemList = (ListView)rootView.findViewById(R.id.browseList);
+        browseNavContainer = (ViewGroup)rootView.findViewById(R.id.browse_container);
+        browseItemListContainer = rootView.findViewById(R.id.browseListContainer);
+        searchedSetsList = (ListView)rootView.findViewById(R.id.setSearchResults);
+        searchView = (SearchView) rootView.findViewById(R.id.search_sets);
+        listOptionButtons = (LinearLayout) rootView.findViewById(R.id.list_option_buttons);
+        loader = rootView.findViewById(R.id.loader);
+
+        // Initialize search results list adapter
+
+        searchResultSetAdapter = new SearchResultSetAdapter(new ArrayList<Set>(), new ArrayList<Event>(), new ArrayList<TrackResponse>());
+        searchedSetsList.setAdapter(searchResultSetAdapter);
+
+        // Style search box
+
+        int searchSrcTextId = getResources().getIdentifier("android:id/search_src_text", null, null);
+        EditText searchEditText = (EditText) rootView.findViewById(searchSrcTextId);
+        searchEditText.setTextColor(Color.BLACK);
+        searchEditText.setHintTextColor(Color.GRAY);
+
+        // Listener for changed text in search bar
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                searchSets(query);
+                searchView.clearFocus();
+                return false;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                searchSets(newText);
+                return false;
+            }
+        });
 
         // Recover data from saved instance or make API calls
 
@@ -165,7 +214,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             this.activity = (SetMineMainActivity)getActivity();
             new SetMineApiGetRequestAsyncTask(activity, this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "artist", "artists");
+                            , "artist?all=true", "artists");
             new SetMineApiGetRequestAsyncTask(activity, this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
                             , "festival", "festivals");
@@ -253,57 +302,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             }).start();
             finishOnCreate();
         }
-    }
-
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView");
-        rootView = inflater.inflate(R.layout.fragment_search_sets, container, false);
-
-        // Find and store view elements
-
-        noResults = (TextView)rootView.findViewById(R.id.noResults);
-        setsLoading = (ProgressBar)rootView.findViewById(R.id.setsLoading);
-        browseItemList = (ListView)rootView.findViewById(R.id.browseList);
-        browseNavContainer = (ViewGroup)rootView.findViewById(R.id.browse_container);
-        browseItemListContainer = rootView.findViewById(R.id.browseListContainer);
-        searchedSetsList = (ListView)rootView.findViewById(R.id.setSearchResults);
-        searchView = (SearchView) rootView.findViewById(R.id.search_sets);
-        listOptionButtons = (LinearLayout) rootView.findViewById(R.id.list_option_buttons);
-        loader = rootView.findViewById(R.id.loader);
-
-        // Initialize search results list adapter
-
-        searchResultSetAdapter = new SearchResultSetAdapter(new ArrayList<Set>(), new ArrayList<Event>(), new ArrayList<TrackResponse>());
-        searchedSetsList.setAdapter(searchResultSetAdapter);
-
-        // Style search box
-
-        int searchSrcTextId = getResources().getIdentifier("android:id/search_src_text", null, null);
-        EditText searchEditText = (EditText) rootView.findViewById(searchSrcTextId);
-        searchEditText.setTextColor(Color.BLACK);
-        searchEditText.setHintTextColor(Color.GRAY);
-
-        // Listener for changed text in search bar
-
-        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
-
-            @Override
-            public boolean onQueryTextSubmit(String query) {
-                searchSets(query);
-                searchView.clearFocus();
-                return false;
-            }
-
-            @Override
-            public boolean onQueryTextChange(String newText) {
-                searchSets(newText);
-                return false;
-            }
-        });
-
-        setBrowseClickListeners();
 
         return rootView;
     }
@@ -385,7 +383,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         startTask();
     }
 
-    @Override
     public void startTask() {
         Log.d(TAG, "startTask");
         try {
@@ -405,7 +402,6 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         }
     }
 
-    @Override
     public void cancelTask() {
         Log.d(TAG, "cancelTask");
         if (getSetsTask != null) {
@@ -414,21 +410,19 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
         }
     }
 
-    @Override
-    public void onTaskCompleted(List<Set> list) {
-        Log.d(TAG, list.toString());
+    public void populateSearchResults(List<Set> sets, List<Event> events, List<TrackResponse> tracks) {
         searchResultSetAdapter.isRecent = false;
-        searchResultSetAdapter.sets = list;
-        List<Event> upcomingEvents = modelsCP.upcomingEvents;
-        if(upcomingEvents.size() > 0) {
-            searchResultSetAdapter.upcomingEvents = upcomingEvents;
+        if(sets.size() > 0) {
+            searchResultSetAdapter.sets = sets;
         }
-        List<TrackResponse> trackResponses = modelsCP.searchedTracks;
-        if(trackResponses.size() > 0) {
-            searchResultSetAdapter.tracks = trackResponses;
+        if(events.size() > 0) {
+            searchResultSetAdapter.upcomingEvents = events;
         }
-        if(list.size() > 0) {
-//            listOptionButtons.setVisibility(View.VISIBLE);
+        if(tracks.size() > 0) {
+            searchResultSetAdapter.tracks = tracks;
+        }
+        if(sets.size() > 0 || events.size() > 0 || tracks.size() > 0) {
+            listOptionButtons.setVisibility(View.VISIBLE);
             searchedSetsList.setVisibility(View.VISIBLE);
             setsLoading.setVisibility(View.GONE);
             noResults.setVisibility(View.GONE);
@@ -436,6 +430,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             searchedSetsList.setOnItemClickListener(new ListView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    activity = (SetMineMainActivity)getActivity();
                     switch (searchResultSetAdapter.listState) {
                         case SETS:
                             Set s = searchResultSetAdapter.sets.get(position);
@@ -462,15 +457,11 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
             });
         }
         else {
+            listOptionButtons.setVisibility(View.GONE);
             searchedSetsList.setVisibility(View.GONE);
             setsLoading.setVisibility(View.GONE);
             noResults.setVisibility(View.VISIBLE);
         }
-
-    }
-
-    @Override
-    public void onTaskFailed() {
 
     }
 
@@ -484,7 +475,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
-                        Artist a = activity.modelsCP.getArtists().get(position);
+                        Artist a = artists.get(position);
                         activity.openArtistDetailPage(a);
                     }
                 });
@@ -499,7 +490,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
-                        Event e = activity.modelsCP.getEvents().get(position);
+                        Event e = festivals.get(position);
                         activity.openEventDetailPage(e, "recent");
                     }
                 });
@@ -514,7 +505,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
-                        Mix m = activity.modelsCP.getMixes().get(position);
+                        Mix m = mixes.get(position);
                         searchView.setQuery(m.getMix(), false);
                     }
                 });
@@ -530,7 +521,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
-                        Genre g = activity.modelsCP.getGenres().get(position);
+                        Genre g = genres.get(position);
                         searchView.setQuery(g.getGenre(), false);
                     }
                 });
@@ -544,6 +535,7 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 searchResultSetAdapter.isRecent = false;
                 searchResultSetAdapter.sets = popularSets;
                 searchedSetsList.setVisibility(View.VISIBLE);
+                listOptionButtons.setVisibility(View.GONE);
                 setsLoading.setVisibility(View.GONE);
                 noResults.setVisibility(View.GONE);
                 searchResultSetAdapter.notifyDataSetChanged();
@@ -567,10 +559,10 @@ public class SearchSetsFragment extends Fragment implements OnTaskCompleted<Set>
                 searchResultSetAdapter.isRecent = true;
                 searchResultSetAdapter.sets = recentSets;
                 searchedSetsList.setVisibility(View.VISIBLE);
+                listOptionButtons.setVisibility(View.GONE);
                 setsLoading.setVisibility(View.GONE);
                 noResults.setVisibility(View.GONE);
                 searchResultSetAdapter.notifyDataSetChanged();
-//                  activity.playerManager.setPlaylist(searchResultSetAdapter.sets);
                 searchedSetsList.setOnItemClickListener(new ListView.OnItemClickListener() {
                     @Override
                     public void onItemClick(AdapterView<?> parent, View view, int position, long id) {

@@ -241,7 +241,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 JSONObject jsonModel = new JSONObject(activitiesModel);
                 JSONObject jsonUser = new JSONObject(userModel);
 
-                modelsCP.setModel(jsonModel, "activities");
+                modelsCP.createModel(jsonModel, "activities");
                 registeredUser = new User(jsonUser);
             } catch (Exception e) {
 

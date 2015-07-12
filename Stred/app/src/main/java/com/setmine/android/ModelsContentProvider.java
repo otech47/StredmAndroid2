@@ -63,7 +63,7 @@ public class ModelsContentProvider {
 //        }
     }
 
-    public static List setModel(JSONObject model, String modelName) {
+    public static List createModel(JSONObject model, String modelName) {
         JSONObject payload;
         try {
 
@@ -204,9 +204,6 @@ public class ModelsContentProvider {
         }
         return null;
     }
-
-
-
 
 
     public void setLineups(JSONObject response) {
