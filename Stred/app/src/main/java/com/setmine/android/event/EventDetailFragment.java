@@ -24,16 +24,13 @@ import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
 import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
-import com.setmine.android.interfaces.ApiCaller;
-import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.artist.Artist;
-import com.setmine.android.Constants;
+import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.set.LineupSet;
 import com.setmine.android.set.Set;
 import com.setmine.android.set.SetViewHolder;
-import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.util.DateUtils;
 
 import org.json.JSONException;
@@ -137,16 +134,16 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             // Generate event data
             Bundle arguments = getArguments();
             EVENT_TYPE = arguments.getString("eventType");
-            String eventID = arguments.getString("currentEvent");
+            String event = arguments.getString("event");
 
             if(EVENT_TYPE.equals("recent")) {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "festival/id/" + eventID, "recent");
+                                "festival/search/" + event, "recent");
             } else {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "upcoming?id=" + eventID, "upcoming");
+                                "upcoming?id=" + event, "upcoming");
             }
         } else {
             EVENT_TYPE = savedInstanceState.getString("eventType");
@@ -235,15 +232,8 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                     v.setPressed(true);
-                    String artistName = currentLineupSet.get(position).getId();
-                    Artist artist = null;
-                    List<Artist> allArtists = modelsCP.getAllArtists();
-                    for (int i = 0; i < allArtists.size(); i++) {
-                        if (allArtists.get(i).getArtist().equals(artistName)) {
-                            artist = allArtists.get(i);
-                        }
-                    }
-                    activity.openArtistDetailPage(artist);
+                    String artistName = currentLineupSet.get(position).getArtist();
+                    activity.openArtistDetailPage(artistName);
                 }
             });
         }
@@ -440,9 +430,20 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 holder = (LineupSetViewHolder) view.getTag();
             }
 
+            DateUtils dateUtils = new DateUtils();
+
             holder.setTime.setText(dateUtils.getDayFromDate(currentEvent.getStartDate(), lineupSet.getDay()) + " " + lineupSet.getTime());
             holder.artistText.setText(lineupSet.getArtist());
             holder.detailActionButton.setVisibility(View.GONE);
+
+            DisplayImageOptions options =  new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(false)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
 
             ImageLoader.getInstance().displayImage(lineupSet.getArtistImage(), holder.artistImage, options, animateFirstListener);
 
@@ -502,13 +503,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             holder.detailActionButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Artist currentArtist = null;
-                    for (int i = 0; i < activity.modelsCP.getArtists().size(); i++) {
-                        if (activity.modelsCP.getArtists().get(i)
-                                .getArtist().equals(set.getArtist())) {
-                            currentArtist = activity.modelsCP.getArtists().get(i);
-                        }
-                    }
+                    String currentArtist = set.getArtist();
                     activity.openArtistDetailPage(currentArtist);
                 }
             });
@@ -517,6 +512,15 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                 holder.playCount.setText(set.getPopularity() + " plays");
             }
             holder.artistText.setText(set.getArtist());
+
+            DisplayImageOptions options =  new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(false)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
 
             ImageLoader.getInstance().displayImage(set.getArtistImage(), holder.artistImage, options, animateFirstListener);
 

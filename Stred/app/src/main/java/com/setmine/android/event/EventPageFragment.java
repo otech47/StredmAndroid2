@@ -33,12 +33,12 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.MainPagerContainerFragment;
-import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.InitialApiCallAsyncTask;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.util.DateUtils;
 
 import org.json.JSONObject;
@@ -102,7 +102,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             public void run() {
                 Log.d(TAG, "onApiResponse: "+finalIdentifier);
 
-                currentEvents= ModelsContentProvider.createModel(finalJsonObject, finalIdentifier);
+                currentEvents = ModelsContentProvider.createModel(finalJsonObject, finalIdentifier);
 
                 handler.post(updateUI);
             }
@@ -279,7 +279,8 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     }
 
     public void setEventAdapter() {
-        LayoutInflater inflater = LayoutInflater.from(getActivity());
+        activity = (SetMineMainActivity)getActivity();
+        LayoutInflater inflater = LayoutInflater.from(activity);
 
         eventAdapter = new EventAdapter(inflater, currentEvents, eventType);
         listView.setAdapter(eventAdapter);
@@ -291,7 +292,11 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 Event currentEvent = currentEvents.get(position);
-                activity.openEventDetailPage(currentEvent, eventType);
+                if(eventType.equals("recent")) {
+                    activity.openEventDetailPage(currentEvent.getEvent(), eventType);
+                } else {
+                    activity.openEventDetailPage(currentEvent.getId(), eventType);
+                }
             }
         });
         rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);

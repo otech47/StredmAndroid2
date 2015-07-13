@@ -94,14 +94,16 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                if(modelsCP == null) {
-                    modelsCP = new ModelsContentProvider();
+                try {
+                    if(finalIdentifier.equals("artist/search")) {
+                        JSONObject payload = finalJsonObject.getJSONObject("payload");
+                        currentArtist = new Artist(payload.getJSONObject("artist"));
+                    }
+                    handler.post(updateUI);
+                } catch (JSONException e) {
+                    e.printStackTrace();
                 }
-                //???
-                detailSets =modelsCP.setDetailSets(finalJsonObject);
-                detailEvents =modelsCP.setDetailEvents(finalJsonObject);
 
-                handler.post(updateUI);
             }
         }).start();
     }
@@ -111,55 +113,6 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
         super.onCreate(savedInstanceState);
         modelsReady = false;
 
-        // If savedInstance is null, the fragment is being generated directly from the activity
-        // So it is safe to assume the activity has a ModelsContentProvider
-
-        // Else, the activity may or may not be attached yet
-        // Use the Bundle to re-generate artist data
-
-        if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
-            modelsCP = activity.modelsCP;
-            Bundle arguments = getArguments();
-            String currentArtistString = arguments.getString("currentArtist");
-            try {
-                JSONObject artistJson = new JSONObject(currentArtistString);
-                currentArtist = new Artist(artistJson);
-                artistName = currentArtist.getArtist();
-                artistImageUrl = currentArtist.getImageUrl();
-            } catch(Exception e) {
-                e.printStackTrace();
-            }
-            new SetMineApiGetRequestAsyncTask(activity, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                            "artist/?search=" + Uri.encode(artistName), "sets");
-        } else {
-            String artistModel = savedInstanceState.getString("currentArtist");
-            if(modelsCP == null) {
-                modelsCP = new ModelsContentProvider();
-            }
-            try {
-                JSONObject jsonArtistModel = new JSONObject(artistModel);
-                currentArtist = new Artist(jsonArtistModel);
-                artistName = currentArtist.getArtist();
-                artistImageUrl = currentArtist.getImageUrl();
-                String setsModel = savedInstanceState.getString("detailSets" + artistName);
-                JSONObject jsonSetsModel = new JSONObject(setsModel);
-                modelsCP.setDetailSets(jsonSetsModel);
-                //???use create model or setdetail sets??
-                detailSets =  modelsCP.createModel(jsonSetsModel, "sets");
-                String eventsModel = savedInstanceState.getString("detailEvents" + artistName);
-                JSONObject jsonEventsModel = new JSONObject(eventsModel);
-                modelsCP.setDetailEvents(jsonEventsModel);
-                //???
-                detailEvents =  modelsCP.createModel(jsonEventsModel, "recentEvents");
-                onModelsReady();
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
-
-
     }
 
     @Nullable
@@ -168,6 +121,52 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
         rootView = inflater.inflate(R.layout.artist_detail, container, false);
         artistTextView = (TextView)rootView.findViewById(R.id.artistName);
         artistImageView = (ImageView)rootView.findViewById(R.id.artistImage);
+
+        // Only track Mixpanel events if created for the first time
+
+        if(savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
+            Bundle arguments = getArguments();
+            artistName = arguments.getString("currentArtist");
+            new SetMineApiGetRequestAsyncTask(activity, this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                            "artist/search/" + Uri.encode(artistName), "artist/search");
+        } else {
+            String artistModel = savedInstanceState.getString("currentArtist");
+            try {
+                JSONObject jsonArtistModel = new JSONObject(artistModel);
+                currentArtist = new Artist(jsonArtistModel);
+                onModelsReady();
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return rootView;
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putString("currentArtist", currentArtist.jsonModelString);
+    }
+
+    // Execute when the data models are ready to be sent into the UI
+
+    public void onModelsReady() {
+
+        configureArtistPagers();
+        artistName = currentArtist.getArtist();
+        artistImageUrl = currentArtist.getImageUrl();
+        artistTextView.setText(artistName);
+        try {
+            JSONObject mixpanelProperties = new JSONObject();
+            mixpanelProperties.put("id", currentArtist.getId());
+            mixpanelProperties.put("artist", currentArtist.getArtist());
+            activity.mixpanel.track("Artist Click Through", mixpanelProperties);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
 
         dateUtils = new DateUtils();
         options = new DisplayImageOptions.Builder()
@@ -180,49 +179,21 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .build();
 
         ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
-        artistTextView.setText(artistName);
-
 
         setSocialMediaListeners();
 
-        // Only track Mixpanel events if created for the first time
+        rootView.findViewById(R.id.detail_loading).setVisibility(View.GONE);
 
-        if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
-            try {
-                JSONObject mixpanelProperties = new JSONObject();
-                mixpanelProperties.put("id", currentArtist.getId());
-                mixpanelProperties.put("artist", currentArtist.getArtist());
-                activity.mixpanel.track("Artist Click Through", mixpanelProperties);
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-        }
+        // Set modelsReady so onCreateView knows data is ready for the UI
 
-        // Data models were ready in onCreate method, configure the Pagers with artist data now
-
-        // If false, data models are still being generated asynchronously
-
-        if(modelsReady) {
-            configureArtistPagers();
-            rootView.findViewById(R.id.detail_loading).setVisibility(View.GONE);
-        }
-
-
-        return rootView;
-    }
-
-    @Override
-    public void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        outState.putString("currentArtist", currentArtist.jsonModelString);
-        outState.putString("detailSets"+ artistName, modelsCP.jsonMappings.get("detailSets"+artistName));
-        outState.putString("detailEvents"+ artistName, modelsCP.jsonMappings.get("detailEvents"+artistName));
+        modelsReady = true;
     }
 
     // Configure the Events/Sets ViewPager and List Adapters
 
     public void configureArtistPagers() {
+        detailSets = currentArtist.getSets();
+        detailEvents = currentArtist.getUpcomingEvents();
         artistViewPager = (ViewPager)rootView.findViewById(R.id.artistDetailPager);
         artistPagerAdapter = new ArtistPagerAdapter(getChildFragmentManager(), currentArtist);
         artistViewPager.setAdapter(artistPagerAdapter);
@@ -247,76 +218,65 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
         titlePageIndicator.setViewPager(artistViewPager);
     }
 
-    // Execute when the data models are ready to be sent into the UI
-
-    public void onModelsReady() {
-
-        // Make sure onViewCreated has completed and created the rootView
-
-        if(rootView != null) {
-            configureArtistPagers();
-            rootView.findViewById(R.id.detail_loading).setVisibility(View.GONE);
-        }
-
-        // Set modelsReady so onCreateView knows data is ready for the UI
-
-        modelsReady = true;
-    }
-
     // Set Facebook, Twitter, and Web Link actions and Mixpanel event tracking
 
     public void setSocialMediaListeners() {
-        rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    JSONObject mixpanelProperties = new JSONObject();
-                    mixpanelProperties.put("id", currentArtist.getId());
-                    mixpanelProperties.put("artist", artistName);
-                    activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+        activity = (SetMineMainActivity) getActivity();
+        if(currentArtist.getFacebookLink() != null) {
+            rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        JSONObject mixpanelProperties = new JSONObject();
+                        mixpanelProperties.put("id", currentArtist.getId());
+                        mixpanelProperties.put("artist", artistName);
+                        activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Uri fbUrl = Uri.parse(currentArtist.getFacebookLink());
+                    Intent launchBrowser = new Intent(Intent.ACTION_VIEW, fbUrl);
+                    startActivity(launchBrowser);
                 }
-                Uri fbUrl = Uri.parse(currentArtist.getFacebookLink());
-                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, fbUrl);
-                startActivity(launchBrowser);
-            }
-        });
-        rootView.findViewById(R.id.twitterButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    JSONObject mixpanelProperties = new JSONObject();
-                    mixpanelProperties.put("id", currentArtist.getId());
-                    mixpanelProperties.put("artist", artistName);
-                    activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+            });
+        }
+        if(currentArtist.getTwitterLink() != null) {
+            rootView.findViewById(R.id.twitterButton).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        JSONObject mixpanelProperties = new JSONObject();
+                        mixpanelProperties.put("id", currentArtist.getId());
+                        mixpanelProperties.put("artist", artistName);
+                        activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Uri twitterUrl = Uri.parse(currentArtist.getTwitterLink());
+                    Intent launchBrowser = new Intent(Intent.ACTION_VIEW, twitterUrl);
+                    startActivity(launchBrowser);
                 }
-                Uri twitterUrl = Uri.parse(currentArtist.getTwitterLink());
-                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, twitterUrl);
-                startActivity(launchBrowser);
-            }
-        });
-        rootView.findViewById(R.id.webButton).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                try {
-                    JSONObject mixpanelProperties = new JSONObject();
-                    mixpanelProperties.put("id", currentArtist.getId());
-                    mixpanelProperties.put("artist", artistName);
-                    activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
-                } catch (JSONException e) {
-                    e.printStackTrace();
+            });
+        }
+        if(currentArtist.getWebLink() != null) {
+            rootView.findViewById(R.id.webButton).setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        JSONObject mixpanelProperties = new JSONObject();
+                        mixpanelProperties.put("id", currentArtist.getId());
+                        mixpanelProperties.put("artist", artistName);
+                        activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                    Uri webUrl = Uri.parse(currentArtist.getWebLink());
+                    Intent launchBrowser = new Intent(Intent.ACTION_VIEW, webUrl);
+                    startActivity(launchBrowser);
                 }
-                Uri webUrl = Uri.parse(currentArtist.getWebLink());
-                Intent launchBrowser = new Intent(Intent.ACTION_VIEW, webUrl);
-                startActivity(launchBrowser);
-            }
-        });
-//        if(currentArtist.getBio().length() > 2) {
-//            ((TextView)rootView.findViewById(R.id.bio)).setText(currentArtist.getBio());
-//        }
+            });
+        }
+
     }
 }
 

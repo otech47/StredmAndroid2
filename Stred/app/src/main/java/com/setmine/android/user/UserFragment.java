@@ -657,7 +657,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         myNextEventTile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.openEventDetailPage(myNextEvent, "upcoming");
+                activity.openEventDetailPage(myNextEvent.getId(), "upcoming");
             }
         });
 
@@ -867,11 +867,11 @@ public class UserFragment extends Fragment implements ApiCaller {
             final ImageView artistImage = ((ImageView) myOfferTile.findViewById(R.id.offerArtistImage));
 
             offerTileArtist.setText(offerArtist.getArtist());
-            offerTileArtist.setTag(offerArtist);
+            offerTileArtist.setTag(offerArtist.getArtist());
             View.OnClickListener goToArtistDetail = new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    ((SetMineMainActivity)getActivity()).openArtistDetailPage((Artist) v.getTag());
+                    ((SetMineMainActivity)getActivity()).openArtistDetailPage((String)v.getTag());
                 }
             };
             offerTileArtist.setOnClickListener(goToArtistDetail);

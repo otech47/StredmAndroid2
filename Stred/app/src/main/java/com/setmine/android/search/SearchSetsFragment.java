@@ -439,7 +439,7 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
                             activity.playSelectedSet();
                             break;
                         case EVENTS:
-                            Event e = searchResultSetAdapter.upcomingEvents.get(position);
+                            String e = searchResultSetAdapter.upcomingEvents.get(position).getId();
                             ((SetMineMainActivity) getActivity()).openEventDetailPage(e, "upcoming");
                             break;
                         case TRACKRESPONSES:
@@ -475,7 +475,7 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
-                        Artist a = artists.get(position);
+                        String a = artists.get(position).getArtist();
                         activity.openArtistDetailPage(a);
                     }
                 });
@@ -490,7 +490,7 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
                     @Override
                     public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                         v.setPressed(true);
-                        Event e = festivals.get(position);
+                        String e = festivals.get(position).getEvent();
                         activity.openEventDetailPage(e, "recent");
                     }
                 });

@@ -50,7 +50,6 @@ import com.setmine.android.Offer.OfferDetailFragment;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.artist.ArtistDetailFragment;
-import com.setmine.android.event.Event;
 import com.setmine.android.event.EventDetailFragment;
 import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
@@ -194,40 +193,9 @@ public class SetMineMainActivity extends FragmentActivity implements
 
                     try {
                         JSONObject payload = finalJsonObject.getJSONObject("payload");
-                        if(payload.getString("unlock_status").equals("success")) {
+                        if (payload.getString("unlock_status").equals("success")) {
                             Offer unlockedOffer = new Offer(payload.getJSONObject("offer"));
                             showUnlockedOfferNotification(unlockedOffer);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                } else if(finalIdentifier.equals("artist/search")) {
-                    try {
-                        if(finalJsonObject.getString("status").equals("success")) {
-                            JSONObject payload = finalJsonObject.getJSONObject("payload");
-                            Artist artist = new Artist(payload.getJSONObject("artist"));
-                            openArtistDetailPage(artist);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else if(finalIdentifier.equals("festival/search")) {
-                    try {
-                        if(finalJsonObject.getString("status").equals("success")) {
-                            JSONObject payload = finalJsonObject.getJSONObject("payload");
-                            Event event = new Event(payload.getJSONObject("festival"));
-                            openEventDetailPage(event, "recent");
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-                } else if(finalIdentifier.equals("upcoming")) {
-                    try {
-                        if(finalJsonObject.getString("status").equals("success")) {
-                            JSONObject payload = finalJsonObject.getJSONObject("payload");
-                            Event event = new Event(payload.getJSONObject("upcoming").getJSONArray("soonestEvents").getJSONObject(0));
-                            openEventDetailPage(event, "upcoming");
                         }
                     } catch (Exception e) {
                         e.printStackTrace();
@@ -980,10 +948,10 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     // Open Artist Detail Fragment from anywhere in the app given a valid Artist object
 
-    public void openArtistDetailPage(Artist artist) {
+    public void openArtistDetailPage(String artistName) {
         artistDetailFragment = new ArtistDetailFragment();
         Bundle args = new Bundle();
-        args.putString("currentArtist", artist.jsonModelString);
+        args.putString("currentArtist", artistName);
         artistDetailFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, artistDetailFragment);
@@ -1012,7 +980,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void openEventDetailPage(String eventID, String eventType) {
         eventDetailFragment = new EventDetailFragment();
         Bundle args = new Bundle();
-        args.putString("currentEvent", eventID);
+        args.putString("event", eventID);
         args.putString("eventType", (eventType.equals("search") ? "upcoming" : eventType));
         eventDetailFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -1071,10 +1039,7 @@ public class SetMineMainActivity extends FragmentActivity implements
                     artistName = artistName + artistNameArray[j] + " ";
                 }
                 artistName = artistName + artistNameArray[artistNameArray.length - 1];
-
-                new SetMineApiGetRequestAsyncTask(this, this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                                , "artist/search/" + artistName, "artist");
+                openArtistDetailPage(artistName);
 
             } else if (segments[segments.length - 1].equals("festival")) {
                 String eventName = segments[segments.length - 2];
@@ -1084,18 +1049,13 @@ public class SetMineMainActivity extends FragmentActivity implements
                     eventName = eventName + eventNameArray[j] + " ";
                 }
                 eventName = eventName + eventNameArray[eventNameArray.length - 1];
-
-                new SetMineApiGetRequestAsyncTask(this, this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                                , "festival/search/" + eventName, "festival");
+                openEventDetailPage(eventName, "recent");
 
             }
         } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?event")) {
             String eventId = segments[segments.length - 1];
+            openEventDetailPage(eventId, "upcoming");
 
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "upcoming?id=" + eventId, "upcoming");
 
         } else if(intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("offer")){
             String offerId = segments[segments.length-1];
