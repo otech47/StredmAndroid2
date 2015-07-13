@@ -25,6 +25,7 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.location.LocationClient;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
@@ -73,6 +74,8 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     public Location selectedLocation;
     public List<Address> addressResultList;
     public Address addressResult;
+    public LocationClient locationClient;
+    public Location currentLocation;
 
     public List<Event> currentEvents;
     public String eventType;
@@ -133,16 +136,27 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 modelsCP = activity.modelsCP;
             }
             if(page == 2) {
-                currentEvents = modelsCP.soonestEventsAroundMe;
+                if (this.activity.servicesConnected()) {
+                    Log.d(TAG, "servicesConnected");
+                    currentLocation = ((SetMineMainActivity) getActivity()).currentLocation;
+
+                }
+                else {
+                    Log.d(TAG, "services NOT Connected");
+                    currentLocation= null;
+                }
+                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                "featured", "upcoming/?latitude="+currentLocation.getLatitude()+"&longitude="+currentLocation.getLongitude());
             }
             else if(page == 3) {
-                currentEvents = modelsCP.recentEvents;
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                             "featured", "recentEvents");
             }
             else if(page == 4) {
-                currentEvents = modelsCP.searchEvents;
+                //??? are we keeping search page?
+             //   currentEvents = modelsCP.searchEvents;
             }
         } else {
             if(modelsCP == null) {
@@ -152,16 +166,13 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             try {
                 JSONObject jsonModel = new JSONObject(model);
                 if(page == 2) {
-                    modelsCP.createModel(jsonModel, "upcomingEvents");
-                    currentEvents = modelsCP.soonestEventsAroundMe;
+                   currentEvents= modelsCP.createModel(jsonModel, "upcomingEvents");
                 }
                 else if(page == 3) {
-                    modelsCP.createModel(jsonModel, "recentEvents");
-                    currentEvents = modelsCP.recentEvents;
+                   currentEvents= modelsCP.createModel(jsonModel, "recentEvents");
                 }
                 else if(page == 4) {
-                    modelsCP.createModel(jsonModel, "searchEvents");
-                    currentEvents = modelsCP.searchEvents;
+                    currentEvents= modelsCP.createModel(jsonModel, "searchEvents");
                 }
             } catch (Exception e) {
                 e.printStackTrace();

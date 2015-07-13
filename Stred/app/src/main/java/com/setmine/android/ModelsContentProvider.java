@@ -103,6 +103,7 @@ public class ModelsContentProvider {
                     for(int i = 0 ; i < sets.length() ; i++) {
                         allSets.add(new Set(sets.getJSONObject(i)));
                     }
+                    return allSets;
                 }
                 else if(modelName.equals("artists")) {
                     JSONArray artistsArray = payload.getJSONArray("artist");
@@ -221,7 +222,7 @@ public class ModelsContentProvider {
         }
     }
 
-    public void setDetailSets(JSONObject response) {
+    public List setDetailSets(JSONObject response) {
         List<Set> setList = new ArrayList<Set>();
         JSONObject payload;
         JSONObject payloadCategory;
@@ -243,10 +244,10 @@ public class ModelsContentProvider {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
+        return setList;
     }
 
-    public void setDetailEvents(JSONObject response) {
+    public List setDetailEvents(JSONObject response) {
         List<Event> eventList = new ArrayList<Event>();
         JSONObject payload;
         try {
@@ -263,6 +264,7 @@ public class ModelsContentProvider {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+        return eventList;
     }
 
 

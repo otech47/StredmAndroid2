@@ -1170,7 +1170,7 @@ public class SetMineMainActivity extends FragmentActivity implements
      * by Google Play services
      */
 
-    private boolean servicesConnected() {
+    public boolean servicesConnected() {
         // Check that Google Play services is available
         int resultCode = GooglePlayServicesUtil.
                         isGooglePlayServicesAvailable(this);
