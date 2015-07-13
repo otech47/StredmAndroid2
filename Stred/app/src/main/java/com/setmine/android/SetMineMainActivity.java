@@ -1009,10 +1009,10 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     // Open Event Detail Fragment from anywhere in the app given a valid Event object
 
-    public void openEventDetailPage(Event event, String eventType) {
+    public void openEventDetailPage(String eventID, String eventType) {
         eventDetailFragment = new EventDetailFragment();
         Bundle args = new Bundle();
-        args.putString("currentEvent", event.jsonModelString);
+        args.putString("currentEvent", eventID);
         args.putString("eventType", (eventType.equals("search") ? "upcoming" : eventType));
         eventDetailFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();

@@ -1,10 +1,7 @@
 package com.setmine.android.set;
 
+import com.setmine.android.Constants;
 import com.setmine.android.api.JSONModel;
-
-import com.setmine.android.Constants;
-
-import com.setmine.android.Constants;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -13,6 +10,7 @@ import org.json.JSONObject;
  * Created by oscarlafarga on 9/29/14.
  */
 public class LineupSet extends JSONModel {
+    public String id;
     public String Artist;
     public String time;
     public int day;
@@ -30,6 +28,14 @@ public class LineupSet extends JSONModel {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
     }
 
     public String getArtist() {

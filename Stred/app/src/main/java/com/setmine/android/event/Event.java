@@ -37,6 +37,8 @@ public class Event extends JSONModel implements Parcelable {
     public double longitude;
     public String address;
     private List<Set> eventSets;
+    private Lineup eventLineup;
+
 
     // Parcelable Implementation
 
@@ -127,6 +129,9 @@ public class Event extends JSONModel implements Parcelable {
             setPaid(json.getInt("paid"));
             if(json.has("sets")) {
                 setEventSets(json.getJSONArray("sets"));
+            }
+            if(json.has("lineup")) {
+                setEventLineup(json);
             }
             if(json.has("ticket_link")) {
                 setTicketLink(json.getString("ticket_link"));
@@ -300,5 +305,17 @@ public class Event extends JSONModel implements Parcelable {
         } catch(JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public Lineup getEventLineup() {
+        return eventLineup;
+    }
+
+    public void setEventLineup(Lineup eventLineup) {
+        this.eventLineup = eventLineup;
+    }
+
+    public void setEventLineup(JSONObject eventLineupJson) {
+        this.eventLineup = new Lineup(eventLineupJson);
     }
 }
