@@ -97,10 +97,10 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 if(modelsCP == null) {
                     modelsCP = new ModelsContentProvider();
                 }
-                modelsCP.setDetailSets(finalJsonObject);
-                modelsCP.setDetailEvents(finalJsonObject);
-                detailSets = modelsCP.getDetailSets(currentArtist.getArtist());
-                detailEvents = modelsCP.getDetailEvents(currentArtist.getArtist());
+                //???
+                detailSets =modelsCP.setDetailSets(finalJsonObject);
+                detailEvents =modelsCP.setDetailEvents(finalJsonObject);
+
                 handler.post(updateUI);
             }
         }).start();
@@ -146,11 +146,13 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 String setsModel = savedInstanceState.getString("detailSets" + artistName);
                 JSONObject jsonSetsModel = new JSONObject(setsModel);
                 modelsCP.setDetailSets(jsonSetsModel);
-                detailSets =  modelsCP.getDetailSets(artistName);
+                //???use create model or setdetail sets??
+                detailSets =  modelsCP.createModel(jsonSetsModel, "sets");
                 String eventsModel = savedInstanceState.getString("detailEvents" + artistName);
                 JSONObject jsonEventsModel = new JSONObject(eventsModel);
                 modelsCP.setDetailEvents(jsonEventsModel);
-                detailEvents =  modelsCP.getDetailEvents(artistName);
+                //???
+                detailEvents =  modelsCP.createModel(jsonEventsModel, "recentEvents");
                 onModelsReady();
             } catch (JSONException e) {
                 e.printStackTrace();

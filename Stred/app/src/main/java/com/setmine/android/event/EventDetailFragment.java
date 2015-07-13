@@ -93,8 +93,9 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                     modelsCP = new ModelsContentProvider();
                 }
                 if(finalIdentifier.equals("sets")) {
-                    modelsCP.setDetailSets(finalJsonObject);
-                    detailSets = modelsCP.getDetailSets(currentEvent.getEvent());
+                    //???
+                    detailSets =modelsCP.setDetailSets(finalJsonObject);
+                 //   detailSets = modelsCP.createModel(currentEvent.getEvent());
                 }
                 if(finalIdentifier.equals("lineups")) {
                     modelsCP.setLineups(finalJsonObject);
