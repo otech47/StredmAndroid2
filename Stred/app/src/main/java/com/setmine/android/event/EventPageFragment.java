@@ -25,6 +25,8 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.location.LocationClient;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
@@ -51,7 +53,9 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-public class EventPageFragment extends Fragment implements ApiCaller {
+public class EventPageFragment extends Fragment implements ApiCaller,
+        GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener {
 
     private static final String TAG = "EventPageFragment";
 
@@ -89,9 +93,11 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     final Runnable updateUI = new Runnable() {
         @Override
         public void run() {
-            setEventAdapter();
+            onModelsReady();
         }
     };
+
+
 
     @Override
     public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
@@ -130,54 +136,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         page = args.getInt(ARG_OBJECT);
         Log.v(TAG, "onCreate: " + page.toString());
 
-        if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
-            if(modelsCP == null) {
-                modelsCP = activity.modelsCP;
-            }
-            if(page == 2) {
-                if (this.activity.servicesConnected()) {
-                    Log.d(TAG, "servicesConnected");
-                    currentLocation = ((SetMineMainActivity) getActivity()).currentLocation;
 
-                }
-                else {
-                    Log.d(TAG, "services NOT Connected");
-                    currentLocation= null;
-                }
-                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "featured", "upcoming/?latitude="+currentLocation.getLatitude()+"&longitude="+currentLocation.getLongitude());
-            }
-            else if(page == 3) {
-                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                            "featured", "recentEvents");
-            }
-            else if(page == 4) {
-                //??? are we keeping search page?
-             //   currentEvents = modelsCP.searchEvents;
-            }
-        } else {
-            if(modelsCP == null) {
-                modelsCP = new ModelsContentProvider();
-            }
-            String model = savedInstanceState.getString("currentEvents");
-            try {
-                JSONObject jsonModel = new JSONObject(model);
-                if(page == 2) {
-                   currentEvents= modelsCP.createModel(jsonModel, "upcomingEvents");
-                }
-                else if(page == 3) {
-                   currentEvents= modelsCP.createModel(jsonModel, "recentEvents");
-                }
-                else if(page == 4) {
-                    currentEvents= modelsCP.createModel(jsonModel, "searchEvents");
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override
@@ -224,9 +183,61 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             eventType = "search";
             rootView = inflater.inflate(R.layout.events_finder, container, false);
             listView = (ListView) rootView.findViewById(R.id.searchResults);
-            configureEventSearch();
         }
-        setEventAdapter();
+
+        if(savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
+            if(modelsCP == null) {
+                modelsCP = activity.modelsCP;
+            }
+            if(page == 2) {
+                if (this.activity.servicesConnected()) {
+                    Log.d(TAG, "servicesConnected");
+                    locationClient = new LocationClient(this.activity, this, this);
+                    locationClient.connect();
+
+                }
+                else {
+                    Log.d(TAG, "services NOT Connected");
+                    currentLocation= null;
+                    new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                            .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                    "upcoming", "upcomingEvents");
+                }
+
+            }
+            else if(page == 3) {
+                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                "featured", "recentEvents");
+            }
+            else if(page == 4) {
+                //??? are we keeping search page?
+                //   currentEvents = modelsCP.searchEvents;
+            }
+        } else {
+
+            String model = savedInstanceState.getString("currentEvents");
+            try {
+                JSONObject jsonModel = new JSONObject(model);
+                onModelsReady();
+                if(page == 2) {
+                    currentEvents= ModelsContentProvider.createModel(jsonModel, "upcomingEvents");
+                }
+                else if(page == 3) {
+                    currentEvents= ModelsContentProvider.createModel(jsonModel, "recentEvents");
+                }
+                else if(page == 4) {
+                    currentEvents= ModelsContentProvider.createModel(jsonModel, "searchEvents");
+                    configureEventSearch();
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+
+      //  setEventAdapter();
 
         return rootView;
     }
@@ -276,6 +287,12 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     public void onDestroy() {
         super.onDestroy();
         Log.d(TAG, "onDestroy");
+    }
+
+    public void onModelsReady(){
+        setEventAdapter();
+        configureEventSearch();
+
     }
 
     public void setEventAdapter() {
@@ -530,5 +547,57 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 }
             }
         }
+    }
+    @Override
+    public void onConnected(Bundle bundle) {
+
+        String eventSearchUrl ="upcoming";
+
+        if(locationClient.getLastLocation() != null) {
+            currentLocation = locationClient.getLastLocation();
+            eventSearchUrl =eventSearchUrl+"/?latitude=" + currentLocation.getLatitude();
+            eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
+        }
+        else {
+            currentLocation = null;
+        }
+        locationClient.disconnect();
+
+
+        new SetMineApiGetRequestAsyncTask(this.activity, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl, "upcomingEvents");
+        new SetMineApiGetRequestAsyncTask(this.activity, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl, "searchEvents");
+
+    }
+
+    @Override
+    public void onDisconnected() {
+        Log.d(TAG, "onDisconnected");
+    }
+
+    // Google Play Services connection failed
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        // Use Gainesville as location
+
+        Log.d(TAG, "onConnectionFailed");
+
+
+        locationClient.disconnect();
+        currentLocation = null;
+        String eventSearchUrl = "upcoming";
+        new SetMineApiGetRequestAsyncTask(this.activity, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl,
+                        "searchEvents");
+        new SetMineApiGetRequestAsyncTask(this.activity, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        "upcoming",
+                        "upcomingEvents");
     }
 }

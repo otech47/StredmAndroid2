@@ -901,6 +901,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         Bundle args = new Bundle();
         args.putInt("page", pageToScrollTo);
         mainPagerContainerFragment.setArguments(args);
+        fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);

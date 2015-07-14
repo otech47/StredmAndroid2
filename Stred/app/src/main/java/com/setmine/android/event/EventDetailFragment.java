@@ -177,15 +177,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
 
         }
 
-        // Set Twitter and Web click listeners for all events past, upcoming (paid and unpaid)
 
-        configureSocialMediaButtons();
-
-        // If false, data models are currently being generated asynchronously
-
-        if(modelsReady && activity != null) {
-            setAdapters();
-        }
 
         return rootView;
     }
