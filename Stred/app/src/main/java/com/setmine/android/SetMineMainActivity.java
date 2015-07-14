@@ -45,6 +45,8 @@ import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
+import com.nostra13.universalimageloader.core.ImageLoader;
+import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
 import com.setmine.android.Offer.Offer;
 import com.setmine.android.Offer.OfferDetailFragment;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
@@ -569,72 +571,11 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
 
 
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-//                            "featured", "recentEvents");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "artist", "artists");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "festival", "festivals");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "mix", "mixes");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "genre", "genres");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "popular", "popularSets");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "recent", "recentSets");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "artist?all=true", "allArtists");
-//            new SetMineApiGetRequestAsyncTask(this, this)
-//                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-//                            , "activity?all=true", "activities");
-
         } else {
             Log.d(TAG, "getting instance state");
             userIsRegistered = savedInstanceState.getBoolean("userIsRegistered");
             currentLocation = savedInstanceState.getParcelable("currentLocation");
-//            String upcomingEventsModel = savedInstanceState.getString("upcomingEvents");
-//            String searchEventsModel = savedInstanceState.getString("searchEvents");
-//            String recentEventsModel = savedInstanceState.getString("recentEvents");
-//            String artistsModel = savedInstanceState.getString("artists");
-//            String festivalsModel = savedInstanceState.getString("festivals");
-//            String mixesModel = savedInstanceState.getString("mixes");
-//            String genresModel = savedInstanceState.getString("genres");
-//            String popularSetsModel = savedInstanceState.getString("popularSets");
-//            String recentSetsModel = savedInstanceState.getString("recentSets");
-//            String allArtistsModel = savedInstanceState.getString("allArtists");
-//            String activitiesModel = savedInstanceState.getString("activities");
             try {
-//                JSONObject jsonUpcomingEventsModel = new JSONObject(upcomingEventsModel);
-//                JSONObject jsonSearchEventsModel = new JSONObject(searchEventsModel);
-//                JSONObject jsonRecentEventsModel = new JSONObject(recentEventsModel);
-//                JSONObject jsonArtistsModel = new JSONObject(artistsModel);
-//                JSONObject jsonFestivalsModel = new JSONObject(festivalsModel);
-//                JSONObject jsonMixesModel = new JSONObject(mixesModel);
-//                JSONObject jsonGenresModel = new JSONObject(genresModel);
-//                JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
-//                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
-//                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
-//                JSONObject jsonActivitiesModel = new JSONObject(activitiesModel);
-//                modelsCP.createModel(jsonUpcomingEventsModel, "upcomingEvents");
-//                modelsCP.createModel(jsonSearchEventsModel, "searchEvents");
-//                modelsCP.createModel(jsonRecentEventsModel, "recentEvents");
-//                modelsCP.createModel(jsonArtistsModel, "artists");
-//                modelsCP.createModel(jsonFestivalsModel, "festivals");
-//                modelsCP.createModel(jsonMixesModel, "mixes");
-//                modelsCP.createModel(jsonGenresModel, "genres");
-//                modelsCP.createModel(jsonPopularSetsModel, "popularSets");
-//                modelsCP.createModel(jsonRecentSetsModel, "recentSets");
-//                modelsCP.createModel(jsonAllArtistsModel, "allArtists");
-//                modelsCP.createModel(jsonActivitiesModel, "activities");
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -650,34 +591,14 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Image utilities for smoothly loading and caching images
 
-//        imageUtils = new ImageUtils();
-//        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
-//                .diskCacheExtraOptions(480, 800, null)
-//                .diskCacheSize(50 * 1024 * 1024)
-//                .diskCacheFileCount(100)
-//                .build();
-//        ImageLoader.getInstance().init(config);
+        imageUtils = new ImageUtils();
+        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
+                .diskCacheExtraOptions(480, 800, null)
+                .diskCacheSize(50 * 1024 * 1024)
+                .diskCacheFileCount(100)
+                .build();
+        ImageLoader.getInstance().init(config);
 
-        // See utils/DateUtils.java for documentation
-
-//        dateUtils = new DateUtils();
-
-        // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
-        // button depending on if the user is at the top level
-
-
-        // Handles showing or hiding the back button in the action bar
-
-//        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-//            @Override
-//            public void onBackStackChanged() {
-//                if (fragmentManager.getBackStackEntryCount() > 0) {
-//                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
-//                } else {
-//                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
-//                }
-//            }
-//        });
 
         // Sets the Activity view for container fragments
 
@@ -685,7 +606,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         finishOnCreate();
 
-//        createSecondLevelFragments();
 
         // See finishOnCreate method which is called after these tasks are finished executing
     }

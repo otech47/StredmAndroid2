@@ -211,10 +211,10 @@ public class EventPageFragment extends Fragment implements ApiCaller,
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                                 "featured", "recentEvents");
             }
-            else if(page == 4) {
-                //??? are we keeping search page?
-                //   currentEvents = modelsCP.searchEvents;
-            }
+//            else if(page == 4) {
+//                //??? are we keeping search page?
+//                   currentEvents = modelsCP.searchEvents;
+//            }
         } else {
 
             String model = savedInstanceState.getString("currentEvents");
