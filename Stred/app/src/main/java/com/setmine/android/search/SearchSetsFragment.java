@@ -83,8 +83,6 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
     public boolean modelsReady;
     private enum ListOptions {SETS, EVENTS, TRACKRESPONSES};
 
-
-
     public SearchResultSetAdapter searchResultSetAdapter;
     public ArtistAdapter artistAdapter;
     public EventAdapter eventAdapter;
@@ -141,6 +139,7 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
             mixAdapter = new MixAdapter(mixes);
             genreAdapter = new GenreAdapter(genres);
             setBrowseClickListeners();
+            loader.setVisibility(View.GONE);
         }
 
     }
@@ -150,13 +149,7 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
         super.onCreate(savedInstanceState);
 
         Log.d(TAG, "onCreate");
-        initialModels = 0;
-        artists = new ArrayList<Artist>();
-        festivals = new ArrayList<Event>();
-        mixes = new ArrayList<Mix>();
-        genres = new ArrayList<Genre>();
-        popularSets = new ArrayList<Set>();
-        recentSets = new ArrayList<Set>();
+
 
     }
 
@@ -176,7 +169,7 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
         searchedSetsList = (ListView)rootView.findViewById(R.id.setSearchResults);
         searchView = (SearchView) rootView.findViewById(R.id.search_sets);
         listOptionButtons = (LinearLayout) rootView.findViewById(R.id.list_option_buttons);
-        loader = rootView.findViewById(R.id.loader);
+        loader = rootView.findViewById(R.id.loader_container);
 
         // Initialize search results list adapter
 
@@ -209,6 +202,15 @@ public class SearchSetsFragment extends Fragment implements ApiCaller {
         });
 
         // Recover data from saved instance or make API calls
+
+        initialModels = 0;
+
+        artists = new ArrayList<Artist>();
+        festivals = new ArrayList<Event>();
+        mixes = new ArrayList<Mix>();
+        genres = new ArrayList<Genre>();
+        popularSets = new ArrayList<Set>();
+        recentSets = new ArrayList<Set>();
 
         if(savedInstanceState == null) {
             this.activity = (SetMineMainActivity)getActivity();

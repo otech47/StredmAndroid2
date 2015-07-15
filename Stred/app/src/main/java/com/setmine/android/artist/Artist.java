@@ -52,8 +52,12 @@ public class Artist  extends JSONModel {
                 setWebLink(json.getString("web_link"));
             }
             setImageUrl(json.getString("imageURL"));
-            setSets(json.getJSONArray("sets"));
-            setUpcomingEvents(json.getJSONArray("upcomingEvents"));
+            if(json.has("sets")) {
+                setSets(json.getJSONArray("sets"));
+            }
+            if(json.has("upcomingEvents")) {
+                setUpcomingEvents(json.getJSONArray("upcomingEvents"));
+            }
 
         } catch (JSONException e) {
             e.printStackTrace();

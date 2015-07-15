@@ -24,7 +24,11 @@ public class LineupSet extends JSONModel {
             setDay(json.getInt("day"));
             setTime(json.getString("time"));
             setArtistImage(json.getString("imageURL"));
-            setHasSets(json.getBoolean("hasSets"));
+            if(json.has("hasSets")) {
+                setHasSets(json.getBoolean("hasSets"));
+            } else {
+                setHasSets(false);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }

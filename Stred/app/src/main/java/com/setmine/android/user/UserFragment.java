@@ -207,7 +207,6 @@ public class UserFragment extends Fragment implements ApiCaller {
         super.onAttach(activity);
         this.activity = (SetMineMainActivity) activity;
         modelsCP = this.activity.modelsCP;
-        userLocation = this.activity.currentLocation;
         this.activity.userFragment = this;
         timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
     }
@@ -227,13 +226,13 @@ public class UserFragment extends Fragment implements ApiCaller {
         }
 
         if (savedInstanceState == null) {
-            userLocation = new Location("default");
+//            userLocation = new Location("default");
             registeredUser = new User();
 
         } else {
-            userLocation = new Location("default");
-            userLocation.setLatitude(savedInstanceState.getDouble("latitude"));
-            userLocation.setLongitude(savedInstanceState.getDouble("longitude"));
+//            userLocation = new Location("default");
+//            userLocation.setLatitude(savedInstanceState.getDouble("latitude"));
+//            userLocation.setLongitude(savedInstanceState.getDouble("longitude"));
             String activitiesModel = savedInstanceState.getString("activities");
             String userModel = savedInstanceState.getString("user");
 
@@ -347,8 +346,8 @@ public class UserFragment extends Fragment implements ApiCaller {
         facebookUiHelper.onSaveInstanceState(outState);
         outState.putString("activities", modelsCP.jsonMappings.get("activities"));
         outState.putString("user", registeredUser.jsonModelString);
-        outState.putDouble("latitude", userLocation.getLatitude());
-        outState.putDouble("longitude", userLocation.getLongitude());
+//        outState.putDouble("latitude", userLocation.getLatitude());
+//        outState.putDouble("longitude", userLocation.getLongitude());
 
     }
 
@@ -594,11 +593,12 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     private void kickOffNextEventQuery() {
         String myNextEventQuery = "user/myNextEvent";
-        if (userLocation != null) {
-            myNextEventQuery += "?userID=" + registeredUser.getId();
-            myNextEventQuery += "&latitude=" + userLocation.getLatitude();
-            myNextEventQuery += "&longitude=" + userLocation.getLongitude();
-        }
+        myNextEventQuery += "?userID=" + registeredUser.getId();
+
+//        if (userLocation != null) {
+//            myNextEventQuery += "&latitude=" + userLocation.getLatitude();
+//            myNextEventQuery += "&longitude=" + userLocation.getLongitude();
+//        }
         new SetMineApiGetRequestAsyncTask(activity, runnableUserFragmentTarget)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         myNextEventQuery, "myNextEvent");

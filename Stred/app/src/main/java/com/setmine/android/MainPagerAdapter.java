@@ -6,7 +6,6 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
-import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.event.EventPageFragment;
 import com.setmine.android.user.UserFragment;
 
@@ -20,8 +19,7 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
     public String[] TITLES = new String[] {
             "Login",
             "Events",
-            "Sets",
-            "Explore"
+            "Sets"
     };
 
     public int NUM_TITLES = TITLES.length;

@@ -296,6 +296,7 @@ public class Event extends JSONModel implements Parcelable {
     }
 
     public void setEventSets(JSONArray eventSetsJson) {
+
         this.eventSets = new ArrayList<Set>();
         try {
             for(int i = 0; i < eventSetsJson.length(); i++) {
@@ -316,6 +317,7 @@ public class Event extends JSONModel implements Parcelable {
     }
 
     public void setEventLineup(JSONObject eventLineupJson) {
+
         this.eventLineup = new Lineup(eventLineupJson);
     }
 }

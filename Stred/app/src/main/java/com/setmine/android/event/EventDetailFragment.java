@@ -120,9 +120,11 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
         lineupContainerView = (ListView) rootView.findViewById(R.id.lineupContainer);
         eventImageView = (ImageView)rootView.findViewById(R.id.eventImage);
         facebookButton = rootView.findViewById(R.id.facebookButton);
+        directionsButton = rootView.findViewById(R.id.directionsButton);
         eventText = (TextView)rootView.findViewById(R.id.eventText);
         dateText = (TextView)rootView.findViewById(R.id.dateText);
         locationText = (TextView)rootView.findViewById(R.id.locationText);
+        lineupText = (TextView)rootView.findViewById(R.id.lineupText);
 
         // If savedInstance is null, the fragment is being generated directly from the activity
         // So it is safe to assume the activity has a ModelsContentProvider
@@ -139,7 +141,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             if(EVENT_TYPE.equals("recent")) {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "festival/search/" + event, "recent");
+                                "festival/search/" + Uri.encode(event), "recent");
             } else {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
@@ -172,8 +174,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
 
         } else {
             eventText.setBackgroundResource(R.color.setmine_purple);
-
-
 
         }
 

@@ -559,15 +559,6 @@ public class SetMineMainActivity extends FragmentActivity implements
             else {
                 Log.d(TAG, "services NOT Connected");
                 currentLocation= null;
-//                String eventSearchUrl = "upcoming";
-//                new SetMineApiGetRequestAsyncTask(this, this)
-//                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-//                                eventSearchUrl,
-//                                "searchEvents");
-//                new SetMineApiGetRequestAsyncTask(this, this)
-//                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-//                                "upcoming",
-//                                "upcomingEvents");
             }
 
 
@@ -1080,55 +1071,29 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
-
-        String eventSearchUrl ="upcoming";
-
         if(locationClient.getLastLocation() != null) {
             currentLocation = locationClient.getLastLocation();
-            eventSearchUrl =eventSearchUrl+"/?latitude=" + currentLocation.getLatitude();
-            eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
         }
         else {
             currentLocation = null;
         }
         locationClient.disconnect();
 
-
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl, "upcomingEvents");
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl, "searchEvents");
-
     }
 
     @Override
     public void onDisconnected() {
         Log.d(TAG, "onDisconnected");
+        currentLocation = null;
     }
 
     // Google Play Services connection failed
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
-        // Use Gainesville as location
-
         Log.d(TAG, "onConnectionFailed");
-
-
-        locationClient.disconnect();
         currentLocation = null;
-        String eventSearchUrl = "upcoming";
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl,
-                        "searchEvents");
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        "upcoming",
-                        "upcomingEvents");
+        locationClient.disconnect();
     }
 
 
