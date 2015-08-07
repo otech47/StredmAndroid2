@@ -26,7 +26,6 @@ import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
-import com.setmine.android.set.Set;
 import com.setmine.android.user.User;
 
 import org.joda.time.DateTime;
@@ -49,29 +48,13 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     private static final String TAG = "OfferDetailFragment";
 
     // Views
-    public View mapContainer;
     public View rootView;
-    public View offerButton1;
-    public View unlockedLayout;
-    public View loader;
-    public TextView artistNameText;
-    public TextView offerVenueText;
-    public TextView offerEventText;
-    public TextView distanceText;
-    public TextView offerButtonText1;
-    public TextView redemptionText;
-    public TextView addressText;
-
 
     // Models
     public User registeredUser;
     public Offer currentOffer;
-    private Set unlockedContent;
 
-    public float distance;
     public SetMineMainActivity activity;
-    private Location userLocation;
-    private int timeID;
     private DisplayImageOptions options;
     public OfferInstructionsContainer offerInstContainer;
 
@@ -84,7 +67,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             assignClickListeners();
 
             // Check if unlockedSet of currentOffer is null
-            if(checkUnlockStatus().equals("locked")) {
+            if(currentOffer.getStatus().equals("locked")) {
                 getStaticMap();
             } else {
                 prepareUnlockedOffer();
@@ -126,24 +109,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         rootView = inflater.inflate(R.layout.offer_detail, container, false);
 
         // Show loader until data is ready
-        loader = rootView.findViewById(R.id.centered_loader_container);
-        loader.setVisibility(View.VISIBLE);
-
-        //feature detail containers
-        mapContainer = rootView.findViewById(R.id.mapContainer);
-        addressText = (TextView)rootView.findViewById(R.id.locationText);
-
-        //feature buttons
-        offerButton1 = rootView.findViewById(R.id.howToUnlockLayout);
-
-        //text views
-        artistNameText = (TextView) rootView.findViewById(R.id.offerDetailArtistName);
-        offerVenueText = (TextView) rootView.findViewById(R.id.offerVenueText);
-        offerEventText = (TextView) rootView.findViewById(R.id.offerEventText);
-
-        distanceText = (TextView) rootView.findViewById(R.id.distanceText);
-        offerButtonText1 = (TextView) rootView.findViewById(R.id.offerText1);
-        redemptionText = (TextView) rootView.findViewById(R.id.redemptionText);
+        rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
 
         if (savedInstanceState == null) {
             Log.v(TAG, "savedInstanceState is null");
@@ -188,30 +154,30 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
     public void getStaticMap() {
         Location currentLocation = ((SetMineMainActivity) getActivity()).currentLocation;
         Location venueLocation = new Location("venue");
-        venueLocation.setLatitude(Double.parseDouble(currentOffer.getVenue().getLatitude()));
-        venueLocation.setLongitude(Double.parseDouble(currentOffer.getVenue().getLongitude()));
-        String venueLatitude = currentOffer.getVenue().getLatitude();
-        String venueLongitude = currentOffer.getVenue().getLongitude();
+        venueLocation.setLatitude(Double.parseDouble(currentOffer.getVenues().get(0).getLatitude()));
+        venueLocation.setLongitude(Double.parseDouble(currentOffer.getVenues().get(0).getLongitude()));
+        String venueLatitude = currentOffer.getVenues().get(0).getLatitude();
+        String venueLongitude = currentOffer.getVenues().get(0).getLongitude();
 
         String staticMapUrlFinal = "https://maps.googleapis.com/maps/api/staticmap?";
         String staticMapSize = "size=450x450";
 
         if (currentLocation != null) {
             //distanceTo() is returned in meters
-            distance = currentLocation.distanceTo(venueLocation);
+            float distance = currentLocation.distanceTo(venueLocation);
             Log.d(TAG, Float.toString(distance));
             distance = distance * 3.2808399f; //convert to feet
             if(distance <= 528){
                 BigDecimal bd = new BigDecimal(Float.toString(distance));
                 bd = bd.setScale(0,BigDecimal.ROUND_HALF_UP);
-                distanceText.setText(String.valueOf(bd)+" feet" );
+                ((TextView) rootView.findViewById(R.id.distanceText)).setText(String.valueOf(bd)+" feet" );
             }else if(distance> 528 ){
                 distance = distance/5280;
                 BigDecimal bd = new BigDecimal(Float.toString(distance));
                 bd = bd.setScale(1,BigDecimal.ROUND_HALF_UP);
-                distanceText.setText(String.valueOf(bd)+" miles" );
+                ((TextView) rootView.findViewById(R.id.distanceText)).setText(String.valueOf(bd)+" miles" );
             }
-            distanceText.setVisibility(View.VISIBLE);
+            rootView.findViewById(R.id.distanceText).setVisibility(View.VISIBLE);
 
             Double currentLatitude = currentLocation.getLatitude();
             Double currentLongitude = currentLocation.getLongitude();
@@ -240,7 +206,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             public void onLoadingStarted(String imageUri, View view) {
                 Log.i(TAG, "Loading started");
                 super.onLoadingStarted(imageUri, view);
-                loader.setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -251,7 +217,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
                 ImageView mapView = (ImageView) rootView.findViewById(R.id.offer_center_image);
                 mapView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
 
-                loader.setVisibility(View.GONE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
                 rootView.findViewById(R.id.circle).setVisibility(View.VISIBLE);
             }
 
@@ -259,7 +225,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
                 super.onLoadingFailed(imageUri, view, failReason);
                 Log.e(TAG, "imageLoad Failed");
-                loader.setVisibility(View.GONE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
                 rootView.findViewById(R.id.circle).setVisibility(View.VISIBLE);
 
             }
@@ -274,7 +240,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         DateTime currentTime = new DateTime(juDate);
 
         if(currentOffer.getDateExpired().equals("null")) {
-            redemptionText.setVisibility(View.GONE);
+            rootView.findViewById(R.id.redemptionText).setVisibility(View.GONE);
         } else {
             DateTime expirationTime = fmt.parseDateTime(currentOffer.getDateExpired());
             Period period = new Period(currentTime, expirationTime);
@@ -284,20 +250,20 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
 
             if (daysInt < 1 && hoursInt < 24 && hoursInt > 1) {
-                redemptionText.setText("This offer expires in " + hoursInt + " hours and " + minutesInt + " minutes.");
+                ((TextView) rootView.findViewById(R.id.redemptionText)).setText("This offer expires in " + hoursInt + " hours and " + minutesInt + " minutes.");
             } else if (hoursInt == 1) {
-                redemptionText.setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
+                ((TextView) rootView.findViewById(R.id.redemptionText)).setText("This offer expires in 1 hour and " + minutesInt + " minutes.");
             } else if (hoursInt > 24) {
                 int hours = hoursInt % 24;
                 if (hours > 1) {
-                    redemptionText.setText("This offer expires in " + daysInt + " days and " + hours + " hours.");
+                    ((TextView) rootView.findViewById(R.id.redemptionText)).setText("This offer expires in " + daysInt + " days and " + hours + " hours.");
                 } else if (hours == 1) {
-                    redemptionText.setText("This offer expires in " + daysInt + " days and 1 hour.");
+                    ((TextView) rootView.findViewById(R.id.redemptionText)).setText("This offer expires in " + daysInt + " days and 1 hour.");
                 } else if (hours < 1) {
-                    redemptionText.setText("This offer expires in " + daysInt + " days.");
+                    ((TextView) rootView.findViewById(R.id.redemptionText)).setText("This offer expires in " + daysInt + " days.");
                 }
             } else if (Seconds.secondsBetween(currentTime, expirationTime) == null) {
-                redemptionText.setText("This offer has expired.");
+                ((TextView) rootView.findViewById(R.id.redemptionText)).setText("This offer has expired.");
             }
         }
 
@@ -322,27 +288,27 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         });
 
         //changing text views
-        artistNameText.setText(currentOffer.getArtist().getArtist());
-        artistNameText.setTypeface(null, Typeface.BOLD);
-        offerVenueText.setText(currentOffer.getVenue().getVenueName());
-        offerEventText.setText(currentOffer.getEventName());
+        ((TextView) rootView.findViewById(R.id.offerDetailArtistName)).setText(currentOffer.getArtist().getArtist());
+        ((TextView) rootView.findViewById(R.id.offerDetailArtistName)).setTypeface(null, Typeface.BOLD);
+        ((TextView) rootView.findViewById(R.id.offerVenueText)).setText(currentOffer.getVenues().get(0).getVenueName());
+        ((TextView) rootView.findViewById(R.id.offerEventText)).setText(currentOffer.getSet().getEvent());
 
-        addressText.setText(currentOffer.getVenue().getAddress());
+        ((TextView)rootView.findViewById(R.id.locationText)).setText(currentOffer.getVenues().get(0).getAddress());
 
     }
 
     public void assignClickListeners() {
-        offerButton1.setOnClickListener(new View.OnClickListener() {
+        rootView.findViewById(R.id.howToUnlockLayout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openOfferInstructionsContainer(0);
             }
         });
 
-        mapContainer.setOnClickListener(new View.OnClickListener() {
+        rootView.findViewById(R.id.mapContainer).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ((SetMineMainActivity)getActivity()).googleMapsAddressLookup(v.findViewById(R.id.locationText));
+                ((SetMineMainActivity) getActivity()).googleMapsAddressLookup(v.findViewById(R.id.locationText));
             }
         });
 
@@ -361,22 +327,14 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         transaction.commitAllowingStateLoss();
     }
 
-    public String checkUnlockStatus() {
-        if(currentOffer.getUnlockedSet() == null) {
-            return "locked";
-        } else {
-            return "unlocked";
-        }
-    }
-
     public void prepareUnlockedOffer() {
-        ImageLoader.getInstance().loadImage(currentOffer.getUnlockedSet().getEventImage(), options, new SimpleImageLoadingListener() {
+        ImageLoader.getInstance().loadImage(currentOffer.getSet().getEventImage(), options, new SimpleImageLoadingListener() {
 
             @Override
             public void onLoadingStarted(String imageUri, View view) {
                 Log.i(TAG, "Loading started");
                 super.onLoadingStarted(imageUri, view);
-                loader.setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
             }
 
             @Override
@@ -386,7 +344,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
                 Bitmap roundedBitmap = ImageUtils.getRoundedCornerBitmap(loadedImage, 400);
 
                 mapView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
-                loader.setVisibility(View.GONE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
                 rootView.findViewById(R.id.circle).setVisibility(View.VISIBLE);
             }
 
@@ -394,29 +352,29 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
             public void onLoadingFailed(String imageUri, View view, FailReason failReason) {
                 super.onLoadingFailed(imageUri, view, failReason);
                 Log.e(TAG, "imageLoad Failed");
-                loader.setVisibility(View.GONE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
                 rootView.findViewById(R.id.circle).setVisibility(View.VISIBLE);
 
             }
         });
         rootView.findViewById(R.id.play_overlay).setVisibility(View.VISIBLE);
-        mapContainer.setOnClickListener(new View.OnClickListener() {
+        rootView.findViewById(R.id.mapContainer).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 activity = (SetMineMainActivity) getActivity();
-                if(activity.playerService != null) {
-                    if(activity.playerService.playerManager.getSelectedSet() != null) {
-                        if (activity.playerService.playerManager.getSelectedSet().getId().equals(currentOffer.getUnlockedSet().getId())) {
+                if (activity.playerService != null) {
+                    if (activity.playerService.playerManager.getSelectedSet() != null) {
+                        if (activity.playerService.playerManager.getSelectedSet().getId().equals(currentOffer.getSet().getId())) {
                             activity.startPlayerFragment();
                         } else {
-                            activity.playerService.playerManager.addToPlaylist(currentOffer.getUnlockedSet());
-                            activity.playerService.playerManager.selectSetById(currentOffer.getUnlockedSet().getId());
+                            activity.playerService.playerManager.addToPlaylist(currentOffer.getSet());
+                            activity.playerService.playerManager.selectSetById(currentOffer.getSet().getId());
                             activity.startPlayerFragment();
                             activity.playSelectedSet();
                         }
                     } else {
-                        activity.playerService.playerManager.addToPlaylist(currentOffer.getUnlockedSet());
-                        activity.playerService.playerManager.selectSetById(currentOffer.getUnlockedSet().getId());
+                        activity.playerService.playerManager.addToPlaylist(currentOffer.getSet());
+                        activity.playerService.playerManager.selectSetById(currentOffer.getSet().getId());
                         activity.startPlayerFragment();
                         activity.playSelectedSet();
                     }
@@ -424,19 +382,19 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
             }
         });
-        distanceText.setText("Click to Play");
-        distanceText.setVisibility(View.VISIBLE);
-        ((TextView)offerButton1.findViewById(R.id.offerText1)).setText("Redeem Extra Content");
-        ((ImageView)offerButton1.findViewById(R.id.lockIcon)).setImageResource(R.drawable.reward);
-        offerButton1.setOnClickListener(new View.OnClickListener() {
+        ((TextView) rootView.findViewById(R.id.distanceText)).setText("Click to Play");
+        rootView.findViewById(R.id.distanceText).setVisibility(View.VISIBLE);
+        ((TextView)rootView.findViewById(R.id.howToUnlockLayout).findViewById(R.id.offerText1)).setText("Redeem Extra Content");
+        ((ImageView)rootView.findViewById(R.id.howToUnlockLayout).findViewById(R.id.lockIcon)).setImageResource(R.drawable.reward);
+        rootView.findViewById(R.id.howToUnlockLayout).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 OfferInstructionsFragment redeemOffer = new OfferInstructionsFragment();
                 Bundle args = new Bundle();
-                if(currentOffer.getImageURL().equals("null")) {
+                if (currentOffer.getImageURL().equals("null")) {
                     Log.d(TAG, "image null");
 
-                    args.putString("image", currentOffer.getVenue().getIconImageUrl());
+                    args.putString("image", currentOffer.getVenues().get(0).getIconImageUrl());
                 } else {
                     Log.d(TAG, "image not null");
                     Log.d(TAG, currentOffer.getImageURL());
@@ -444,7 +402,7 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
 
                     args.putString("image", currentOffer.getImageURL());
                 }
-                if(currentOffer.getLink().equals("null")) {
+                if (currentOffer.getLink().equals("null")) {
                     Log.d(TAG, "link null");
                     args.putString("link", null);
                 } else {
@@ -471,9 +429,12 @@ public class OfferDetailFragment extends Fragment implements ApiCaller {
         if(registeredUser != null && registeredUser.isRegistered()) {
             query += "/user/" + registeredUser.getId();
         }
-        new SetMineApiGetRequestAsyncTask((SetMineMainActivity) getActivity(), this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        query, "offers");
+        if(getActivity() != null) {
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity) getActivity(), this)
+                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                            query, "offers");
+        }
+
     }
 
 }

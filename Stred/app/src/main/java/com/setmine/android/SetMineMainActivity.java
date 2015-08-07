@@ -20,7 +20,6 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -53,19 +52,14 @@ import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.artist.ArtistDetailFragment;
 import com.setmine.android.event.EventDetailFragment;
-import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.player.PlayerContainerFragment;
-import com.setmine.android.player.PlayerFragment;
-import com.setmine.android.player.PlayerPagerAdapter;
 import com.setmine.android.player.PlayerService;
 import com.setmine.android.player.PlaylistFragment;
-import com.setmine.android.player.TracklistFragment;
 import com.setmine.android.search.SearchSetsFragment;
 import com.setmine.android.set.Set;
 import com.setmine.android.user.User;
 import com.setmine.android.user.UserFragment;
-import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
 
 import net.danlew.android.joda.JodaTimeAndroid;
@@ -104,24 +98,15 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public String MODELS_VERSION;
 
-
-    public ViewPager eventViewPager;
-    public PlayerPagerAdapter mPlayerPagerAdapter;
-
     public FragmentManager fragmentManager;
-    public PlayerContainerFragment playerContainerFragment;
-    public PlaylistFragment playlistFragment;
-    public PlayerFragment playerFragment;
-    public TracklistFragment tracklistFragment;
-    public SearchSetsFragment searchSetsFragment;
     public MainPagerContainerFragment mainPagerContainerFragment;
-    public UserFragment userFragment;
-    public EventDetailFragment eventDetailFragment;
+    public PlayerContainerFragment playerContainerFragment;
+    public SearchSetsFragment searchSetsFragment;
     public ArtistDetailFragment artistDetailFragment;
+    public EventDetailFragment eventDetailFragment;
+    public UserFragment userFragment;
     public OfferDetailFragment offerDetailFragment;
 
-
-    public ModelsContentProvider modelsCP;
     public PlayerService playerService;
     public boolean serviceBound = false;
     public Set selectedSet;
@@ -131,17 +116,11 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public int asyncTasksInProgress;
 
-
     public MixpanelAPI mixpanel;
     public LocationClient locationClient;
     public Location currentLocation;
 
     public Menu menu;
-    public ActionBar actionBar;
-
-    public ImageUtils imageUtils;
-    public DateUtils dateUtils;
-
 
     // Create the Service Connection to start and bind at onStart()
 
@@ -192,7 +171,6 @@ public class SetMineMainActivity extends FragmentActivity implements
                 } else if (finalIdentifier.equals("offers/unlock")) {
                     Log.d(TAG, finalJsonObject.toString());
                     Log.d(TAG, "offers/unlock");
-
                     try {
                         JSONObject payload = finalJsonObject.getJSONObject("payload");
                         if (payload.getString("unlock_status").equals("success")) {
@@ -226,7 +204,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // IF modelsVersionMatches is true, models are stored on device
 
-        modelsCP = new ModelsContentProvider();
         if(modelsAreStored) {
             try {
                 FileInputStream fis = openFileInput("stored_models_file");
@@ -244,7 +221,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
             // Get All initial Data Models from SetMine API and store it in the content provider
             // See onApiResponse method
-
 
         }
     }
@@ -479,6 +455,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             e.printStackTrace();
         }
     }
+
     public void unlockOffers(JSONArray availableOffersJson) {
         Log.d(TAG, "unlockOffers");
         Log.d(TAG, availableOffersJson.toString());
@@ -582,7 +559,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Image utilities for smoothly loading and caching images
 
-        imageUtils = new ImageUtils();
         ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(this)
                 .diskCacheExtraOptions(480, 800, null)
                 .diskCacheSize(50 * 1024 * 1024)
@@ -590,15 +566,21 @@ public class SetMineMainActivity extends FragmentActivity implements
                 .build();
         ImageLoader.getInstance().init(config);
 
-
         // Sets the Activity view for container fragments
 
         setContentView(R.layout.fragment_main);
 
-        finishOnCreate();
+        // Custom Action Bar styles
 
+        applyCustomViewStyles();
 
-        // See finishOnCreate method which is called after these tasks are finished executing
+        // Handle deep links and default view
+
+        handleIntent(getIntent());
+
+        // Remove the loader (may not be necessary anymore)
+
+        getWindow().findViewById(R.id.splash_loading).setVisibility(View.INVISIBLE);
     }
 
     @Override
@@ -671,15 +653,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void finishOnCreate() {
         try {
-            // Remove the splash loader
-
-            Log.d(TAG, "finishOnCreate");
-
-            applyCustomViewStyles();
-
-            handleIntent(getIntent());
-
-            getWindow().findViewById(R.id.splash_loading).setVisibility(View.INVISIBLE);
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
@@ -691,7 +664,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public void applyCustomViewStyles() {
         LayoutInflater inflater = LayoutInflater.from(this);
 
-        actionBar = getActionBar();
+        ActionBar actionBar = getActionBar();
 
         // Use a custom action bar view
 
@@ -806,8 +779,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void openMainViewPager(int pageToScrollTo) {
         Log.d(TAG, "openMainViewPager");
-        if(mainPagerContainerFragment == null) {
-        }
+        mainPagerContainerFragment = null;
         mainPagerContainerFragment = new MainPagerContainerFragment();
         Bundle args = new Bundle();
         args.putInt("page", pageToScrollTo);
@@ -822,7 +794,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void openPlaylistFragment(List<Set> playlist) {
         Log.d(TAG, "openPlaylistFragment");
-        playlistFragment = new PlaylistFragment();
+        PlaylistFragment playlistFragment = new PlaylistFragment();
         Bundle args = new Bundle();
         ArrayList<Set> playlistBundle = new ArrayList<Set>(playlist);
         args.putParcelableArrayList("playlist", playlistBundle);
@@ -838,6 +810,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void startPlayerFragment() {
         Log.d(TAG, "startPlayerFragment");
+        playerContainerFragment = null;
         playerContainerFragment = new PlayerContainerFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, playerContainerFragment);
@@ -850,6 +823,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void startSearchFragment(View v) {
         Log.d(TAG, "startSearchFragment");
+        searchSetsFragment = null;
         searchSetsFragment = new SearchSetsFragment();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, searchSetsFragment);
@@ -861,6 +835,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Open Artist Detail Fragment from anywhere in the app given a valid Artist object
 
     public void openArtistDetailPage(String artistName) {
+        artistDetailFragment = null;
         artistDetailFragment = new ArtistDetailFragment();
         Bundle args = new Bundle();
         args.putString("currentArtist", artistName);
@@ -876,6 +851,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public void openOfferDetailFragment(String offerId){
         Log.d(TAG, "openOfferDetailFragment");
+        offerDetailFragment = null;
         offerDetailFragment = new OfferDetailFragment();
         Bundle args = new Bundle();
         args.putString("currentOffer", offerId);
@@ -890,6 +866,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     // Open Event Detail Fragment from anywhere in the app given a valid Event object
 
     public void openEventDetailPage(String eventID, String eventType) {
+        eventDetailFragment = null;
         eventDetailFragment = new EventDetailFragment();
         Bundle args = new Bundle();
         args.putString("event", eventID);
@@ -1027,7 +1004,9 @@ public class SetMineMainActivity extends FragmentActivity implements
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        userFragment.onActivityResult(requestCode, resultCode, data);
+        if(userFragment != null) {
+            userFragment.onActivityResult(requestCode, resultCode, data);
+        }
         Log.d(TAG, "onActivityResult: " + Integer.toString(requestCode) + " " + Integer.toString(requestCode) + " " + data.toString());
         switch (requestCode) {
             case CONNECTION_FAILURE_RESOLUTION_REQUEST:

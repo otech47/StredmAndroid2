@@ -16,7 +16,6 @@ import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.artist.ArtistDetailFragment;
 import com.setmine.android.event.Event;
-import com.setmine.android.util.DateUtils;
 
 import java.util.List;
 
@@ -28,26 +27,15 @@ public class DetailSetsFragment extends Fragment {
     public List<Set> detailSets;
     public View rootView;
     public SetMineMainActivity activity;
-    public DateUtils dateUtils;
     public Artist selectedArtist;
 
     public DisplayImageOptions options;
-
 
     public DetailSetsFragment() {}
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        dateUtils = new DateUtils();
-        options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.logo_small)
-                .showImageForEmptyUri(R.drawable.logo_small)
-                .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
     }
 
     @Override
@@ -73,6 +61,14 @@ public class DetailSetsFragment extends Fragment {
             ((TextView)setTile.findViewById(R.id.artistText)).setText(set.getEvent());
             ((TextView)setTile.findViewById(R.id.playCount)).setText(set.getPopularity()+" plays");
 
+            options = new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(true)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
             ImageView imageView = (ImageView)setTile.findViewById(R.id.artistImage);
             ImageLoader.getInstance()
                     .displayImage(set.getEventImage(),

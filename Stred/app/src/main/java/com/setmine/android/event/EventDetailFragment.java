@@ -62,7 +62,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
     // Models
     public Event currentEvent;
     public String EVENT_TYPE;
-    public boolean modelsReady;
     public Lineup detailLineups;
     public List<LineupSet> currentLineupSet;
     public List<Set> detailSets;
@@ -94,8 +93,9 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                         JSONObject payload = finalJsonObject.getJSONObject("payload");
                         currentEvent = new Event(payload.getJSONObject("festival"));
                     } else if(finalIdentifier.equals("upcoming")) {
+
                         JSONObject payload = finalJsonObject.getJSONObject("payload");
-                        currentEvent = new Event(payload.getJSONObject("upcoming").getJSONArray("soonestEvents").getJSONObject(0));
+                        currentEvent = new Event(payload.getJSONObject("upcoming");
                     }
                     handler.post(updateUI);
                 } catch(JSONException e) {
@@ -109,8 +109,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Log.v(TAG, "onCreate");
-        modelsReady = false;
-
     }
 
     @Nullable
@@ -127,7 +125,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
         lineupText = (TextView)rootView.findViewById(R.id.lineupText);
 
         // If savedInstance is null, the fragment is being generated directly from the activity
-        // So it is safe to assume the activity has a ModelsContentProvider
 
         // Else, the activity may or may not be attached yet
         // Use the Bundle to re-generate event data
@@ -145,7 +142,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             } else {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "upcoming?id=" + event, "upcoming");
+                                "upcoming/id/" + event, "upcoming");
             }
         } else {
             EVENT_TYPE = savedInstanceState.getString("eventType");
@@ -162,7 +159,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
 
         // Customize detail page based on recent or upcoming
 
-        if(EVENT_TYPE == "recent") {
+        if(EVENT_TYPE.equals("recent")) {
             eventText.setBackgroundResource(R.color.setmine_blue);
             lineupText.setText("Sets");
 
@@ -203,7 +200,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
 
     public void setAdapters() {
         activity = (SetMineMainActivity) getActivity();
-        if(EVENT_TYPE == "recent") {
+        if(EVENT_TYPE.equals("recent")) {
             detailSets = currentEvent.getEventSets();
             lineupContainerView.setAdapter(new SetAdapter(detailSets));
             lineupContainerView.setOnItemClickListener(new ListView.OnItemClickListener() {
@@ -337,6 +334,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             JSONObject mixpanelProperties = new JSONObject();
             mixpanelProperties.put("id", currentEvent.getId());
             mixpanelProperties.put("event", currentEvent.getEvent());
+            mixpanelProperties.put("type", EVENT_TYPE);
             activity.mixpanel.track("Event Click Through", mixpanelProperties);
         } catch (JSONException e) {
             e.printStackTrace();
@@ -364,7 +362,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             configurePaidButtons();
         }
         configureSocialMediaButtons();
-        modelsReady = true;
 
     }
 

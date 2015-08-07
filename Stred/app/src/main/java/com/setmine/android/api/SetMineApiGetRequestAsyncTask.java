@@ -27,6 +27,7 @@ public class SetMineApiGetRequestAsyncTask extends AsyncTask<String, Integer, JS
 
     public SetMineApiGetRequestAsyncTask(SetMineMainActivity activity, ApiCaller apiCaller) {
         this.activity = activity;
+
         this.httpUtil = new HttpUtils(activity.getApplicationContext(), Constants.API_ROOT_URL);
         this.apiCaller = apiCaller;
     }

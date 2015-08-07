@@ -1,5 +1,7 @@
 package com.setmine.android.user;
 
+import android.location.Location;
+
 import com.setmine.android.Offer.Offer;
 import com.setmine.android.api.JSONModel;
 import com.setmine.android.event.Event;
@@ -27,6 +29,8 @@ public class User extends JSONModel {
     private List<Set> newSets;
     private boolean isRegistered;
     private List<Offer> mOffers;
+    private Location location;
+
 
     public User() {
         jsonModelString = "";
@@ -169,5 +173,13 @@ public class User extends JSONModel {
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    public Location getLocation() {
+        return location;
+    }
+
+    public void setLocation(Location location) {
+        this.location = location;
     }
 }

@@ -126,7 +126,7 @@ public class MainPagerContainerFragment extends Fragment {
 
         // Show the action bar after View has been created
 
-        ((SetMineMainActivity)getActivity()).actionBar.getCustomView().setVisibility(View.VISIBLE);
+        ((SetMineMainActivity)getActivity()).getActionBar().getCustomView().setVisibility(View.VISIBLE);
     }
 
     @Override

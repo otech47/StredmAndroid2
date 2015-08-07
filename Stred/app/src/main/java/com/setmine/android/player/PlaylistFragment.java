@@ -107,9 +107,8 @@ public class PlaylistFragment extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
-                activity.playSetWithSetID(activity.playerFragment
+                activity.playSetWithSetID(activity.playerService
                         .playerManager.getPlaylist().get(position).getId());
-                activity.playerContainerFragment.mViewPager.setCurrentItem(1);
             }
         });
     }

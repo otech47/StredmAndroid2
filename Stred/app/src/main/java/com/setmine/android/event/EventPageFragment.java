@@ -88,13 +88,6 @@ public class EventPageFragment extends Fragment implements ApiCaller,
     public Location currentLocation;
     public EventAdapter eventAdapter;
 
-    public List<SetMineApiGetRequestAsyncTask> activeTasks;
-
-
-    public EventPageFragment() {
-        activeTasks = new ArrayList<SetMineApiGetRequestAsyncTask>();
-    }
-
     final Handler handler = new Handler();
 
     final Runnable updateUI = new Runnable() {
@@ -103,8 +96,6 @@ public class EventPageFragment extends Fragment implements ApiCaller,
             onModelsReady();
         }
     };
-
-
 
     @Override
     public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
@@ -117,7 +108,10 @@ public class EventPageFragment extends Fragment implements ApiCaller,
 
                 currentEvents = ModelsContentProvider.createModel(finalJsonObject, finalIdentifier);
 
-                handler.post(updateUI);
+                if(getActivity() != null) {
+                    handler.post(updateUI);
+                }
+
             }
         }).start();
 
@@ -138,7 +132,6 @@ public class EventPageFragment extends Fragment implements ApiCaller,
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         Bundle args = getArguments();
         page = args.getInt(ARG_OBJECT);
         Log.v(TAG, "onCreate: " + page.toString());
@@ -252,11 +245,14 @@ public class EventPageFragment extends Fragment implements ApiCaller,
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "onSaveInstanceState");
-        ArrayList<String> eventsJsonStringArray = new ArrayList<String>();
-        for(int i = 0 ; i < currentEvents.size() ; i++) {
-            eventsJsonStringArray.add(currentEvents.get(i).jsonModelString);
+        if(currentEvents != null) {
+            ArrayList<String> eventsJsonStringArray = new ArrayList<String>();
+            for(int i = 0 ; i < currentEvents.size() ; i++) {
+                eventsJsonStringArray.add(currentEvents.get(i).jsonModelString);
+            }
+            outState.putStringArrayList("currentEvents", eventsJsonStringArray);
         }
-        outState.putStringArrayList("currentEvents", eventsJsonStringArray);
+
         super.onSaveInstanceState(outState);
     }
 

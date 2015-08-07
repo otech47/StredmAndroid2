@@ -1,9 +1,268 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:orientation="vertical"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:id="@+id/userContainer">
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/setmine_white"
+        android:id="@+id/loginContainer">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/login_header_1"
+            android:id="@+id/headerText1"
+            android:textSize="22sp"
+            android:paddingBottom="5dp"
+            android:paddingTop="5dp"
+            android:textColor="@color/setmine_black"
+            android:gravity="center"
+            />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/login_header_2"
+            android:textSize="15sp"
+            android:id="@+id/headerText2"
+            android:layout_below="@id/headerText1"
+            android:textColor="@color/setmine_black"
+            android:gravity="center"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_margin="10dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:id="@+id/headerBorder"
+            android:background="@color/setmine_black"
+            android:layout_below="@id/headerText2" />
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/headerBorder"
+            android:id="@+id/facebookLoginContainer">
+
+            <com.facebook.widget.LoginButton
+                android:layout_height="wrap_content"
+                android:layout_width="wrap_content"
+                android:id="@+id/facebookLoginButton"
+                android:layout_centerInParent="true"/>
+
+
+        </RelativeLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="20dp"
+            android:layout_marginRight="20dp"
+            android:id="@+id/contentBorder"
+            android:background="@color/setmine_black"
+            android:layout_below="@id/facebookLoginContainer" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Features"
+            android:id="@+id/headerText3"
+            android:textSize="24sp"
+            android:paddingBottom="5dp"
+            android:layout_below="@id/contentBorder"
+            android:textColor="@color/setmine_black"
+            android:gravity="center"/>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginBottom="5dp"
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:id="@+id/contentBorder2"
+            android:background="@color/setmine_black"
+            android:layout_below="@id/headerText3" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/contentBorder2"
+            android:id="@+id/featureTilesMainContainer"
+            android:orientation="vertical">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:id="@+id/featureTilesContainer1"
+                android:paddingBottom="5dp"
+                android:layout_weight=".5">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/mySetsFeature"
+                    android:layout_weight=".5">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center"
+                        android:id="@+id/mySetsTitle"
+                        android:text="@string/my_sets"
+                        android:padding="5dp"
+                        android:textSize="17sp"
+                        android:textColor="@color/setmine_black"/>
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:id="@+id/mySetsImage"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/mySetsTitle"
+                        android:src="@drawable/my_sets_icon"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/my_sets_description"
+                        android:layout_below="@id/mySetsImage"
+                        android:gravity="center"
+                        android:textSize="12sp"
+                        android:textColor="@color/setmine_black"/>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/activitiesFeature"
+                    android:layout_weight=".5">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/activities"
+                        android:gravity="center"
+                        android:padding="5dp"
+                        android:textSize="17sp"
+                        android:id="@+id/activitiesTitle"
+                        android:textColor="@color/setmine_black"/>
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:id="@+id/activitiesImage"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/activitiesTitle"
+                        android:src="@drawable/activities_icon"/>
+
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/activities_description"
+                        android:layout_below="@id/activitiesImage"
+                        android:gravity="center"
+                        android:textSize="12sp"
+                        android:textColor="@color/setmine_black"/>
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="100dp"
+                android:id="@+id/featureTilesContainer2"
+                android:layout_weight=".5"
+                android:paddingBottom="5dp">
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/myNextEventFeature"
+                    android:layout_weight=".5">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/my_next_event"
+                        android:gravity="center"
+                        android:padding="5dp"
+                        android:textSize="17sp"
+                        android:id="@+id/myNextEventTitle"
+                        android:textColor="@color/setmine_black"/>
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:layout_centerHorizontal="true"
+                        android:id="@+id/mustAttendImage"
+                        android:layout_below="@id/myNextEventTitle"
+                        android:src="@drawable/my_next_event_icon"/>
+
+
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/my_next_event_description"
+                        android:layout_below="@id/mustAttendImage"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:id="@+id/mustAttendDescription"
+                        android:textColor="@color/setmine_black"/>
+
+                </RelativeLayout>
+
+                <RelativeLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:id="@+id/recentSetsFeature"
+                    android:layout_weight=".5">
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/recent_sets"
+                        android:id="@+id/recentSetsTitle"
+                        android:textSize="17sp"
+                        android:padding="5dp"
+                        android:gravity="center"
+                        android:textColor="@color/setmine_black"/>
+
+                    <ImageView
+                        android:layout_width="50dp"
+                        android:layout_height="50dp"
+                        android:id="@+id/recentSetsImage"
+                        android:layout_centerHorizontal="true"
+                        android:layout_below="@id/recentSetsTitle"
+                        android:src="@drawable/recent_sets_icon"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="@string/recent_sets_description"
+                        android:layout_below="@id/recentSetsImage"
+                        android:padding="5dp"
+                        android:textSize="12sp"
+                        android:gravity="center"
+                        android:id="@+id/recentSetsDescription"
+                        android:textColor="@color/setmine_black"/>
+
+                </RelativeLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -403,265 +662,24 @@
 
     </LinearLayout>
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/setmine_white"
-        android:id="@+id/loginContainer">
+        android:id="@+id/centered_loader_container"
+        android:background="@color/setmine_gray_75_alpha">
 
-        <TextView
+        <ProgressBar
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/login_header_1"
-            android:id="@+id/headerText1"
-            android:textSize="22sp"
-            android:paddingBottom="5dp"
-            android:paddingTop="5dp"
-            android:textColor="@color/setmine_black"
-            android:gravity="center"
-            />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/login_header_2"
-            android:textSize="15sp"
-            android:id="@+id/headerText2"
-            android:layout_below="@id/headerText1"
-            android:textColor="@color/setmine_black"
-            android:gravity="center"/>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_margin="10dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:id="@+id/headerBorder"
-            android:background="@color/setmine_black"
-            android:layout_below="@id/headerText2" />
-
-        <RelativeLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_below="@id/headerBorder"
-            android:id="@+id/facebookLoginContainer">
-
-            <com.facebook.widget.LoginButton
-                android:layout_height="wrap_content"
-                android:layout_width="wrap_content"
-                android:id="@+id/facebookLoginButton"
-                android:layout_centerInParent="true"/>
-
-
-        </RelativeLayout>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="0dp"
-            android:layout_marginLeft="20dp"
-            android:layout_marginRight="20dp"
-            android:id="@+id/contentBorder"
-            android:background="@color/setmine_black"
-            android:layout_below="@id/facebookLoginContainer" />
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Features"
-            android:id="@+id/headerText3"
-            android:textSize="24sp"
-            android:paddingBottom="5dp"
-            android:layout_below="@id/contentBorder"
-            android:textColor="@color/setmine_black"
-            android:gravity="center"/>
-
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:layout_marginBottom="5dp"
-            android:layout_marginLeft="50dp"
-            android:layout_marginRight="50dp"
-            android:id="@+id/contentBorder2"
-            android:background="@color/setmine_black"
-            android:layout_below="@id/headerText3" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/contentBorder2"
-            android:id="@+id/featureTilesMainContainer"
-            android:orientation="vertical">
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:id="@+id/featureTilesContainer1"
-                android:paddingBottom="5dp"
-                android:layout_weight=".5">
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/mySetsFeature"
-                    android:layout_weight=".5">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:id="@+id/mySetsTitle"
-                        android:text="@string/my_sets"
-                        android:padding="5dp"
-                        android:textSize="17sp"
-                        android:textColor="@color/setmine_black"/>
-
-                    <ImageView
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:id="@+id/mySetsImage"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@id/mySetsTitle"
-                        android:src="@drawable/my_sets_icon"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/my_sets_description"
-                        android:layout_below="@id/mySetsImage"
-                        android:gravity="center"
-                        android:textSize="12sp"
-                        android:textColor="@color/setmine_black"/>
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/activitiesFeature"
-                    android:layout_weight=".5">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/activities"
-                        android:gravity="center"
-                        android:padding="5dp"
-                        android:textSize="17sp"
-                        android:id="@+id/activitiesTitle"
-                        android:textColor="@color/setmine_black"/>
-
-                    <ImageView
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:id="@+id/activitiesImage"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@id/activitiesTitle"
-                        android:src="@drawable/activities_icon"/>
-
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/activities_description"
-                        android:layout_below="@id/activitiesImage"
-                        android:gravity="center"
-                        android:textSize="12sp"
-                        android:textColor="@color/setmine_black"/>
-
-                </RelativeLayout>
-
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:id="@+id/featureTilesContainer2"
-                android:layout_weight=".5"
-                android:paddingBottom="5dp">
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/myNextEventFeature"
-                    android:layout_weight=".5">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/my_next_event"
-                        android:gravity="center"
-                        android:padding="5dp"
-                        android:textSize="17sp"
-                        android:id="@+id/myNextEventTitle"
-                        android:textColor="@color/setmine_black"/>
-
-                    <ImageView
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:layout_centerHorizontal="true"
-                        android:id="@+id/mustAttendImage"
-                        android:layout_below="@id/myNextEventTitle"
-                        android:src="@drawable/my_next_event_icon"/>
-
-
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/my_next_event_description"
-                        android:layout_below="@id/mustAttendImage"
-                        android:textSize="12sp"
-                        android:gravity="center"
-                        android:id="@+id/mustAttendDescription"
-                        android:textColor="@color/setmine_black"/>
-
-                </RelativeLayout>
-
-                <RelativeLayout
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id="@+id/recentSetsFeature"
-                    android:layout_weight=".5">
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/recent_sets"
-                        android:id="@+id/recentSetsTitle"
-                        android:textSize="17sp"
-                        android:padding="5dp"
-                        android:gravity="center"
-                        android:textColor="@color/setmine_black"/>
-
-                    <ImageView
-                        android:layout_width="50dp"
-                        android:layout_height="50dp"
-                        android:id="@+id/recentSetsImage"
-                        android:layout_centerHorizontal="true"
-                        android:layout_below="@id/recentSetsTitle"
-                        android:src="@drawable/recent_sets_icon"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="@string/recent_sets_description"
-                        android:layout_below="@id/recentSetsImage"
-                        android:padding="5dp"
-                        android:textSize="12sp"
-                        android:gravity="center"
-                        android:id="@+id/recentSetsDescription"
-                        android:textColor="@color/setmine_black"/>
-
-                </RelativeLayout>
-
-            </LinearLayout>
-
-        </LinearLayout>
+            android:id="@+id/centered_loader"
+            android:layout_margin="@dimen/progress_padding"
+            android:layout_centerInParent="true"
+            android:gravity="center|bottom"
+            android:indeterminate="true" />
 
     </RelativeLayout>
 
 
-</LinearLayout>
+
+
+</RelativeLayout>

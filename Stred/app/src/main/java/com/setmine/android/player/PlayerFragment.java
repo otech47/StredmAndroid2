@@ -2,8 +2,6 @@ package com.setmine.android.player;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.DownloadManager;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.drawable.BitmapDrawable;
@@ -20,7 +18,6 @@ import android.view.View.OnClickListener;
 import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.ImageView;
-import android.widget.RelativeLayout;
 import android.widget.ShareActionProvider;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -47,31 +44,8 @@ public class PlayerFragment extends Fragment implements
     private final String TAG = "PlayerFragment";
 
     private View rootView;
-	public ImageButton mButtonPlay;
-    public ImageButton mButtonShare;
-	public ImageButton mButtonPlayTop;
-	private ImageButton mButtonRewind;
-	private ImageButton mButtonFastForward;
-	private ImageButton mButtonShuffle;
-	private ImageButton mButtonDownload;
 	private CircularSeekBar mProgressBar;
-	private TextView mTitleLabel;
-	private TextView mArtistLabel;
-	private TextView mTimeLabel;
-	private TextView mDurationLabel;
-	private TextView mTrackLabel;
-	private ImageView mImageView;
-	private ImageView mImageThumb;
-	private RelativeLayout mHeader;
-	private ImageButton mPlaylistButton;
-	private ImageButton mTracklistButton;
-    private ImageView mBackgroundImage;
-    private View playerLoader;
     private ShareActionProvider mShareActionProvider;
-
-    public ImageView favoriteSetButton;
-
-    private DisplayImageOptions options;
 
 	// Handler to update UI timer, progress bar etc,.
 	private final Handler mHandler = new Handler();
@@ -82,11 +56,6 @@ public class PlayerFragment extends Fragment implements
     public PlayerService playerService;
 
     public PlayerManager playerManager;
-	private DownloadManager manager;
-	private long enqueue;
-	private Set downloadedSet;
-	private String downloadedSetTitle;
-	private Context context;
 
     private User user;
 
@@ -104,12 +73,12 @@ public class PlayerFragment extends Fragment implements
             long time = playerService.mediaPlayer.getCurrentPosition();
 
             // Displaying Total Duration time
-            mDurationLabel.setText("" + utils.milliSecondsToTimer(duration));
+            ((TextView) rootView.findViewById(R.id.player_song_duration)).setText("" + utils.milliSecondsToTimer(duration));
             // Displaying time completed playing
-            mTimeLabel.setText("" + utils.milliSecondsToTimer(time));
+            ((TextView) rootView.findViewById(R.id.player_song_time)).setText("" + utils.milliSecondsToTimer(time));
 
             // set track name
-            mTrackLabel.setText(song.getCurrentTrack(time));
+            ((TextView) rootView.findViewById(R.id.player_track_title)).setText(song.getCurrentTrack(time));
 
             // Updating progress bar
             int progress = (utils.getProgressPercentage(time, duration));
@@ -193,33 +162,9 @@ public class PlayerFragment extends Fragment implements
 
         this.rootView = inflater.inflate(R.layout.player, container, false);
 
-		// All player buttons
-
-        mButtonShare = (ImageButton) rootView
-                .findViewById(R.id.player_button_share);
-		mButtonPlay = (ImageButton) rootView
-				.findViewById(R.id.player_button_play);
-		mButtonRewind = (ImageButton) rootView
-				.findViewById(R.id.player_button_rewind);
-		mButtonFastForward = (ImageButton) rootView
-				.findViewById(R.id.player_button_fast_forward);
 		mProgressBar = (CircularSeekBar) rootView
 				.findViewById(R.id.circular_seek_bar);
-		mTimeLabel = (TextView) rootView.findViewById(R.id.player_song_time);
-		mDurationLabel = (TextView) rootView
-				.findViewById(R.id.player_song_duration);
-		mTitleLabel = (TextView) rootView.findViewById(R.id.player_event_name);
-		mArtistLabel = (TextView) rootView
-				.findViewById(R.id.player_artist_name);
-		mTrackLabel = (TextView) rootView.findViewById(R.id.player_track_title);
-		mImageView = (ImageView) rootView.findViewById(R.id.player_image);
-		mHeader = (RelativeLayout) rootView.findViewById(R.id.player_header);
-		mTracklistButton = (ImageButton) rootView
-				.findViewById(R.id.player_button_tracklist);
-        mBackgroundImage = (ImageView) rootView.findViewById(R.id.background_image);
-        favoriteSetButton = (ImageView) rootView.findViewById(R.id.favorite_set_icon);
-        playerLoader = rootView.findViewById(R.id.centered_loader_container);
-        playerLoader.setVisibility(View.VISIBLE);
+        rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
 
 
         utils = new TimeUtils();
@@ -228,15 +173,6 @@ public class PlayerFragment extends Fragment implements
 		mProgressBar.setOnSeekBarChangeListener(this);
         mProgressBar.setProgress(0);
         mProgressBar.setMax(100);
-
-        options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.logo_small)
-                .showImageForEmptyUri(R.drawable.logo_small)
-                .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
 
 
 		setPlayListeners();
@@ -362,7 +298,7 @@ public class PlayerFragment extends Fragment implements
     }
 
     private void setPagerListeners() {
-        mTracklistButton.setOnClickListener(new OnClickListener() {
+        rootView.findViewById(R.id.player_button_tracklist).setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -372,7 +308,7 @@ public class PlayerFragment extends Fragment implements
     }
 
     private void setShareListeners(){
-        mButtonShare.setOnClickListener(new OnClickListener() {
+        rootView.findViewById(R.id.player_button_share).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent sendIntent = new Intent();
@@ -380,7 +316,7 @@ public class PlayerFragment extends Fragment implements
                 sendIntent.putExtra(Intent.EXTRA_TEXT, "http://setmine.com/?play/"
                         + playerManager.getSelectedSet().getId());
                 sendIntent.setType("text/plain");
-                startActivity(Intent.createChooser(sendIntent, "http://setmine.com/?play/"+playerManager.getSelectedSet().getId()));
+                startActivity(Intent.createChooser(sendIntent, "http://setmine.com/?play/" + playerManager.getSelectedSet().getId()));
 
             }
         });
@@ -395,11 +331,11 @@ public class PlayerFragment extends Fragment implements
                 updatePlayPauseButton();
             }
         };
-        mButtonPlay.setOnClickListener(ocl);
+        rootView.findViewById(R.id.player_button_play).setOnClickListener(ocl);
     }
 
     private void setPreviousListener() {
-        mButtonRewind.setOnClickListener(new OnClickListener() {
+        rootView.findViewById(R.id.player_button_rewind).setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
@@ -409,7 +345,7 @@ public class PlayerFragment extends Fragment implements
     }
 
     private void setNextListener() {
-        mButtonFastForward.setOnClickListener(new OnClickListener() {
+        rootView.findViewById(R.id.player_button_fast_forward).setOnClickListener(new OnClickListener() {
 
             @Override
             public void onClick(View arg0) {
@@ -456,24 +392,24 @@ public class PlayerFragment extends Fragment implements
 
 
         if (user.isSetFavorited(song)) {
-            favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
+            ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.unfavorite_button_white);
         } else {
-            favoriteSetButton.setImageResource(R.drawable.favorite_button_white);
+            ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.favorite_button_white);
         }
 
 
-        favoriteSetButton.setOnClickListener(new OnClickListener() {
+        rootView.findViewById(R.id.favorite_set_icon).setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
                 if (user.isRegistered()) {
                     if (user.isSetFavorited(song)) {
                         Toast.makeText(activity.getApplicationContext(),
                                 "Removed from My Sets", Toast.LENGTH_SHORT).show();
-                        favoriteSetButton.setImageResource(R.drawable.favorite_button_white);
+                        ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.favorite_button_white);
                     } else {
                         Toast.makeText(activity.getApplicationContext(),
                                 "Added to My Sets", Toast.LENGTH_SHORT).show();
-                        favoriteSetButton.setImageResource(R.drawable.unfavorite_button_white);
+                        ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.unfavorite_button_white);
                     }
                     try {
                         JSONObject jsonUserData = new JSONObject();
@@ -504,7 +440,7 @@ public class PlayerFragment extends Fragment implements
     public void updateViewToNewSet() {
         Log.d(TAG, "updateViewToNewSet");
 
-        playerLoader.setVisibility(View.VISIBLE);
+        rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
 
         song = playerManager.getSelectedSet();
 
@@ -535,23 +471,28 @@ public class PlayerFragment extends Fragment implements
             }
         }).start();
 
-
+        DisplayImageOptions options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.logo_small)
+                .showImageForEmptyUri(R.drawable.logo_small)
+                .showImageOnFail(R.drawable.logo_small)
+                .cacheInMemory(false)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .build();
 
         ImageLoader.getInstance().loadImage(song.getArtistImage(), options, new SimpleImageLoadingListener() {
 
             @Override
             public void onLoadingStarted(String imageUri, View view) {
                 super.onLoadingStarted(imageUri, view);
-                playerLoader.setVisibility(View.VISIBLE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
             }
 
             @Override
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 ImageUtils imageUtils = new ImageUtils();
                 Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 5000);
-                if(mBackgroundImage != null) {
-                    mImageView.setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
-                }
+                ((ImageView) rootView.findViewById(R.id.player_image)).setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
 
                 Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
                 notificationIntent.setAction("UPDATE_REMOTE");
@@ -560,7 +501,7 @@ public class PlayerFragment extends Fragment implements
                 sendIntentToService(notificationIntent);
                 playerService.artistImage = loadedImage;
 
-                playerLoader.setVisibility(View.GONE);
+                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
 
             }
         });
@@ -570,9 +511,7 @@ public class PlayerFragment extends Fragment implements
             public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
                 ImageUtils imageUtils = new ImageUtils();
                 Bitmap blurredBitmap = imageUtils.fastblur(loadedImage, 4);
-                if(mBackgroundImage != null) {
-                    mBackgroundImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
-                }
+                ((ImageView) rootView.findViewById(R.id.background_image)).setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
 
                 playerService.lockscreenImage = loadedImage;
 
@@ -589,9 +528,9 @@ public class PlayerFragment extends Fragment implements
 
 
         // Displaying Song title
-        mTitleLabel.setText(song.getEvent());
-        mArtistLabel.setText(song.getArtist());
-        mTrackLabel.setText(song.getCurrentTrack(0));
+        ((TextView) rootView.findViewById(R.id.player_event_name)).setText(song.getEvent());
+        ((TextView) rootView.findViewById(R.id.player_artist_name)).setText(song.getArtist());
+        ((TextView) rootView.findViewById(R.id.player_track_title)).setText(song.getCurrentTrack(0));
 //        ((PlayerContainerFragment)getParentFragment()).mPlayerPagerAdapter
 //                .playListFragment.updatePlaylist();
 
@@ -602,9 +541,11 @@ public class PlayerFragment extends Fragment implements
     private void updatePlayPauseButton() {
         if(playerService.mediaPlayer != null) {
             if (playerService.mediaPlayer.isPlaying()) {
-                mButtonPlay.setImageResource(R.drawable.ic_action_pause_white);
+                ((ImageButton) rootView
+                        .findViewById(R.id.player_button_play)).setImageResource(R.drawable.ic_action_pause_white);
             } else {
-                mButtonPlay.setImageResource(R.drawable.ic_action_play_white);
+                ((ImageButton) rootView
+                        .findViewById(R.id.player_button_play)).setImageResource(R.drawable.ic_action_play_white);
             }
         }
     }
@@ -672,13 +613,7 @@ public class PlayerFragment extends Fragment implements
 //                    }
 //
 //                });
-//
-//        mHeader.setOnTouchListener(new View.OnTouchListener() {
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                return gesture.onTouchEvent(event);
-//            }
-//        });
+
 //    }
 
     //    private void setShuffleListener() {

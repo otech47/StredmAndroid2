@@ -28,9 +28,6 @@ public class DetailUpcomingEventsFragment extends Fragment {
 
     public List<Event> detailEvents;
     public View rootView;
-    public SetMineMainActivity activity;
-    public ModelsContentProvider modelsCP;
-    public DateUtils dateUtils;
     public Artist selectedArtist;
 
     public DisplayImageOptions options;
@@ -40,16 +37,6 @@ public class DetailUpcomingEventsFragment extends Fragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        activity = (SetMineMainActivity)getActivity();
-        options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.festival_icon)
-                .showImageForEmptyUri(R.drawable.festival_icon)
-                .showImageOnFail(R.drawable.festival_icon)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
-        dateUtils = new DateUtils();
     }
 
     @Override
@@ -69,12 +56,20 @@ public class DetailUpcomingEventsFragment extends Fragment {
             rootView.findViewById(R.id.noResults).setVisibility(View.GONE);
             rootView.findViewById(R.id.message).setVisibility(View.GONE);
         }
-
+        options = new DisplayImageOptions.Builder()
+                .showImageOnLoading(R.drawable.festival_icon)
+                .showImageForEmptyUri(R.drawable.festival_icon)
+                .showImageOnFail(R.drawable.festival_icon)
+                .cacheInMemory(true)
+                .cacheOnDisk(true)
+                .considerExifParams(true)
+                .build();
         for(final Event uEvent : detailEvents) {
             View eventTile = inflater.inflate(R.layout.event_tile_upcoming_small, container, false);
             ((TextView)eventTile.findViewById(R.id.eventText)).setText(uEvent.getEvent());
             ((TextView)eventTile.findViewById(R.id.dates))
                     .setText(uEvent.getDateFormatted());
+
             ImageView imageView = (ImageView)eventTile.findViewById(R.id.eventImage);
             ImageLoader.getInstance()
                     .displayImage(Constants.S3_ROOT_URL + uEvent.getIconImageUrl(),
