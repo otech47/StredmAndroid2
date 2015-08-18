@@ -26,7 +26,6 @@ public class PlayerContainerFragment extends Fragment {
     public PlayerFragment playerFragment;
     public TracklistFragment tracklistFragment;
 
-
     public PlayerContainerFragment() {}
 
     @Override

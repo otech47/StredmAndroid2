@@ -1,12 +1,35 @@
 package com.setmine.android.track;
 
-public class Track {
-	private String trackName;
-	private String startTime;
+import com.setmine.android.api.JSONModel;
 
-	public Track(String trackname, String starttime) {
-		setTrackName(trackname);
-		setStartTime(starttime);
+import org.json.JSONObject;
+
+public class Track extends JSONModel {
+	private String trackName;
+	private String artistName;
+	private String songName;
+
+	private String startTime;
+	private String setLength;
+
+	public Track() {
+		songName = "Unknown";
+		artistName = "Unknown Artist";
+		trackName = "Unknown - Unknown Artist";
+		startTime = "00:00";
+	}
+
+	public Track(JSONObject json) {
+		try {
+			trackName = json.getString("trackname");
+			artistName = json.getString("artistname");
+			songName = json.getString("songname");
+			startTime = json.getString("starttime");
+			setLength = json.getString("set_length");
+
+		} catch(Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	public String getTrackName() {
@@ -25,4 +48,27 @@ public class Track {
 		this.startTime = mStartTime;
 	}
 
+	public String getArtistName() {
+		return artistName;
+	}
+
+	public void setArtistName(String artistName) {
+		this.artistName = artistName;
+	}
+
+	public String getSongName() {
+		return songName;
+	}
+
+	public void setSongName(String songName) {
+		this.songName = songName;
+	}
+
+	public String getSetLength() {
+		return setLength;
+	}
+
+	public void setSetLength(String setLength) {
+		this.setLength = setLength;
+	}
 }

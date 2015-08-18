@@ -2,6 +2,7 @@ package com.setmine.android;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -11,7 +12,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.setmine.android.event.EventPageFragment;
 import com.setmine.android.user.User;
+import com.setmine.android.user.UserFragment;
 import com.viewpagerindicator.TitlePageIndicator;
 
 /**
@@ -24,7 +27,7 @@ public class MainPagerContainerFragment extends Fragment {
     public ViewPager mViewPager;
     public MainPagerAdapter mMainPagerAdapter;
     public FragmentManager fragmentManager;
-    private User user;
+    public User user;
 
     public int purpleColorID;
     public int blueColorID;
@@ -68,8 +71,6 @@ public class MainPagerContainerFragment extends Fragment {
         mViewPager = (ViewPager)root.findViewById(R.id.eventpager);
 
         // Store a reference to the Pager Adapter in the top level activity
-
-        mMainPagerAdapter.activity = (SetMineMainActivity) getActivity();
 
         mViewPager.setAdapter(mMainPagerAdapter);
 
@@ -133,6 +134,19 @@ public class MainPagerContainerFragment extends Fragment {
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         outState.putInt("lastPosition", mViewPager.getCurrentItem());
+    }
+
+    @Override
+    public void onPause() {
+        Log.d(TAG, "onPause");
+        super.onPause();
+    }
+
+    @Override
+    public void onStop() {
+        Log.d(TAG, "onStop");
+
+        super.onStop();
     }
 
     public void changePage(int page) {

@@ -223,6 +223,7 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
         // Cancel the persistent notification.
         notificationManager.cancel(NOTIFICATION_ID);
         am.unregisterMediaButtonEventReceiver(receiver);
+        mediaPlayer.stop();
         releaseLocks();
         super.onDestroy();
 

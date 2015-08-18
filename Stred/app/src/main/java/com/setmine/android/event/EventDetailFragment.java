@@ -50,14 +50,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
 
     // Views
     public View rootView;
-    public ImageView eventImageView;
-    public ListView lineupContainerView;
-    public View facebookButton;
-    public View directionsButton;
-    public TextView eventText;
-    public TextView lineupText;
-    public TextView dateText;
-    public TextView locationText;
 
     // Models
     public Event currentEvent;
@@ -90,12 +82,12 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             public void run() {
                 try {
                     if(finalIdentifier.equals("recent")) {
+                        Log.d(TAG, finalJsonObject.toString());
                         JSONObject payload = finalJsonObject.getJSONObject("payload");
                         currentEvent = new Event(payload.getJSONObject("festival"));
                     } else if(finalIdentifier.equals("upcoming")) {
-
                         JSONObject payload = finalJsonObject.getJSONObject("payload");
-                        currentEvent = new Event(payload.getJSONObject("upcoming");
+                        currentEvent = new Event(payload.getJSONObject("upcoming"));
                     }
                     handler.post(updateUI);
                 } catch(JSONException e) {
@@ -115,14 +107,6 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.event_detail, container, false);
-        lineupContainerView = (ListView) rootView.findViewById(R.id.lineupContainer);
-        eventImageView = (ImageView)rootView.findViewById(R.id.eventImage);
-        facebookButton = rootView.findViewById(R.id.facebookButton);
-        directionsButton = rootView.findViewById(R.id.directionsButton);
-        eventText = (TextView)rootView.findViewById(R.id.eventText);
-        dateText = (TextView)rootView.findViewById(R.id.dateText);
-        locationText = (TextView)rootView.findViewById(R.id.locationText);
-        lineupText = (TextView)rootView.findViewById(R.id.lineupText);
 
         // If savedInstance is null, the fragment is being generated directly from the activity
 
@@ -133,16 +117,18 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             // Generate event data
             Bundle arguments = getArguments();
             EVENT_TYPE = arguments.getString("eventType");
-            String event = arguments.getString("event");
+            String eventID = arguments.getString("eventID");
+
+            Log.d(TAG, "festival/id/" + eventID);
 
             if(EVENT_TYPE.equals("recent")) {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "festival/search/" + Uri.encode(event), "recent");
+                                "festival/id/" + eventID, "recent");
             } else {
                 new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                         .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "upcoming/id/" + event, "upcoming");
+                                "upcoming/id/" + eventID, "upcoming");
             }
         } else {
             EVENT_TYPE = savedInstanceState.getString("eventType");
@@ -160,17 +146,17 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
         // Customize detail page based on recent or upcoming
 
         if(EVENT_TYPE.equals("recent")) {
-            eventText.setBackgroundResource(R.color.setmine_blue);
-            lineupText.setText("Sets");
+            rootView.findViewById(R.id.eventText).setBackgroundResource(R.color.setmine_blue);
+            ((TextView)rootView.findViewById(R.id.lineupText)).setText("Sets");
 
-            directionsButton.setVisibility(View.GONE);
+            rootView.findViewById(R.id.directionsButton).setVisibility(View.GONE);
 
             // Set Facebook Click Listeners for past events
 
-            facebookButton.setVisibility(View.VISIBLE);
+            rootView.findViewById(R.id.facebookButton).setVisibility(View.VISIBLE);
 
         } else {
-            eventText.setBackgroundResource(R.color.setmine_purple);
+            rootView.findViewById(R.id.eventText).setBackgroundResource(R.color.setmine_purple);
 
         }
 
@@ -202,8 +188,8 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
         activity = (SetMineMainActivity) getActivity();
         if(EVENT_TYPE.equals("recent")) {
             detailSets = currentEvent.getEventSets();
-            lineupContainerView.setAdapter(new SetAdapter(detailSets));
-            lineupContainerView.setOnItemClickListener(new ListView.OnItemClickListener() {
+            ((ListView) rootView.findViewById(R.id.lineupContainer)).setAdapter(new SetAdapter(detailSets));
+            ((ListView) rootView.findViewById(R.id.lineupContainer)).setOnItemClickListener(new ListView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                     v.setPressed(true);
@@ -216,8 +202,8 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
             });
         } else {
             currentLineupSet = currentEvent.getEventLineup().getLineup();
-            lineupContainerView.setAdapter(new LineupSetAdapter(currentLineupSet));
-            lineupContainerView.setOnItemClickListener(new ListView.OnItemClickListener() {
+            ((ListView) rootView.findViewById(R.id.lineupContainer)).setAdapter(new LineupSetAdapter(currentLineupSet));
+            ((ListView) rootView.findViewById(R.id.lineupContainer)).setOnItemClickListener(new ListView.OnItemClickListener() {
                 @Override
                 public void onItemClick(AdapterView<?> adapterView, View v, int position, long id) {
                     v.setPressed(true);
@@ -273,15 +259,14 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
     // Set Click listeners and Mixpanel event tracking for Twitter and Web links
 
     public void configureSocialMediaButtons() {
-        activity = (SetMineMainActivity)getActivity();
-        facebookButton.setOnClickListener(new View.OnClickListener() {
+        rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 try {
                     JSONObject mixpanelProperties = new JSONObject();
                     mixpanelProperties.put("id", currentEvent.getId());
                     mixpanelProperties.put("event", currentEvent.getEvent());
-                    activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
+                    ((SetMineMainActivity)getActivity()).mixpanel.track("Facebook Link Clicked", mixpanelProperties);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -297,7 +282,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                     JSONObject mixpanelProperties = new JSONObject();
                     mixpanelProperties.put("id", currentEvent.getId());
                     mixpanelProperties.put("event", currentEvent.getEvent());
-                    activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
+                    ((SetMineMainActivity)getActivity()).mixpanel.track("Twitter Link Clicked", mixpanelProperties);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -313,7 +298,7 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
                     JSONObject mixpanelProperties = new JSONObject();
                     mixpanelProperties.put("id", currentEvent.getId());
                     mixpanelProperties.put("event", currentEvent.getEvent());
-                    activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
+                    ((SetMineMainActivity)getActivity()).mixpanel.track("Web Link Clicked", mixpanelProperties);
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -353,11 +338,11 @@ public class EventDetailFragment extends Fragment implements ApiCaller {
 
         // Set text and for event details
 
-        ImageLoader.getInstance().displayImage(currentEvent.getMainImageUrl(), eventImageView, options);
-        dateText.setText(currentEvent.getDateFormatted());
-        locationText.setText(currentEvent.getVenue() + ", "
+        ImageLoader.getInstance().displayImage(currentEvent.getMainImageUrl(), (ImageView)rootView.findViewById(R.id.eventImage), options);
+        ((TextView)rootView.findViewById(R.id.dateText)).setText(currentEvent.getDateFormatted());
+        ((TextView)rootView.findViewById(R.id.locationText)).setText(currentEvent.getVenue() + ", "
                 + dateUtils.getCityStateFromAddress(currentEvent.getAddress()));
-        eventText.setText(currentEvent.getEvent());
+        ((TextView)rootView.findViewById(R.id.eventText)).setText(currentEvent.getEvent());
         if(currentEvent.getPaid() == 1) {
             configurePaidButtons();
         }

@@ -3,7 +3,7 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="10dp"
+    android:padding="5dp"
     android:id="@+id/track_tile"
     android:background="@drawable/pressable_button_white_to_blue">
 
@@ -14,7 +14,6 @@
         android:scaleType="centerCrop"
         android:id="@+id/artistImage"
         android:layout_gravity="center" />
-
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -35,10 +34,38 @@
             android:layout_alignParentTop="true"
             android:marqueeRepeatLimit ="marquee_forever"
             android:scrollHorizontally="true"
-            android:id="@+id/trackText"
+            android:id="@+id/trackName"
             android:textColor="#FF000000"
-            android:textSize="17sp"
+            android:textSize="16sp"
             android:textStyle="bold"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Event"
+            android:id="@+id/eventText"
+            android:textColor="@color/setmine_blue"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:gravity="left"
+            android:textSize="12sp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Artist"
+            android:singleLine="true"
+            android:ellipsize="marquee"
+            android:marqueeRepeatLimit ="marquee_forever"
+            android:layout_above="@id/eventText"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:gravity="left"
+            android:scrollHorizontally="true"
+            android:id="@+id/artistText"
+            android:textColor="#FF000000"
+            android:textSize="14sp"/>
 
 
         <RelativeLayout
@@ -57,7 +84,7 @@
                 android:layout_alignParentEnd="true"
                 android:layout_alignParentBottom="true"
                 android:textColor="@color/setmine_black"
-                android:textSize="12sp"/>
+                android:textSize="11sp"/>
 
             <View
                 android:layout_width="1dp"
@@ -72,47 +99,11 @@
                 android:layout_height="wrap_content"
                 android:text="00:00"
                 android:padding="5dp"
-                android:id="@+id/trackTime"
+                android:id="@+id/startTime"
                 android:layout_toLeftOf="@id/timeDivider"
                 android:layout_alignParentBottom="true"
                 android:textColor="@color/setmine_black"
-                android:textSize="12sp"/>
-
-
-
-
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Event"
-                android:id="@+id/eventText"
-                android:textColor="@color/setmine_blue"
-                android:layout_alignParentBottom="true"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_toLeftOf="@id/trackTime"
-                android:layout_toStartOf="@id/trackTime"
-                android:gravity="left"
-                android:textSize="12sp"/>
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Artist"
-                android:singleLine="true"
-                android:ellipsize="marquee"
-                android:marqueeRepeatLimit ="marquee_forever"
-                android:layout_above="@id/eventText"
-                android:layout_alignParentLeft="true"
-                android:layout_alignParentStart="true"
-                android:layout_toLeftOf="@id/trackTime"
-                android:layout_toStartOf="@id/trackTime"
-                android:gravity="left"
-                android:scrollHorizontally="true"
-                android:id="@+id/artistText"
-                android:textColor="#FF000000"
-                android:textSize="15sp"/>
+                android:textSize="11sp"/>
 
         </RelativeLayout>
 

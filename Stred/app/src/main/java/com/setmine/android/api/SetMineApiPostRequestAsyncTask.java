@@ -1,6 +1,7 @@
 package com.setmine.android.api;
 
 import android.os.AsyncTask;
+import android.util.Log;
 
 import com.setmine.android.Constants;
 import com.setmine.android.SetMineMainActivity;
@@ -46,16 +47,27 @@ public class SetMineApiPostRequestAsyncTask extends AsyncTask<String, Integer, J
 
         // If there is a third parameter, then we are retrieving a model that needs to be stored
 
-        if(params[2] != null) {
+        if(params.length > 2) {
             identifier = params[2];
+        } else {
+            identifier = params[1];
         }
         String route = params[0];
         String jsonPostDataString = params[1];
+        if(route.contains("?")) {
+            route += "&setmine_api_key=" + Constants.API_KEY;
+        } else {
+            route += "?setmine_api_key=" + Constants.API_KEY;
+        }
+
         JSONObject jsonResponse = null;
+        Log.d(TAG, route);
+        Log.d(TAG, jsonPostDataString);
 
         // Use the HttpUtil to retrieve a JSON string from the SetMine API
         try {
             String jsonString = httpUtil.postApiRequest(route, jsonPostDataString);
+            Log.d(TAG, jsonString);
             jsonResponse = new JSONObject(jsonString);
         }
         catch (Exception e) {

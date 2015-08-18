@@ -23,6 +23,7 @@ public class Set extends JSONModel implements Parcelable {
     protected String mEventImage;
     protected String mArtist;
     protected String mEvent;
+    protected int mEventID;
     protected String mGenre;
     protected String mSongURL;
     protected String episode;
@@ -31,7 +32,6 @@ public class Set extends JSONModel implements Parcelable {
     protected Integer popularity;
     protected Integer mRadiomix;
     protected String datetime;
-
 
 //      Parcelable Implementation
 
@@ -51,6 +51,7 @@ public class Set extends JSONModel implements Parcelable {
         mEventImage = in.readString();
         mArtist = in.readString();
         mEvent = in.readString();
+        mEventID = in.readInt();
         mGenre = in.readString();
         mSongURL = in.readString();
         episode = in.readString();
@@ -72,6 +73,7 @@ public class Set extends JSONModel implements Parcelable {
         out.writeString(mEventImage);
         out.writeString(mArtist);
         out.writeString(mEvent);
+        out.writeInt(mEventID);
         out.writeString(mGenre);
         out.writeString(mSongURL);
         out.writeString(episode);
@@ -88,20 +90,20 @@ public class Set extends JSONModel implements Parcelable {
     public Set(JSONObject json) {
         jsonModelString = json.toString();
         try {
-            setId(json.getString("id"));
-            setArtistImage(json.getString("artistimageURL"));
-            setEventImage(json.getString("eventimageURL"));
-            setArtist(json.getString("artist"));
-            setEvent(json.getString("event"));
-            setGenre(json.getString("genre"));
-            setSongURL(json.getString("songURL"));
-            setPopularity(json.getInt("popularity"));
-            setIsRadiomix(json.getInt("is_radiomix"));
-            setEpisode(json.getString("episode"));
-            setSetLength(json.getString("set_length"));
-            setDatetime(json.getString("datetime"));
+            mId = json.getString("id");
+            mArtistImage = Constants.CLOUDFRONT_URL_FOR_IMAGES + json.getString("artistimageURL");
+            mEventImage = Constants.CLOUDFRONT_URL_FOR_IMAGES + json.getString("eventimageURL");
+            mArtist = json.getString("artist");
+            mEvent = json.getString("event");
+            mEventID = json.getInt("event_id");
+            mGenre = json.getString("genre");
+            mSongURL = Constants.S3_ROOT_URL + json.getString("songURL");
+            popularity = json.getInt("popularity");
+            mRadiomix = json.getInt("is_radiomix");
+            episode = json.getString("episode");
+            setLength = json.getString("set_length");
+            datetime = json.getString("datetime");
 
-            setTracklist(generateTracklist(json.getString("tracklist"), json.getString("starttimes")));
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -173,6 +175,14 @@ public class Set extends JSONModel implements Parcelable {
         this.mEvent = event;
     }
 
+    public int getEventID() {
+        return mEventID;
+    }
+
+    public void setEventID(int mEventID) {
+        this.mEventID = mEventID;
+    }
+
     public String getGenre() {
         return mGenre;
     }
@@ -237,43 +247,4 @@ public class Set extends JSONModel implements Parcelable {
         this.mRadiomix = mRadiomix;
     }
 
-    public String getCurrentTrack(long time) {
-        String currentTrack = "";
-        for (int i = 0; i < mTracklist.size(); i++) {
-            Track t = mTracklist.get(i);
-            TimeUtils utils = new TimeUtils();
-            if (utils.timerToMilliSeconds(t.getStartTime()) <= time) {
-                currentTrack = t.getTrackName();
-            } else {
-                break;
-            }
-        }
-        return currentTrack;
-    }
-
-    public List<Track> generateTracklist(String tracklistString, String starttimesString) {
-        List<String> tracklistArray = new ArrayList<String>();
-        List<String> starttimesArray = new ArrayList<String>();
-        if(tracklistString.contains(", ")) {
-            tracklistArray = new ArrayList<String>(Arrays.asList(tracklistString.split(", ")));
-            starttimesArray = new ArrayList<String>(Arrays.asList(starttimesString.split(", ")));
-        }
-        else {
-            tracklistArray.add(tracklistString);
-            starttimesArray.add(starttimesString);
-        }
-        List<Track> trackList = new ArrayList<Track>();
-        while(tracklistArray.size() != starttimesArray.size()) {
-            String lastValue = starttimesArray.get(starttimesArray.size() - 1);
-            starttimesArray.add(lastValue);
-        }
-        for(int i = 0 ; i < tracklistArray.size() ; i++) {
-            try {
-                trackList.add(new Track(tracklistArray.get(i), starttimesArray.get(i)));
-            } catch(IndexOutOfBoundsException e) {
-                Log.v("Error", e.toString());
-            }
-        }
-        return trackList;
-    }
 }

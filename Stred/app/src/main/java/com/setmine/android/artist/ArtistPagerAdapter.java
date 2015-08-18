@@ -31,18 +31,18 @@ public class ArtistPagerAdapter extends FragmentPagerAdapter {
         super(fm);
         this.fm = fm;
         currentArtist = artist;
-        DUEFragment = new DetailUpcomingEventsFragment();
-        DSFragment = new DetailSetsFragment();
-        DUEFragment.selectedArtist = currentArtist;
-        DSFragment.selectedArtist = currentArtist;
     }
 
 
     @Override
     public Fragment getItem(int i) {
         if (i == 0) {
+            DSFragment = new DetailSetsFragment();
+            DSFragment.selectedArtist = currentArtist;
             return DSFragment;
         } else {
+            DUEFragment = new DetailUpcomingEventsFragment();
+            DUEFragment.selectedArtist = currentArtist;
             return DUEFragment;
         }
     }

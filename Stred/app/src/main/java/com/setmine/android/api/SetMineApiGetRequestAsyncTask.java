@@ -10,6 +10,8 @@ import com.setmine.android.util.HttpUtils;
 
 import org.json.JSONObject;
 
+import java.net.SocketTimeoutException;
+
 /**
  * Created by oscarlafarga on 9/21/14.
  */
@@ -52,14 +54,20 @@ public class SetMineApiGetRequestAsyncTask extends AsyncTask<String, Integer, JS
         }
         String apiRequest = params[0];
         JSONObject jsonResponse = null;
+        if(apiRequest.contains("?")) {
+            apiRequest += "&setmine_api_key=" + Constants.API_KEY;
+        } else {
+            apiRequest += "?setmine_api_key=" + Constants.API_KEY;
+        }
+
 
         // Use the HttpUtil to retrieve a JSON string from the SetMine API
         try {
             String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
             jsonResponse = new JSONObject(jsonString);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
+
         }
         return jsonResponse;
     }

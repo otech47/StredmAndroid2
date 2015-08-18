@@ -52,15 +52,11 @@ public class PlayerPagerAdapter extends FragmentStatePagerAdapter{
     public Fragment getItem(int i) {
         Log.d(TAG, "getItem: "+ Integer.toString(i));
         if(i == 0) {
-//            playListFragment = new PlaylistFragment();
-//            ((SetMineMainActivity)context).playlistFragment = playListFragment;
-//            return playListFragment;
             playerFragment = new PlayerFragment();
             return playerFragment;
         } else {
             tracklistFragment = new TracklistFragment();
             Bundle args = new Bundle();
-            Log.v("args", args.toString());
             tracklistFragment.setArguments(args);
             return tracklistFragment;
         }

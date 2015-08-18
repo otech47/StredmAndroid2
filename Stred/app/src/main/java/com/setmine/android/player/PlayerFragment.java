@@ -32,6 +32,7 @@ import com.setmine.android.external.CircularSeekBar;
 import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.set.Set;
+import com.setmine.android.track.Track;
 import com.setmine.android.user.User;
 import com.setmine.android.util.TimeUtils;
 
@@ -78,7 +79,8 @@ public class PlayerFragment extends Fragment implements
             ((TextView) rootView.findViewById(R.id.player_song_time)).setText("" + utils.milliSecondsToTimer(time));
 
             // set track name
-            ((TextView) rootView.findViewById(R.id.player_track_title)).setText(song.getCurrentTrack(time));
+            ((TextView) rootView.findViewById(R.id.player_track_title)).setText(playerManager
+                    .getCurrentTrack(time).getTrackName());
 
             // Updating progress bar
             int progress = (utils.getProgressPercentage(time, duration));
@@ -128,7 +130,9 @@ public class PlayerFragment extends Fragment implements
         super.onAttach(activity);
         this.activity = (SetMineMainActivity)activity;
         this.playerService = this.activity.playerService;
-        this.playerManager = playerService.playerManager;
+        if(playerService != null) {
+            this.playerManager = playerService.playerManager;
+        }
         ((PlayerContainerFragment)getParentFragment()).playerFragment = this;
         user = this.activity.user;
     }
@@ -217,7 +221,9 @@ public class PlayerFragment extends Fragment implements
     @Override
     public void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString("user", user.jsonModelString);
+        if(user != null) {
+            outState.putString("user", user.jsonModelString);
+        }
     }
 
     @Override
@@ -375,8 +381,7 @@ public class PlayerFragment extends Fragment implements
     public void skipToTrack(int trackNo) {
         mHandler.removeCallbacks(mUpdateTimeTask);
 
-        int currentPosition = utils.timerToMilliSeconds(song.getTracklist()
-                .get(trackNo).getStartTime());
+        int currentPosition = utils.timerToMilliSeconds(playerManager.getTracklist().get(trackNo).getStartTime());
 
         // forward or backward to certain seconds
         playerService.mediaPlayer.seekTo(currentPosition);
@@ -390,49 +395,51 @@ public class PlayerFragment extends Fragment implements
 
         final ApiCaller superThis = this;
 
+        if(user != null ) {
+            if (user.isSetFavorited(song)) {
+                ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.unfavorite_button_white);
+            } else {
+                ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.favorite_button_white);
+            }
 
-        if (user.isSetFavorited(song)) {
-            ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.unfavorite_button_white);
-        } else {
-            ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.favorite_button_white);
+
+            rootView.findViewById(R.id.favorite_set_icon).setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (user.isRegistered()) {
+                        if (user.isSetFavorited(song)) {
+                            Toast.makeText(activity.getApplicationContext(),
+                                    "Removed from My Sets", Toast.LENGTH_SHORT).show();
+                            ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.favorite_button_white);
+                        } else {
+                            Toast.makeText(activity.getApplicationContext(),
+                                    "Added to My Sets", Toast.LENGTH_SHORT).show();
+                            ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.unfavorite_button_white);
+                        }
+                        try {
+                            JSONObject jsonUserData = new JSONObject();
+                            JSONObject jsonPostData = new JSONObject();
+                            jsonUserData.put("userID", Integer.parseInt(user.getId()));
+                            jsonUserData.put("setId", Integer.parseInt(song.getId()));
+                            jsonPostData.put("userData", jsonUserData);
+                            Log.d(TAG, jsonPostData.toString());
+
+                            SetMineApiPostRequestAsyncTask updateFavoriteSetsTask =
+                                    new SetMineApiPostRequestAsyncTask(activity, superThis);
+                            updateFavoriteSetsTask
+                                    .executeOnExecutor(SetMineApiPostRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                            "user/updateFavoriteSets", jsonPostData.toString(), "updateUserSets");
+                        } catch (JSONException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+                        activity.openMainViewPager(0);
+                    }
+                }
+            });
         }
 
-
-        rootView.findViewById(R.id.favorite_set_icon).setOnClickListener(new OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                if (user.isRegistered()) {
-                    if (user.isSetFavorited(song)) {
-                        Toast.makeText(activity.getApplicationContext(),
-                                "Removed from My Sets", Toast.LENGTH_SHORT).show();
-                        ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.favorite_button_white);
-                    } else {
-                        Toast.makeText(activity.getApplicationContext(),
-                                "Added to My Sets", Toast.LENGTH_SHORT).show();
-                        ((ImageView) rootView.findViewById(R.id.favorite_set_icon)).setImageResource(R.drawable.unfavorite_button_white);
-                    }
-                    try {
-                        JSONObject jsonUserData = new JSONObject();
-                        JSONObject jsonPostData = new JSONObject();
-                        jsonUserData.put("userID", Integer.parseInt(user.getId()));
-                        jsonUserData.put("setId", Integer.parseInt(song.getId()));
-                        jsonPostData.put("userData", jsonUserData);
-                        Log.d(TAG, jsonPostData.toString());
-
-                        SetMineApiPostRequestAsyncTask updateFavoriteSetsTask =
-                                new SetMineApiPostRequestAsyncTask(activity, superThis);
-                        updateFavoriteSetsTask
-                                .executeOnExecutor(SetMineApiPostRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                        "user/updateFavoriteSets", jsonPostData.toString(), "updateUserSets");
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-                } else {
-                    activity.openMainViewPager(0);
-                }
-            }
-        });
 
 
     }
@@ -530,11 +537,7 @@ public class PlayerFragment extends Fragment implements
         // Displaying Song title
         ((TextView) rootView.findViewById(R.id.player_event_name)).setText(song.getEvent());
         ((TextView) rootView.findViewById(R.id.player_artist_name)).setText(song.getArtist());
-        ((TextView) rootView.findViewById(R.id.player_track_title)).setText(song.getCurrentTrack(0));
-//        ((PlayerContainerFragment)getParentFragment()).mPlayerPagerAdapter
-//                .playListFragment.updatePlaylist();
-
-
+//        ((TextView) rootView.findViewById(R.id.player_track_title)).setText(song.getCurrentTrack(0));
 
     }
 
@@ -554,83 +557,5 @@ public class PlayerFragment extends Fragment implements
         ((PlayerContainerFragment) getParentFragment()).tracklistFragment.updateTracklist();
     }
 
-//    private void setSlideTouchGestures() {
-//        final GestureDetector gesture = new GestureDetector(getActivity(),
-//                new GestureDetector.SimpleOnGestureListener() {
-//
-//                    @Override
-//                    public boolean onDown(MotionEvent e) {
-//                        return true;
-//                    }
-//
-//                    @Override
-//                    public boolean onFling(MotionEvent e1, MotionEvent e2,
-//                                           float velocityX, float velocityY) {
-//                        final int SWIPE_MIN_DISTANCE = 120;
-//                        final int SWIPE_MAX_OFF_PATH = 250;
-//                        final int SWIPE_THRESHOLD_VELOCITY = 200;
-//                        try {
-//                            if ((e1.getY() - e2.getY()) > SWIPE_MAX_OFF_PATH) {
-//                                // Toast.makeText(getActivity(),
-//                                // "onfling off path UP", 500).show();
-//                                ((SetMineMainActivity) getActivity()).openPlayer();
-//                                return false;
-//                            } else if ((e2.getY() - e1.getY()) > SWIPE_MAX_OFF_PATH) {
-//                                // Toast.makeText(getActivity(),
-//                                // "onfling off path DOWN", 500).show();
-////								((SetMineMainActivity) getActivity()).closePlayer();
-//                                return false;
-//                            }
-//
-//                            if (e1.getX() - e2.getX() > SWIPE_MIN_DISTANCE
-//                                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-//                                // Toast.makeText(getActivity(), "onfling left",
-//                                // 500).show();
-//                            } else if (e2.getX() - e1.getX() > SWIPE_MIN_DISTANCE
-//                                    && Math.abs(velocityX) > SWIPE_THRESHOLD_VELOCITY) {
-//                                // Toast.makeText(getActivity(),
-//                                // "onfling right", 500).show();
-//                            } else if (e1.getY() - e2.getY() > SWIPE_MIN_DISTANCE
-//                                    && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
-//                                // Toast.makeText(getActivity(), "onfling up",
-//                                // 500).show();
-//                            } else if (e2.getY() - e1.getY() > SWIPE_MIN_DISTANCE
-//                                    && Math.abs(velocityY) > SWIPE_THRESHOLD_VELOCITY) {
-//                                // Toast.makeText(getActivity(), "onfling down",
-//                                // 500).show();
-//                            }
-//
-//                        } catch (Exception e) {
-//                            // nothing
-//                        }
-//                        return super.onFling(e1, e2, velocityX, velocityY);
-//                    }
-//
-//                    @Override
-//                    public boolean onSingleTapUp(MotionEvent e) {
-////						((SetMineMainActivity) getActivity()).togglePlayerClosed();
-//                        return false;
-//                    }
-//
-//                });
-
-//    }
-
-    //    private void setShuffleListener() {
-//        mButtonShuffle.setOnClickListener(new OnClickListener() {
-//
-//            @Override
-//            public void onClick(View v) {
-//                isShuffle = !isShuffle;
-//                if (isShuffle) {
-//                    mButtonShuffle.setImageResource(R.drawable.btn_shuffle_on);
-//                    playerManager.selectedSetIndex = playerManager.getPlaylistShuffled().indexOf(song);
-//                } else {
-//                    mButtonShuffle.setImageResource(R.drawable.btn_shuffle);
-//                    playerManager.selectedSetIndex = playerManager.getPlaylist().indexOf(song);
-//                }
-//            }
-//        });
-//    }
 
 }

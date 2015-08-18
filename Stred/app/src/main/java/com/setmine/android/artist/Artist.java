@@ -34,24 +34,29 @@ public class Artist  extends JSONModel {
     public Artist(JSONObject json) {
         jsonModelString = json.toString();
         try {
-            setId(json.getString("id"));
-            setArtist(json.getString("artist"));
-            setBio(json.getString("bio"));
-            setFacebookLink(json.getString("fb_link"));
-            setTwitterLink(json.getString("twitter_link"));
+            mId = json.getString("id");
+            mArtist = json.getString("artist");
+            mBio = json.getString("bio");
+            mImageUrl = Constants.CLOUDFRONT_URL_FOR_IMAGES + json.getString("imageURL");
+
+            if(!json.isNull("fb_link")) {
+                mFacebookLink = json.getString("fb_link");
+            }
+            if(!json.isNull("twitter_link")) {
+                mTwitterLink = json.getString("twitter_link");
+            }
             if(!json.isNull("instagram_link")) {
-                setInstagramLink(json.getString("instagram_link"));
+                mInstagramLink = json.getString("instagram_link");
             }
             if(!json.isNull("soundcloud_link")) {
-                setSoundcloudLink(json.getString("soundcloud_link"));
+                mSoundcloudLink = json.getString("soundcloud_link");
             }
             if(!json.isNull("youtube_link")) {
-                setYoutubeLink(json.getString("youtube_link"));
+                mYoutubeLink = json.getString("youtube_link");
             }
             if(!json.isNull("web_link")) {
-                setWebLink(json.getString("web_link"));
+                mWebLink = json.getString("web_link");
             }
-            setImageUrl(json.getString("imageURL"));
             if(json.has("sets")) {
                 setSets(json.getJSONArray("sets"));
             }

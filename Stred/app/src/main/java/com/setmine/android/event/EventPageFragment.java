@@ -38,7 +38,6 @@ import com.setmine.android.MainPagerContainerFragment;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.api.InitialApiCallAsyncTask;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.util.DateUtils;
@@ -173,12 +172,6 @@ public class EventPageFragment extends Fragment implements ApiCaller,
                     viewPager.setCurrentItem(1);
                 }
             });
-            rootView.findViewById(R.id.event_search_nav_icon).setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    viewPager.setCurrentItem(3);
-                }
-            });
         }
 
         loader = rootView.findViewById(R.id.centered_loader_container);
@@ -303,11 +296,7 @@ public class EventPageFragment extends Fragment implements ApiCaller,
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 Event currentEvent = currentEvents.get(position);
-                if(eventType.equals("recent")) {
-                    activity.openEventDetailPage(currentEvent.getEvent(), eventType);
-                } else {
-                    activity.openEventDetailPage(currentEvent.getId(), eventType);
-                }
+                activity.openEventDetailPage(currentEvent.getId(), eventType);
             }
         });
         rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
@@ -322,7 +311,7 @@ public class EventPageFragment extends Fragment implements ApiCaller,
         String date = apiDateFormat.format(selectedDate.getTime());
         String route = "upcoming/?date=" + Uri.encode(date) + "&latitude=" + latitude + "&longitude=" + longitude;
         new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
-                .executeOnExecutor(InitialApiCallAsyncTask.THREAD_POOL_EXECUTOR,
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         route,
                         "searchEvents");
     }

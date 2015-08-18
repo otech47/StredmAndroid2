@@ -3,6 +3,8 @@ package com.setmine.android.player;
 import android.util.Log;
 
 import com.setmine.android.set.Set;
+import com.setmine.android.track.Track;
+import com.setmine.android.util.TimeUtils;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -21,9 +23,11 @@ public class PlayerManager {
     private int playlistLength = 0;
     public Set selectedSet;
     public int selectedSetIndex;
+    public List<Track> currentTracklist;
 
     public PlayerManager() {
         selectedSet = null;
+        currentTracklist = new ArrayList<Track>();
     }
 
     public List<Set> getPlaylist() {
@@ -75,6 +79,30 @@ public class PlayerManager {
 
     public void setPlaylistLength(int playlistLength) {
         this.playlistLength = playlistLength;
+    }
+
+    public void setTracklist(List<Track> tracklist) {
+        this.currentTracklist = tracklist;
+    }
+
+    public List<Track> getTracklist() {
+        return currentTracklist;
+    }
+
+    public Track getCurrentTrack(long time) {
+        Track currentTrack = new Track();
+        if(currentTracklist.size() > 0) {
+            for (int i = 0; i < currentTracklist.size(); i++) {
+                Track t = currentTracklist.get(i);
+                TimeUtils utils = new TimeUtils();
+                if (utils.timerToMilliSeconds(t.getStartTime()) <= time) {
+                    currentTrack = t;
+                } else {
+                    break;
+                }
+            }
+        }
+        return currentTrack;
     }
 
 }

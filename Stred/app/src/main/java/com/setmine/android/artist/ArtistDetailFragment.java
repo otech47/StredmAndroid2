@@ -43,37 +43,19 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
 
     private static final String TAG = "ArtistDetailFragment";
 
-    public Context context;
-    public SetMineMainActivity activity;
-    public ModelsContentProvider modelsCP;
-
     public FragmentManager fragmentManager;
     public ArtistPagerAdapter artistPagerAdapter;
     public ViewPager artistViewPager;
 
     public View rootView;
-    public ImageView artistImageView;
-    public TextView artistTextView;
-    public View socialContainerView;
-    public View upcomingEventsListView;
-    public View setsListView;
-    public View eventTile;
 
     public Artist currentArtist;
     public String artistName;
     public String artistImageUrl;
 
-    public List<Set> detailSets;
-    public List<Event> detailEvents;
-
-    public boolean modelsReady;
-
     public List<HashMap<String, String>> setMapsList;
     public ListView lineupContainer;
     public PlayerManager playerManager;
-
-    public DateUtils dateUtils;
-    DisplayImageOptions options;
 
     // When the API Response is received, a new thread stores the data and the UI is updated
     // Using a separate thread increases performance and minimizes UI lag
@@ -111,7 +93,6 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        modelsReady = false;
 
     }
 
@@ -119,16 +100,13 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.artist_detail, container, false);
-        artistTextView = (TextView)rootView.findViewById(R.id.artistName);
-        artistImageView = (ImageView)rootView.findViewById(R.id.artistImage);
 
         // Only track Mixpanel events if created for the first time
 
         if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
             Bundle arguments = getArguments();
             artistName = arguments.getString("currentArtist");
-            new SetMineApiGetRequestAsyncTask(activity, this)
+            new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                             "artist/search/" + Uri.encode(artistName), "artist/search");
         } else {
@@ -158,18 +136,21 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
         configureArtistPagers();
         artistName = currentArtist.getArtist();
         artistImageUrl = currentArtist.getImageUrl();
-        artistTextView.setText(artistName);
+        ((TextView)rootView.findViewById(R.id.artistName)).setText(artistName);
         try {
             JSONObject mixpanelProperties = new JSONObject();
             mixpanelProperties.put("id", currentArtist.getId());
             mixpanelProperties.put("artist", currentArtist.getArtist());
-            activity.mixpanel.track("Artist Click Through", mixpanelProperties);
+            if(((SetMineMainActivity)getActivity()).mixpanel != null) {
+                ((SetMineMainActivity)getActivity()).mixpanel.track("Artist Click Through",
+                        mixpanelProperties);
+            }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
 
-        dateUtils = new DateUtils();
-        options = new DisplayImageOptions.Builder()
+        DisplayImageOptions options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
                 .showImageOnFail(R.drawable.logo_small)
@@ -178,22 +159,17 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                 .considerExifParams(true)
                 .build();
 
-        ImageLoader.getInstance().displayImage(artistImageUrl, artistImageView, options);
+        ImageLoader.getInstance().displayImage(artistImageUrl, (ImageView)rootView.findViewById(R.id.artistImage), options);
 
         setSocialMediaListeners();
 
         rootView.findViewById(R.id.detail_loading).setVisibility(View.GONE);
 
-        // Set modelsReady so onCreateView knows data is ready for the UI
-
-        modelsReady = true;
     }
 
     // Configure the Events/Sets ViewPager and List Adapters
 
     public void configureArtistPagers() {
-        detailSets = currentArtist.getSets();
-        detailEvents = currentArtist.getUpcomingEvents();
         artistViewPager = (ViewPager)rootView.findViewById(R.id.artistDetailPager);
         artistPagerAdapter = new ArtistPagerAdapter(getChildFragmentManager(), currentArtist);
         artistViewPager.setAdapter(artistPagerAdapter);
@@ -221,7 +197,6 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
     // Set Facebook, Twitter, and Web Link actions and Mixpanel event tracking
 
     public void setSocialMediaListeners() {
-        activity = (SetMineMainActivity) getActivity();
         if(currentArtist.getFacebookLink() != null) {
             rootView.findViewById(R.id.facebookButton).setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -230,7 +205,8 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                         JSONObject mixpanelProperties = new JSONObject();
                         mixpanelProperties.put("id", currentArtist.getId());
                         mixpanelProperties.put("artist", artistName);
-                        activity.mixpanel.track("Facebook Link Clicked", mixpanelProperties);
+                        ((SetMineMainActivity)getActivity()).mixpanel.track("Facebook Link " +
+                                "Clicked", mixpanelProperties);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -248,7 +224,8 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                         JSONObject mixpanelProperties = new JSONObject();
                         mixpanelProperties.put("id", currentArtist.getId());
                         mixpanelProperties.put("artist", artistName);
-                        activity.mixpanel.track("Twitter Link Clicked", mixpanelProperties);
+                        ((SetMineMainActivity)getActivity()).mixpanel.track("Twitter Link " +
+                                "Clicked", mixpanelProperties);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -266,7 +243,8 @@ public class ArtistDetailFragment extends Fragment implements ApiCaller {
                         JSONObject mixpanelProperties = new JSONObject();
                         mixpanelProperties.put("id", currentArtist.getId());
                         mixpanelProperties.put("artist", artistName);
-                        activity.mixpanel.track("Web Link Clicked", mixpanelProperties);
+                        ((SetMineMainActivity)getActivity()).mixpanel.track("Web Link Clicked",
+                                mixpanelProperties);
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }

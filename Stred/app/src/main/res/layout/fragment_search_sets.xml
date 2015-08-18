@@ -4,15 +4,6 @@
     android:layout_height="match_parent"
     android:background="@color/setmine_white">
 
-    <ProgressBar
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/search_loading"
-        android:padding="120dp"
-        android:background="@color/setmine_gray_50_alpha"
-        android:gravity="center|center"
-        android:indeterminate="true" />
-
 
     <SearchView
         android:layout_width="match_parent"
@@ -88,6 +79,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:id="@+id/setsLoading"
+            android:visibility="gone"
             android:layout_margin="@dimen/progress_padding"
             android:layout_centerInParent="true"
             android:gravity="center|bottom"
@@ -123,7 +115,7 @@
             <Button android:id="@+id/searchResultUpcomingEvents"
                 android:layout_height="wrap_content"
                 android:layout_width="0dp"
-                android:text="@string/upcoming"
+                android:text="@string/events"
                 android:layout_weight="1"/>
 
             <Button android:id="@+id/searchResultTracks"
@@ -156,6 +148,16 @@
         android:visibility="visible"
         android:layout_toRightOf="@id/browse_container"
         android:layout_below="@id/search_sets">
+
+        <ProgressBar
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/browseLoading"
+            android:visibility="gone"
+            android:layout_margin="@dimen/progress_padding"
+            android:layout_centerInParent="true"
+            android:gravity="center|bottom"
+            android:indeterminate="true" />
 
         <ListView
             android:layout_width="wrap_content"

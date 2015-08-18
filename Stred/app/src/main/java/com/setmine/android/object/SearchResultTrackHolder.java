@@ -7,9 +7,9 @@ import android.widget.TextView;
 
 public class SearchResultTrackHolder extends Object {
     public ImageView artistImage;
-    public TextView trackText;
+    public TextView trackName;
     public TextView setLength;
-    public TextView trackTime;
+    public TextView startTime;
     public TextView eventText;
     public TextView artistText;
 }

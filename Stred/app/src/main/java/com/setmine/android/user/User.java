@@ -39,7 +39,6 @@ public class User extends JSONModel {
 
     public User(JSONObject json) {
         jsonModelString = json.toString();
-        isRegistered = true;
         try {
             setId(json.getString("id"));
             setEmail(json.getString("username"));
@@ -47,6 +46,7 @@ public class User extends JSONModel {
             setLastName(json.getString("last_name"));
             setFacebookID(json.getString("facebook_id"));
             setFavoriteSets(json);
+            isRegistered = true;
         } catch (JSONException e) {
             e.printStackTrace();
         }

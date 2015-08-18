@@ -3,6 +3,7 @@ package com.setmine.android.set;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -42,9 +43,8 @@ public class DetailSetsFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         rootView = inflater.inflate(R.layout.detail_list, container, false);
         View detailListContainer = rootView.findViewById(R.id.detailListContainer);
-        activity = (SetMineMainActivity)getActivity();
 
-        detailSets = ((ArtistDetailFragment)getParentFragment()).detailSets;
+        detailSets = selectedArtist.getSets();
 
         if(detailSets.size() == 0) {
             ((TextView)rootView.findViewById(R.id.noResults)).setText("No Sets Found");
@@ -55,55 +55,54 @@ public class DetailSetsFragment extends Fragment {
         else {
             rootView.findViewById(R.id.noResults).setVisibility(View.GONE);
             rootView.findViewById(R.id.message).setVisibility(View.GONE);
-        }
-        for(final Set set : detailSets) {
-            View setTile = inflater.inflate(R.layout.artist_tile_recent, container, false);
-            ((TextView)setTile.findViewById(R.id.artistText)).setText(set.getEvent());
-            ((TextView)setTile.findViewById(R.id.playCount)).setText(set.getPopularity()+" plays");
+            for(final Set set : detailSets) {
+                View setTile = inflater.inflate(R.layout.artist_tile_recent, container, false);
+                ((TextView)setTile.findViewById(R.id.artistText)).setText(set.getEvent());
+                ((TextView)setTile.findViewById(R.id.playCount)).setText(set.getPopularity()+" plays");
 
-            options = new DisplayImageOptions.Builder()
-                    .showImageOnLoading(R.drawable.logo_small)
-                    .showImageForEmptyUri(R.drawable.logo_small)
-                    .showImageOnFail(R.drawable.logo_small)
-                    .cacheInMemory(true)
-                    .cacheOnDisk(true)
-                    .considerExifParams(true)
-                    .build();
-            ImageView imageView = (ImageView)setTile.findViewById(R.id.artistImage);
-            ImageLoader.getInstance()
-                    .displayImage(set.getEventImage(),
-                            imageView, options);
-            if(set.isRadiomix() == 1) {
-                setTile.findViewById(R.id.playsIcon).setVisibility(View.GONE);
-            } else {
-                ((ImageView)setTile.findViewById(R.id.iconImage)).setImageResource(R.drawable.festival_icon);
-                ((TextView)setTile.findViewById(R.id.iconText)).setText("Event Info");
-                setTile.findViewById(R.id.playsIcon).setOnClickListener(new View.OnClickListener() {
+                options = new DisplayImageOptions.Builder()
+                        .showImageOnLoading(R.drawable.logo_small)
+                        .showImageForEmptyUri(R.drawable.logo_small)
+                        .showImageOnFail(R.drawable.logo_small)
+                        .cacheInMemory(true)
+                        .cacheOnDisk(true)
+                        .considerExifParams(true)
+                        .build();
+                ImageView imageView = (ImageView)setTile.findViewById(R.id.artistImage);
+                ImageLoader.getInstance()
+                        .displayImage(set.getEventImage(),
+                                imageView, options);
+                if(set.isRadiomix() == 1) {
+                    setTile.findViewById(R.id.playsIcon).setVisibility(View.GONE);
+                } else {
+                    ((ImageView)setTile.findViewById(R.id.iconImage)).setImageResource(R.drawable.festival_icon);
+                    ((TextView)setTile.findViewById(R.id.iconText)).setText("Event Info");
+                    setTile.findViewById(R.id.playsIcon).setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            v.setPressed(true);
+                            Log.d("DSF", Integer.toString(set.getEventID()));
+                            ((SetMineMainActivity)getActivity()).openEventDetailPage(Integer.toString(set.getEventID()),
+                                    "recent");
+
+                        }
+                    });
+                }
+                setTile.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        v.setPressed(true);
-                        Event currentEvent = null;
-                        for (Event event : ((ArtistDetailFragment)getParentFragment()).detailEvents) {
-                            if (event.getEvent().equals(set.getEvent())) {
-                                currentEvent = event;
-                            }
-                        }
-                        activity.openEventDetailPage(currentEvent.getEvent(), "recent");
-
+                        ((SetMineMainActivity)getActivity()).playerService.playerManager.setPlaylist
+                                (detailSets);
+                        ((SetMineMainActivity)getActivity()).playerService.playerManager
+                                .selectSetById(set.getId());
+                        ((SetMineMainActivity)getActivity()).startPlayerFragment();
+                        ((SetMineMainActivity)getActivity()).playSelectedSet();
                     }
                 });
+                ((ViewGroup)detailListContainer).addView(setTile);
             }
-            setTile.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    activity.playerService.playerManager.setPlaylist(detailSets);
-                    activity.playerService.playerManager.selectSetById(set.getId());
-                    activity.startPlayerFragment();
-                    activity.playSelectedSet();
-                }
-            });
-            ((ViewGroup)detailListContainer).addView(setTile);
         }
+
         return rootView;
     }
 }

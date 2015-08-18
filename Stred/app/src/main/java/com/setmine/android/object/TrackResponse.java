@@ -3,6 +3,7 @@ package com.setmine.android.object;
 import android.os.Parcel;
 import android.os.Parcelable;
 
+import com.setmine.android.Constants;
 import com.setmine.android.set.Set;
 import com.setmine.android.track.Track;
 
@@ -78,22 +79,22 @@ public class TrackResponse extends Set {
     public TrackResponse(JSONObject json) {
         jsonModelString = json.toString();
         try {
-            setId(json.getString("id"));
-            setTrackName(json.getString("trackname"));
-            setArtistName(json.getString("artistname"));
-            setSongName(json.getString("songname"));
-            setStartTime(json.getString("starttime"));
-            setArtistImage(json.getString("artistimageURL"));
-            setEventImage(json.getString("eventimageURL"));
-            setArtist(json.getString("artist"));
-            setEvent(json.getString("event"));
-            setGenre(json.getString("genre"));
-            setSongURL(json.getString("songURL"));
-            setPopularity(json.getInt("popularity"));
-            setIsRadiomix(json.getInt("is_radiomix"));
-            setEpisode(json.getString("episode"));
-            setSetLength(json.getString("set_length"));
-            setTracklist(generateTracklist(json.getString("tracklist"), json.getString("starttimes")));
+            mId = (json.getString("id"));
+            mTrackName = (json.getString("trackname"));
+            mArtistName = (json.getString("artistname"));
+            mSongName = (json.getString("songname"));
+            mStartTime = (json.getString("starttime"));
+            mArtistImage = Constants.CLOUDFRONT_URL_FOR_IMAGES + (json.getString("artistimageURL"));
+            mEventImage = Constants.CLOUDFRONT_URL_FOR_IMAGES + (json.getString("eventimageURL"));
+            mArtist = (json.getString("artist"));
+            mEvent = (json.getString("event"));
+            mGenre = (json.getString("genre"));
+            mSongURL = Constants.S3_ROOT_URL + (json.getString("songURL"));
+            episode = (json.getString("episode"));
+            setLength = (json.getString("set_length"));
+            popularity = (json.getInt("popularity"));
+            mRadiomix = (json.getInt("is_radiomix"));
+
         } catch (JSONException e) {
             e.printStackTrace();
         }

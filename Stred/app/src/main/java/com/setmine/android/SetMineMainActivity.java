@@ -9,7 +9,9 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.Signature;
 import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
@@ -20,6 +22,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.app.NotificationCompat;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -71,6 +74,8 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -98,7 +103,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     public String MODELS_VERSION;
 
-    public FragmentManager fragmentManager;
     public MainPagerContainerFragment mainPagerContainerFragment;
     public PlayerContainerFragment playerContainerFragment;
     public SearchSetsFragment searchSetsFragment;
@@ -485,6 +489,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Initialize Date Utils
 
+
         JodaTimeAndroid.init(this);
 
         // For event-based metrics on Mixpanel.com
@@ -519,7 +524,6 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Fragment Manager handles all fragments and the navigation between them
 
-//        fragmentManager = getSupportFragmentManager();
 
 
         if(savedInstanceState == null) {
@@ -696,7 +700,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onBackPressed() {
-        fragmentManager = getSupportFragmentManager();
+        FragmentManager fragmentManager = getSupportFragmentManager();
         Log.d(TAG, ((Integer)fragmentManager.getBackStackEntryCount()).toString());
         if(fragmentManager.getBackStackEntryCount() > 0) {
             fragmentManager.popBackStack();
@@ -784,8 +788,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         Bundle args = new Bundle();
         args.putInt("page", pageToScrollTo);
         mainPagerContainerFragment.setArguments(args);
-        fragmentManager = getSupportFragmentManager();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("mainPagerContainer");
@@ -799,7 +802,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         ArrayList<Set> playlistBundle = new ArrayList<Set>(playlist);
         args.putParcelableArrayList("playlist", playlistBundle);
         playlistFragment.setArguments(args);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, playlistFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("playlist");
@@ -812,7 +815,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         Log.d(TAG, "startPlayerFragment");
         playerContainerFragment = null;
         playerContainerFragment = new PlayerContainerFragment();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, playerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("player");
@@ -825,7 +828,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         Log.d(TAG, "startSearchFragment");
         searchSetsFragment = null;
         searchSetsFragment = new SearchSetsFragment();
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, searchSetsFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("searchSets");
@@ -840,7 +843,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         Bundle args = new Bundle();
         args.putString("currentArtist", artistName);
         artistDetailFragment.setArguments(args);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, artistDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("artistDetail");
@@ -856,7 +859,7 @@ public class SetMineMainActivity extends FragmentActivity implements
         Bundle args = new Bundle();
         args.putString("currentOffer", offerId);
         offerDetailFragment.setArguments(args);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, offerDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("offerDetail");
@@ -869,10 +872,10 @@ public class SetMineMainActivity extends FragmentActivity implements
         eventDetailFragment = null;
         eventDetailFragment = new EventDetailFragment();
         Bundle args = new Bundle();
-        args.putString("event", eventID);
+        args.putString("eventID", eventID);
         args.putString("eventType", (eventType.equals("search") ? "upcoming" : eventType));
         eventDetailFragment.setArguments(args);
-        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        FragmentTransaction transaction = getSupportFragmentManager().beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, eventDetailFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("eventDetail");
