@@ -145,7 +145,9 @@ public class PlayerFragment extends Fragment implements
         if(savedInstanceState != null) {
             String jsonUser = savedInstanceState.getString("user");
             try {
-                user = new User(new JSONObject(jsonUser));
+                if(jsonUser != null) {
+                    user = new User(new JSONObject(jsonUser));
+                }
             } catch (JSONException e) {
                 e.printStackTrace();
             }
@@ -216,6 +218,14 @@ public class PlayerFragment extends Fragment implements
     @Override
     public void onPause() {
         super.onPause();
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(playerService != null) {
+            this.playerManager = playerService.playerManager;
+        }
     }
 
     @Override
@@ -449,95 +459,98 @@ public class PlayerFragment extends Fragment implements
 
         rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
 
-        song = playerManager.getSelectedSet();
+        if(playerManager != null) {
+            song = playerManager.getSelectedSet();
 
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    JSONObject mixpanelProperties = new JSONObject();
-                    mixpanelProperties.put("id", song.getId());
-                    mixpanelProperties.put("artist", song.getArtist());
-                    mixpanelProperties.put("event", song.getEvent());
-                    activity.mixpanel.track("Specific Set Played", mixpanelProperties);
-                    activity.mixpanel.getPeople().increment("play_count", 1);
-                    activity.mixpanel.getPeople().append("sets_played_ids", song.getId());
-                    if(song.getEpisode().length() > 0) {
-                        activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent()+" - "+song.getEpisode());
-                    } else {
-                        activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent());
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        JSONObject mixpanelProperties = new JSONObject();
+                        mixpanelProperties.put("id", song.getId());
+                        mixpanelProperties.put("artist", song.getArtist());
+                        mixpanelProperties.put("event", song.getEvent());
+                        activity.mixpanel.track("Specific Set Played", mixpanelProperties);
+                        activity.mixpanel.getPeople().increment("play_count", 1);
+                        activity.mixpanel.getPeople().append("sets_played_ids", song.getId());
+                        if(song.getEpisode().length() > 0) {
+                            activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent()+" - "+song.getEpisode());
+                        } else {
+                            activity.mixpanel.getPeople().append("sets_played_names", song.getArtist()+" - "+song.getEvent());
+                        }
+                        activity.mixpanel.getPeople().append("sets_played_names", song.getId());
+                        activity.mixpanel.getPeople().append("sets_played_artists", song.getArtist());
+                        activity.mixpanel.getPeople().append("sets_played_events", song.getEvent());
+                        activity.mixpanel.getPeople().append("sets_played_genres", song.getGenre());
+                    } catch (JSONException e) {
+                        e.printStackTrace();
                     }
-                    activity.mixpanel.getPeople().append("sets_played_names", song.getId());
-                    activity.mixpanel.getPeople().append("sets_played_artists", song.getArtist());
-                    activity.mixpanel.getPeople().append("sets_played_events", song.getEvent());
-                    activity.mixpanel.getPeople().append("sets_played_genres", song.getGenre());
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
-            }
-        }).start();
+            }).start();
 
-        DisplayImageOptions options = new DisplayImageOptions.Builder()
-                .showImageOnLoading(R.drawable.logo_small)
-                .showImageForEmptyUri(R.drawable.logo_small)
-                .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(false)
-                .cacheOnDisk(true)
-                .considerExifParams(true)
-                .build();
+            DisplayImageOptions options = new DisplayImageOptions.Builder()
+                    .showImageOnLoading(R.drawable.logo_small)
+                    .showImageForEmptyUri(R.drawable.logo_small)
+                    .showImageOnFail(R.drawable.logo_small)
+                    .cacheInMemory(false)
+                    .cacheOnDisk(true)
+                    .considerExifParams(true)
+                    .build();
 
-        ImageLoader.getInstance().loadImage(song.getArtistImage(), options, new SimpleImageLoadingListener() {
+            ImageLoader.getInstance().loadImage(song.getArtistImage(), options, new SimpleImageLoadingListener() {
 
-            @Override
-            public void onLoadingStarted(String imageUri, View view) {
-                super.onLoadingStarted(imageUri, view);
-                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
-            }
+                @Override
+                public void onLoadingStarted(String imageUri, View view) {
+                    super.onLoadingStarted(imageUri, view);
+                    rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
+                }
 
-            @Override
-            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                ImageUtils imageUtils = new ImageUtils();
-                Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 5000);
-                ((ImageView) rootView.findViewById(R.id.player_image)).setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    ImageUtils imageUtils = new ImageUtils();
+                    Bitmap roundedBitmap = imageUtils.getRoundedCornerBitmap(loadedImage, 5000);
+                    ((ImageView) rootView.findViewById(R.id.player_image)).setImageDrawable(new BitmapDrawable(getActivity().getResources(), roundedBitmap));
 
-                Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
-                notificationIntent.setAction("UPDATE_REMOTE");
-                notificationIntent.putExtra("ARTIST", song.getArtist());
-                notificationIntent.putExtra("EVENT", song.getEvent());
-                sendIntentToService(notificationIntent);
-                playerService.artistImage = loadedImage;
+                    Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
+                    notificationIntent.setAction("UPDATE_REMOTE");
+                    notificationIntent.putExtra("ARTIST", song.getArtist());
+                    notificationIntent.putExtra("EVENT", song.getEvent());
+                    sendIntentToService(notificationIntent);
+                    playerService.artistImage = loadedImage;
 
-                rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
+                    rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
 
-            }
-        });
-        ImageLoader.getInstance().loadImage(song.getEventImage(), options, new SimpleImageLoadingListener() {
+                }
+            });
+            ImageLoader.getInstance().loadImage(song.getEventImage(), options, new SimpleImageLoadingListener() {
 
-            @Override
-            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                ImageUtils imageUtils = new ImageUtils();
-                Bitmap blurredBitmap = imageUtils.fastblur(loadedImage, 4);
-                ((ImageView) rootView.findViewById(R.id.background_image)).setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
+                @Override
+                public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                    ImageUtils imageUtils = new ImageUtils();
+                    Bitmap blurredBitmap = imageUtils.fastblur(loadedImage, 4);
+                    ((ImageView) rootView.findViewById(R.id.background_image)).setImageDrawable(new BitmapDrawable(getActivity().getResources(), blurredBitmap));
 
-                playerService.lockscreenImage = loadedImage;
+                    playerService.lockscreenImage = loadedImage;
 
-                Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
-                notificationIntent.setAction("UPDATE_REMOTE");
-                notificationIntent.putExtra("ARTIST", song.getArtist());
-                notificationIntent.putExtra("EVENT", song.getEvent());
-                sendIntentToService(notificationIntent);
+                    Intent notificationIntent = new Intent(getActivity(), PlayerService.class);
+                    notificationIntent.setAction("UPDATE_REMOTE");
+                    notificationIntent.putExtra("ARTIST", song.getArtist());
+                    notificationIntent.putExtra("EVENT", song.getEvent());
+                    sendIntentToService(notificationIntent);
 
-            }
-        });
+                }
+            });
 
-        updateFavoriteSetView();
+            updateFavoriteSetView();
 
 
-        // Displaying Song title
-        ((TextView) rootView.findViewById(R.id.player_event_name)).setText(song.getEvent());
-        ((TextView) rootView.findViewById(R.id.player_artist_name)).setText(song.getArtist());
+            // Displaying Song title
+            ((TextView) rootView.findViewById(R.id.player_event_name)).setText(song.getEvent());
+            ((TextView) rootView.findViewById(R.id.player_artist_name)).setText(song.getArtist());
 //        ((TextView) rootView.findViewById(R.id.player_track_title)).setText(song.getCurrentTrack(0));
+        }
+
 
     }
 

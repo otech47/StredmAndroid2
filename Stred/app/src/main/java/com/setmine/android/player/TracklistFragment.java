@@ -72,7 +72,9 @@ public class TracklistFragment extends Fragment implements ApiCaller {
 
         super.onCreate(savedInstanceState);
         playerService = ((SetMineMainActivity) getActivity()).playerService;
-        playerManager = playerService.playerManager;
+        if(playerService != null) {
+            playerManager = playerService.playerManager;
+        }
         ((PlayerContainerFragment)getParentFragment()).tracklistFragment = this;
 
     }

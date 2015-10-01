@@ -313,7 +313,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     private void onSessionStateChange(Session session, SessionState state, Exception e) {
         Log.d(TAG, "onSessionStateChange");
-        if (state.isOpened() && !registeredUser.isRegistered()) {
+        if (state.isOpened() && registeredUser != null && !registeredUser.isRegistered()) {
             Log.d(TAG, "Logged in.");
             rootView.findViewById(R.id.centered_loader_container).setVisibility(View.VISIBLE);
             authenticateFacebookUser();
