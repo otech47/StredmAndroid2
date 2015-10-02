@@ -93,10 +93,22 @@ public class TracklistFragment extends Fragment implements ApiCaller {
         super.onSaveInstanceState(outState);
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        if(playerManager == null && playerService != null) {
+            playerManager = playerService.playerManager;
+        }
+    }
+
     public void updateTracklist() {
         Log.d(TAG, "updateTracklist");
 
-        set = playerManager.getSelectedSet();
+        if(playerManager == null && playerService != null) {
+            playerManager = playerService.playerManager;
+            set = playerManager.getSelectedSet();
+        }
+
         if(set != null) {
             new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
                     .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
