@@ -22,7 +22,7 @@
     <color name="setmine_white">#FFEEEEEE</color>
     <color name="setmine_white_95_alpha">#EEEEEEEE</color>
     <color name="setmine_black">#FF000000</color>
-    <color name="setmine_gray">#FF333333</color>
+    <color name="setmine_gray">#ff2f2f2f</color>
     <color name="setmine_dark_gray">#af000000</color>
     <color name="setmine_gray_50_alpha">#77333333</color>
     <color name="setmine_light_gray">#FFCCCCCC</color>

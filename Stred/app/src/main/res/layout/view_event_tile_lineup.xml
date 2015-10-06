@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.percent.PercentRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/eventTileLineupView">
+
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_widthPercent="100%"
+        app:layout_heightPercent="20%"
+        android:id="@+id/eventTileLineupImage"
+        android:src="@drawable/logo"
+        android:background="@color/setmine_light_gray"
+        android:scaleType="centerCrop"
+        />
+
+    <View
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_widthPercent="100%"
+        app:layout_heightPercent="20%"
+        android:id="@+id/eventTileLineupLowerView"
+        android:layout_below="@id/eventTileLineupImage"
+        android:background="@color/setmine_light_gray"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Some Artist @ Somewhere"
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/eventTileLineupImageText"
+        android:textColor="@color/setmine_white"
+        android:textSize="25sp"
+        android:background="@color/setmine_blue"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:layout_marginLeft="7dp"
+        android:layout_marginRight="7dp"
+        android:layout_marginBottom="7dp"
+        android:layout_alignBottom="@id/eventTileLineupImage"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Some Venue"
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/eventTileLineupVenueText"
+        android:textColor="@color/setmine_gray"
+        android:textSize="15sp"
+        android:paddingLeft="7dp"
+        android:layout_below="@id/eventTileLineupImage"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" - "
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/eventTileLineupText1"
+        android:textColor="@color/setmine_gray"
+        android:textSize="15sp"
+        android:layout_below="@id/eventTileLineupImage"
+        android:layout_toRightOf="@+id/eventTileLineupVenueText"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Somewhere"
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/eventTileLineupLocationText"
+        android:textColor="@color/setmine_gray"
+        android:textSize="15sp"
+        android:layout_below="@id/eventTileLineupImage"
+        android:layout_toRightOf="@+id/eventTileLineupText1"
+        />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:id="@+id/eventTileLineupArtistBubbleView"
+        android:layout_below="@id/eventTileLineupVenueText"
+
+        android:layout_alignBottom="@+id/eventTileLineupLowerView"/>
+
+</android.support.percent.PercentRelativeLayout>

@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/artistTileView"
+                android:padding="10dp"
+                android:background="@color/setmine_white">
+
+    <ImageView
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:id="@+id/artistTileViewImage"
+        android:layout_alignParentLeft="true"
+        android:layout_centerVertical="true"
+        android:src="@drawable/logo"
+        android:scaleType="centerCrop"/>
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="60dp"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/artistTileViewImage">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Artist Name"
+            android:singleLine="true"
+            android:marqueeRepeatLimit="marquee_forever"
+            android:scrollHorizontally="true"
+            android:id="@+id/artistTileViewName"
+            android:textColor="@color/setmine_white"
+            android:textSize="15sp"
+            android:background="@drawable/rounded_corners"
+            android:paddingLeft="4dp"
+            android:paddingRight="4dp"
+            android:layout_marginTop="10dp"
+            />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#"
+            android:textColor="#ff2f2f2f"
+            android:id="@+id/artistTileViewSetCount"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentBottom="true"
+            android:layout_marginBottom="10dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" sets | "
+            android:textColor="#ff2f2f2f"
+            android:id="@+id/textView8"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentBottom="false"
+            android:layout_marginBottom="10dp"
+            android:layout_toRightOf="@+id/artistTileViewSetCount"
+            android:layout_alignTop="@+id/artistTileViewSetCount"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="#"
+            android:textColor="#ff2f2f2f"
+            android:id="@+id/artistTileEventCount"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentBottom="false"
+            android:layout_marginBottom="10dp"
+            android:layout_toRightOf="@+id/textView8"
+            android:layout_alignTop="@+id/artistTileViewSetCount"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=" events"
+            android:textColor="#ff2f2f2f"
+            android:id="@+id/textView9"
+            android:layout_alignParentLeft="false"
+            android:layout_alignParentStart="false"
+            android:layout_alignParentBottom="false"
+            android:layout_marginBottom="10dp"
+            android:layout_toRightOf="@+id/artistTileEventCount"
+            android:layout_alignTop="@+id/artistTileViewSetCount"/>
+    </RelativeLayout>
+
+</RelativeLayout>

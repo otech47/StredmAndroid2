@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.percent.PercentRelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:id="@+id/featuredSetsTileView">
+
+    <ImageView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_widthPercent="100%"
+        app:layout_heightPercent="30%"
+        android:id="@+id/featuredSetsTileImage"
+        android:src="@drawable/logo"
+        android:background="@color/setmine_white"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Event Name"
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/featuredSetsTileEventName"
+        android:textColor="@color/setmine_white"
+        android:textSize="30sp"
+        android:background="@color/setmine_blue"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:layout_marginLeft="7dp"
+        android:layout_marginBottom="3dp"
+        android:layout_alignBottom="@id/featuredSetsTileImage"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="#"
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/featuredSetsTileSetCount"
+        android:textColor="@color/setmine_white"
+        android:textSize="15sp"
+        android:background="@color/setmine_gray"
+        android:paddingLeft="4dp"
+
+        android:layout_alignLeft="@id/featuredSetsTileEventName"
+        android:layout_above="@id/featuredSetsTileEventName"
+        />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text=" sets | "
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/featuredSetsTileTextView"
+        android:textColor="@color/setmine_white"
+        android:textSize="15sp"
+        android:background="@color/setmine_gray"
+        android:layout_toRightOf="@id/featuredSetsTileSetCount"
+        android:layout_above="@id/featuredSetsTileEventName"
+        />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="event date"
+        android:singleLine="true"
+        android:marqueeRepeatLimit="marquee_forever"
+        android:scrollHorizontally="true"
+        android:id="@+id/featuredSetsTileEventDate"
+        android:textColor="@color/setmine_white"
+        android:textSize="15sp"
+        android:background="@color/setmine_gray"
+        android:layout_toRightOf="@id/featuredSetsTileTextView"
+        android:layout_above="@id/featuredSetsTileEventName"
+        android:paddingRight="4dp"
+        />
+
+</android.support.percent.PercentRelativeLayout>
