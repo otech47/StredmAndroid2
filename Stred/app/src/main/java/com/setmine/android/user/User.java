@@ -1,5 +1,6 @@
 package com.setmine.android.user;
 
+import com.setmine.android.Offer.Offer;
 import com.setmine.android.api.JSONModel;
 import com.setmine.android.event.Event;
 import com.setmine.android.set.Set;
@@ -24,9 +25,12 @@ public class User extends JSONModel {
     private List<Set> favoriteSets;
     private Event nextEvent;
     private List<Set> newSets;
-    private boolean isRegistered = false;
+    private boolean isRegistered;
+    private List<Offer> mOffers;
 
     public User() {
+        jsonModelString = "";
+        isRegistered = false;
     }
 
     public User(JSONObject json) {
@@ -146,6 +150,21 @@ public class User extends JSONModel {
             newSets = new ArrayList<Set>();
             for(int i = 0 ; i < json.length() ; i++) {
                 newSets.add(new Set(json.getJSONObject(i)));
+            }
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public List<Offer> getNewOffers() {
+        return mOffers;
+    }
+
+    public void setNewOffers(JSONArray json) {
+        try {
+            mOffers = new ArrayList<Offer>();
+            for(int i = 0 ; i < json.length() ; i++) {
+                mOffers.add(new Offer(json.getJSONObject(i)));
             }
         } catch (JSONException e) {
             e.printStackTrace();

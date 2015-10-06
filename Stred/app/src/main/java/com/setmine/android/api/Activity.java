@@ -1,9 +1,6 @@
 package com.setmine.android.api;
 
 import com.setmine.android.Constants;
-
-import com.setmine.android.api.JSONModel;
-import com.setmine.android.Constants;
 import com.setmine.android.set.Set;
 
 import org.json.JSONArray;

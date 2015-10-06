@@ -1,12 +1,17 @@
 package com.setmine.android.artist;
 
 
-import com.setmine.android.api.JSONModel;
-
 import com.setmine.android.Constants;
+import com.setmine.android.api.JSONModel;
+import com.setmine.android.event.Event;
+import com.setmine.android.set.Set;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class Artist  extends JSONModel {
 	private String mId;
@@ -15,7 +20,13 @@ public class Artist  extends JSONModel {
     private String mFacebookLink;
     private String mTwitterLink;
     private String mWebLink;
+    private String mInstagramLink;
+    private String mSoundcloudLink;
+    private String mYoutubeLink;
     private String mImageUrl;
+    private List<Set> mSets;
+    private List<Event> mUpcomingEvents;
+
 
     public Artist() {
     }
@@ -28,10 +39,26 @@ public class Artist  extends JSONModel {
             setBio(json.getString("bio"));
             setFacebookLink(json.getString("fb_link"));
             setTwitterLink(json.getString("twitter_link"));
-            if(json.has("web_link")) {
+            if(!json.isNull("instagram_link")) {
+                setInstagramLink(json.getString("instagram_link"));
+            }
+            if(!json.isNull("soundcloud_link")) {
+                setSoundcloudLink(json.getString("soundcloud_link"));
+            }
+            if(!json.isNull("youtube_link")) {
+                setYoutubeLink(json.getString("youtube_link"));
+            }
+            if(!json.isNull("web_link")) {
                 setWebLink(json.getString("web_link"));
             }
             setImageUrl(json.getString("imageURL"));
+            if(json.has("sets")) {
+                setSets(json.getJSONArray("sets"));
+            }
+            if(json.has("upcomingEvents")) {
+                setUpcomingEvents(json.getJSONArray("upcomingEvents"));
+            }
+
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -85,6 +112,30 @@ public class Artist  extends JSONModel {
         this.mWebLink = mWebLink;
     }
 
+    public String getInstagramLink() {
+        return mInstagramLink;
+    }
+
+    public void setInstagramLink(String mInstagramLink) {
+        this.mInstagramLink = mInstagramLink;
+    }
+
+    public String getSoundcloudLink() {
+        return mSoundcloudLink;
+    }
+
+    public void setSoundcloudLink(String mSoundcloudLink) {
+        this.mSoundcloudLink = mSoundcloudLink;
+    }
+
+    public String getYoutubeLink() {
+        return mYoutubeLink;
+    }
+
+    public void setYoutubeLink(String mYoutubeLink) {
+        this.mYoutubeLink = mYoutubeLink;
+    }
+
     public String getImageUrl() {
         return mImageUrl;
     }
@@ -93,4 +144,44 @@ public class Artist  extends JSONModel {
         this.mImageUrl = Constants.CLOUDFRONT_URL_FOR_IMAGES + imageUrl;
     }
 
+    public List<Set> getSets() {
+        return mSets;
+    }
+
+    public void setSets(List<Set> mSets) {
+        this.mSets = mSets;
+    }
+
+    public void setSets(JSONArray setsJson) {
+        this.mSets = new ArrayList<Set>();
+        try {
+            for(int i = 0; i < setsJson.length(); i++) {
+                Set set = new Set(setsJson.getJSONObject(i));
+                mSets.add(set);
+            }
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    public List<Event> getUpcomingEvents() {
+        return mUpcomingEvents;
+    }
+
+    public void setUpcomingEvents(List<Event> mUpcomingEvents) {
+        this.mUpcomingEvents = mUpcomingEvents;
+    }
+
+    public void setUpcomingEvents(JSONArray eventsJson) {
+        this.mUpcomingEvents = new ArrayList<Event>();
+        try {
+            for(int i = 0; i < eventsJson.length(); i++) {
+                Event event = new Event(eventsJson.getJSONObject(i));
+                mUpcomingEvents.add(event);
+            }
+        } catch(JSONException e) {
+            e.printStackTrace();
+        }
+    }
 }

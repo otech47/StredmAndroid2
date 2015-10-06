@@ -25,6 +25,9 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.GooglePlayServicesClient;
+import com.google.android.gms.location.LocationClient;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.display.FadeInBitmapDisplayer;
@@ -32,40 +35,48 @@ import com.nostra13.universalimageloader.core.listener.ImageLoadingListener;
 import com.nostra13.universalimageloader.core.listener.PauseOnScrollListener;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
 import com.setmine.android.MainPagerContainerFragment;
-import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.InitialApiCallAsyncTask;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
+import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.util.DateUtils;
 
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 
-public class EventPageFragment extends Fragment implements ApiCaller {
+public class EventPageFragment extends Fragment implements ApiCaller,
+        GooglePlayServicesClient.ConnectionCallbacks,
+        GooglePlayServicesClient.OnConnectionFailedListener {
 
+    // Statics
     private static final String TAG = "EventPageFragment";
-
     public static final String ARG_OBJECT = "page";
-    public Integer page;
 
-    public SetMineMainActivity activity;
-    public Context context;
-    public ModelsContentProvider modelsCP;
-
+    // Views
     public View rootView;
+    public View loader;
     public ViewPager viewPager;
     public ListView listView;
-    public List<View> currentTiles;
 
+    // Models
+    public List<Event> currentEvents;
+    public String eventType;
+
+    // Local
+    public Integer page;
+    public SetMineMainActivity activity;
+    public Context context;
     public DateUtils dateUtils;
     public DisplayImageOptions options;
     public Geocoder geocoder;
@@ -73,22 +84,27 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     public Location selectedLocation;
     public List<Address> addressResultList;
     public Address addressResult;
-
-    public List<Event> currentEvents;
-    public String eventType;
+    public LocationClient locationClient;
+    public Location currentLocation;
     public EventAdapter eventAdapter;
 
+    public List<SetMineApiGetRequestAsyncTask> activeTasks;
 
-    public EventPageFragment() {}
+
+    public EventPageFragment() {
+        activeTasks = new ArrayList<SetMineApiGetRequestAsyncTask>();
+    }
 
     final Handler handler = new Handler();
 
     final Runnable updateUI = new Runnable() {
         @Override
         public void run() {
-            setEventAdapter();
+            onModelsReady();
         }
     };
+
+
 
     @Override
     public void onApiResponseReceived(JSONObject jsonObject, String identifier) {
@@ -98,12 +114,9 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             @Override
             public void run() {
                 Log.d(TAG, "onApiResponse: "+finalIdentifier);
-                if(modelsCP == null) {
-                    Log.d(TAG, "modelsCP is null");
-                    modelsCP = new ModelsContentProvider();
-                }
-                modelsCP.setModel(finalJsonObject, finalIdentifier);
-                currentEvents = modelsCP.searchEvents;
+
+                currentEvents = ModelsContentProvider.createModel(finalJsonObject, finalIdentifier);
+
                 handler.post(updateUI);
             }
         }).start();
@@ -130,43 +143,6 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         page = args.getInt(ARG_OBJECT);
         Log.v(TAG, "onCreate: " + page.toString());
 
-        if(savedInstanceState == null) {
-            this.activity = (SetMineMainActivity)getActivity();
-            if(modelsCP == null) {
-                modelsCP = activity.modelsCP;
-            }
-            if(page == 2) {
-                currentEvents = modelsCP.soonestEventsAroundMe;
-            }
-            else if(page == 3) {
-                currentEvents = modelsCP.recentEvents;
-            }
-            else if(page == 4) {
-                currentEvents = modelsCP.searchEvents;
-            }
-        } else {
-            if(modelsCP == null) {
-                modelsCP = new ModelsContentProvider();
-            }
-            String model = savedInstanceState.getString("currentEvents");
-            try {
-                JSONObject jsonModel = new JSONObject(model);
-                if(page == 2) {
-                    modelsCP.setModel(jsonModel, "upcomingEvents");
-                    currentEvents = modelsCP.soonestEventsAroundMe;
-                }
-                else if(page == 3) {
-                    modelsCP.setModel(jsonModel, "recentEvents");
-                    currentEvents = modelsCP.recentEvents;
-                }
-                else if(page == 4) {
-                    modelsCP.setModel(jsonModel, "searchEvents");
-                    currentEvents = modelsCP.searchEvents;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     @Override
@@ -181,6 +157,8 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         this.addressResult = null;
 
         this.viewPager = ((MainPagerContainerFragment)this.getParentFragment()).mViewPager;
+
+
         if(page == 2) {
             eventType = "upcoming";
             rootView = inflater.inflate(R.layout.events_scroll_view, container, false);
@@ -209,13 +187,58 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 }
             });
         }
-        else if(page == 4) {
-            eventType = "search";
-            rootView = inflater.inflate(R.layout.events_finder, container, false);
-            listView = (ListView) rootView.findViewById(R.id.searchResults);
-            configureEventSearch();
+
+        loader = rootView.findViewById(R.id.centered_loader_container);
+
+        if(savedInstanceState == null) {
+            this.activity = (SetMineMainActivity)getActivity();
+            if(page == 2) {
+                if(activity.currentLocation != null) {
+                    currentLocation = activity.currentLocation;
+                    String eventSearchUrl ="upcoming";
+                    eventSearchUrl += "/?latitude=" + currentLocation.getLatitude();
+                    eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
+
+                    new SetMineApiGetRequestAsyncTask(this.activity, this)
+                            .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                    eventSearchUrl, "upcomingEvents");
+                } else if(activity.servicesConnected()) {
+                    Log.d(TAG, "servicesConnected");
+                    locationClient = new LocationClient(activity, this, this);
+                    locationClient.connect();
+                }
+                else {
+                    Log.d(TAG, "services NOT Connected");
+                    currentLocation = null;
+                    new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                            .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                    "upcoming", "upcomingEvents");
+                }
+
+            }
+            else if(page == 3) {
+                new SetMineApiGetRequestAsyncTask((SetMineMainActivity)getActivity(), this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                                "featured", "recentEvents");
+            }
+        } else {
+            final ArrayList<String> eventsModel = savedInstanceState.getStringArrayList("currentEvents");
+            String model = savedInstanceState.getString("currentEvents");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        for (int i = 0; i < eventsModel.size(); i++) {
+                            currentEvents.add(new Event(new JSONObject(eventsModel.get(i))));
+                        }
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+            onModelsReady();
+
         }
-        setEventAdapter();
 
         return rootView;
     }
@@ -229,17 +252,11 @@ public class EventPageFragment extends Fragment implements ApiCaller {
     @Override
     public void onSaveInstanceState(Bundle outState) {
         Log.d(TAG, "onSaveInstanceState");
-        if(page == 2) {
-            outState.putString("currentEvents", modelsCP.jsonMappings.get("soonestEventsAroundMe"));
+        ArrayList<String> eventsJsonStringArray = new ArrayList<String>();
+        for(int i = 0 ; i < currentEvents.size() ; i++) {
+            eventsJsonStringArray.add(currentEvents.get(i).jsonModelString);
         }
-        else if(page == 3) {
-            outState.putString("currentEvents", modelsCP.jsonMappings.get("recentEvents"));
-        }
-        else if(page == 4) {
-            outState.putString("currentEvents", modelsCP.jsonMappings.get("searchEvents"));
-        }
-        else
-            currentTiles = null;
+        outState.putStringArrayList("currentEvents", eventsJsonStringArray);
         super.onSaveInstanceState(outState);
     }
 
@@ -267,8 +284,18 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         Log.d(TAG, "onDestroy");
     }
 
+    public void onModelsReady(){
+        Log.d(TAG, "onModelsReady");
+
+        setEventAdapter();
+//        configureEventSearch();
+        loader.setVisibility(View.GONE);
+
+    }
+
     public void setEventAdapter() {
-        LayoutInflater inflater = LayoutInflater.from(getActivity());
+        activity = (SetMineMainActivity)getActivity();
+        LayoutInflater inflater = LayoutInflater.from(activity);
 
         eventAdapter = new EventAdapter(inflater, currentEvents, eventType);
         listView.setAdapter(eventAdapter);
@@ -280,7 +307,11 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             public void onItemClick(AdapterView<?> parent, View v,
                                     int position, long id) {
                 Event currentEvent = currentEvents.get(position);
-                activity.openEventDetailPage(currentEvent, eventType);
+                if(eventType.equals("recent")) {
+                    activity.openEventDetailPage(currentEvent.getEvent(), eventType);
+                } else {
+                    activity.openEventDetailPage(currentEvent.getId(), eventType);
+                }
             }
         });
         rootView.findViewById(R.id.centered_loader_container).setVisibility(View.GONE);
@@ -307,9 +338,7 @@ public class EventPageFragment extends Fragment implements ApiCaller {
         if(activity.currentLocation != null) {
             this.selectedLocation = new Location(activity.currentLocation);
         } else {
-            this.selectedLocation = new Location("default");
-            selectedLocation.setLatitude(29.652175);
-            selectedLocation.setLongitude(-82.325856);
+            this.selectedLocation = null;
         }
 
 
@@ -338,18 +367,19 @@ public class EventPageFragment extends Fragment implements ApiCaller {
             }
         });
         if(addressResult == null) {
-            try {
-                addressResultList = geocoder.getFromLocation(selectedLocation.getLatitude(),
-                        selectedLocation.getLongitude(), 1);
-                if(addressResultList.size() > 0) {
-                    addressResult = addressResultList.get(0);
-                    locationText.setText(addressResult.getLocality() + ", " + addressResult.getAdminArea());
+            if(selectedLocation!=null) {
+                try {
+                    addressResultList = geocoder.getFromLocation(selectedLocation.getLatitude(),
+                            selectedLocation.getLongitude(), 1);
+                    if (addressResultList.size() > 0) {
+                        addressResult = addressResultList.get(0);
+                        locationText.setText(addressResult.getLocality() + ", " + addressResult.getAdminArea());
+                    } else {
+                        locationText.setText("No Address");
+                    }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
-                else {
-                    locationText.setText("No Address");
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
             }
         }
 
@@ -515,5 +545,51 @@ public class EventPageFragment extends Fragment implements ApiCaller {
                 }
             }
         }
+    }
+    @Override
+    public void onConnected(Bundle bundle) {
+        Log.d(TAG, "onConnected");
+
+        String eventSearchUrl ="upcoming";
+
+        if(locationClient.getLastLocation() != null) {
+            currentLocation = locationClient.getLastLocation();
+            eventSearchUrl =eventSearchUrl+"/?latitude=" + currentLocation.getLatitude();
+            eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
+        }
+        else {
+            currentLocation = null;
+        }
+        locationClient.disconnect();
+
+
+        new SetMineApiGetRequestAsyncTask(this.activity, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        eventSearchUrl, "upcomingEvents");
+
+    }
+
+    @Override
+    public void onDisconnected() {
+        Log.d(TAG, "onDisconnected");
+    }
+
+    // Google Play Services connection failed
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+
+        // Use Gainesville as location
+
+        Log.d(TAG, "onConnectionFailed");
+
+
+        locationClient.disconnect();
+        currentLocation = null;
+        String eventSearchUrl = "upcoming";
+        new SetMineApiGetRequestAsyncTask(this.activity, this)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        "upcoming",
+                        "upcomingEvents");
     }
 }

@@ -25,17 +25,19 @@ import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.listener.SimpleImageLoadingListener;
+import com.setmine.android.Constants;
 import com.setmine.android.MainPagerContainerFragment;
-import com.setmine.android.interfaces.ApiCaller;
 import com.setmine.android.ModelsContentProvider;
+import com.setmine.android.Offer.Offer;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
 import com.setmine.android.api.Activity;
-import com.setmine.android.Constants;
-import com.setmine.android.event.Event;
-import com.setmine.android.set.Set;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.api.SetMineApiPostRequestAsyncTask;
+import com.setmine.android.artist.Artist;
+import com.setmine.android.event.Event;
+import com.setmine.android.interfaces.ApiCaller;
+import com.setmine.android.set.Set;
 import com.setmine.android.util.DateUtils;
 import com.setmine.android.util.HttpUtils;
 
@@ -60,10 +62,11 @@ public class UserFragment extends Fragment implements ApiCaller {
     public SetMineMainActivity activity;
     public JSONObject jsonUser;
     public User registeredUser;
+    public  List<Activity> userActivities;
+
 
     private Location userLocation;
     private int timeID;
-
 
     public View homeView;
     public View loginView;
@@ -90,7 +93,8 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     // Empty constructor required for Fragments in a ViewPager
 
-    public UserFragment() {}
+    public UserFragment() {
+    }
 
     // Facebook Integration - Control the UI depending on Facebook Login Status
 
@@ -114,6 +118,14 @@ public class UserFragment extends Fragment implements ApiCaller {
         }
     };
 
+    final Runnable updateNewOffers = new Runnable() {
+        @Override
+        public void run() {
+            populateNewOffers();
+        }
+    };
+
+
     final Runnable updateMyNextEvent = new Runnable() {
         @Override
         public void run() {
@@ -130,10 +142,15 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     final Runnable handleRegisteredUser = new Runnable() {
         public void run() {
-            if(activity != null) {
+            if (activity != null) {
                 activity.user = registeredUser;
+                Log.d(TAG, "user registered in activity");
+//      
                 registerMixpanelUser();
                 ((MainPagerContainerFragment)getParentFragment()).mViewPager.setCurrentItem(0);
+                if(activity.offerDetailFragment != null) {
+                    activity.offerDetailFragment.refreshUnlockStatus();
+                }
 
             }
 
@@ -172,6 +189,13 @@ public class UserFragment extends Fragment implements ApiCaller {
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
+                } else if (finalIdentifier.equals("newOffers")) {
+                    try {
+                        registeredUser.setNewOffers(finalJsonObject.getJSONObject("payload").getJSONArray("offer"));
+                        userHandler.post(updateNewOffers);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }).start();
@@ -181,9 +205,8 @@ public class UserFragment extends Fragment implements ApiCaller {
     @Override
     public void onAttach(android.app.Activity activity) {
         super.onAttach(activity);
-        this.activity = (SetMineMainActivity)activity;
+        this.activity = (SetMineMainActivity) activity;
         modelsCP = this.activity.modelsCP;
-        userLocation = this.activity.currentLocation;
         this.activity.userFragment = this;
         timeID = getResources().getIdentifier("com.setmine.android:drawable/recent_icon", null, null);
     }
@@ -198,18 +221,18 @@ public class UserFragment extends Fragment implements ApiCaller {
         facebookUiHelper = new UiLifecycleHelper(getActivity(), facebookCallback);
         facebookUiHelper.onCreate(savedInstanceState);
 
-        if(modelsCP == null) {
+        if (modelsCP == null) {
             modelsCP = new ModelsContentProvider();
         }
 
-        if(savedInstanceState == null) {
-            userLocation = new Location("default");
+        if (savedInstanceState == null) {
+//            userLocation = new Location("default");
             registeredUser = new User();
 
         } else {
-            userLocation = new Location("default");
-            userLocation.setLatitude(savedInstanceState.getDouble("latitude"));
-            userLocation.setLongitude(savedInstanceState.getDouble("longitude"));
+//            userLocation = new Location("default");
+//            userLocation.setLatitude(savedInstanceState.getDouble("latitude"));
+//            userLocation.setLongitude(savedInstanceState.getDouble("longitude"));
             String activitiesModel = savedInstanceState.getString("activities");
             String userModel = savedInstanceState.getString("user");
 
@@ -217,9 +240,9 @@ public class UserFragment extends Fragment implements ApiCaller {
                 JSONObject jsonModel = new JSONObject(activitiesModel);
                 JSONObject jsonUser = new JSONObject(userModel);
 
-                modelsCP.setModel(jsonModel, "activities");
+                userActivities= modelsCP.createModel(jsonModel, "activities");
                 registeredUser = new User(jsonUser);
-            } catch(Exception e) {
+            } catch (Exception e) {
 
             }
         }
@@ -239,7 +262,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         activitiesButton = rootView.findViewById(R.id.activitiesButton);
         myNextEventsButton = rootView.findViewById(R.id.myNextEventsButton);
         newSetsButton = rootView.findViewById(R.id.newSetsButton);
-        loginButton = (LoginButton)rootView.findViewById(R.id.facebookLoginButton);
+        loginButton = (LoginButton) rootView.findViewById(R.id.facebookLoginButton);
 
         //Feature Detail Containers
         mySetsDetailContainer = rootView.findViewById(R.id.mySetsDetail);
@@ -262,16 +285,16 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Options for ImageLoader
 
-        options =  new DisplayImageOptions.Builder()
+        options = new DisplayImageOptions.Builder()
                 .showImageOnLoading(R.drawable.logo_small)
                 .showImageForEmptyUri(R.drawable.logo_small)
                 .showImageOnFail(R.drawable.logo_small)
-                .cacheInMemory(true)
-                .cacheOnDisk(true)
+                .cacheInMemory(false)
+                .cacheOnDisk(false)
                 .considerExifParams(true)
                 .build();
 
-        if(registeredUser.isRegistered()) {
+        if (registeredUser.isRegistered()) {
             generateUserHomePage();
         } else {
             generateLoginPage();
@@ -286,7 +309,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         Log.d(TAG, "onResume");
         Session currentSession = Session.getActiveSession();
         if (currentSession != null &&
-                (currentSession.isOpened() || currentSession.isClosed()) ) {
+                (currentSession.isOpened() || currentSession.isClosed())) {
             onSessionStateChange(currentSession, currentSession.getState(), null);
         }
     }
@@ -294,7 +317,7 @@ public class UserFragment extends Fragment implements ApiCaller {
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        this.activity = (SetMineMainActivity)getActivity();
+        this.activity = (SetMineMainActivity) getActivity();
     }
 
     @Override
@@ -323,8 +346,8 @@ public class UserFragment extends Fragment implements ApiCaller {
         facebookUiHelper.onSaveInstanceState(outState);
         outState.putString("activities", modelsCP.jsonMappings.get("activities"));
         outState.putString("user", registeredUser.jsonModelString);
-        outState.putDouble("latitude", userLocation.getLatitude());
-        outState.putDouble("longitude", userLocation.getLongitude());
+//        outState.putDouble("latitude", userLocation.getLatitude());
+//        outState.putDouble("longitude", userLocation.getLongitude());
 
     }
 
@@ -332,11 +355,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     private void onSessionStateChange(Session session, SessionState state, Exception e) {
         Log.d(TAG, "onSessionStateChange");
-        if(state.isOpened() && !registeredUser.isRegistered()) {
+        if (state.isOpened() && !registeredUser.isRegistered()) {
             Log.d(TAG, "Logged in.");
             authenticateFacebookUser();
             generateUserHomePage();
-        } else if(state.isClosed()) {
+        } else if (state.isClosed()) {
             Log.d(TAG, "Logged out.");
             jsonUser = null;
             registeredUser = new User();
@@ -374,15 +397,14 @@ public class UserFragment extends Fragment implements ApiCaller {
                     String jsonString = apiCallerUtil.postApiRequest(route, jsonPostDataString);
                     Log.d(TAG, jsonString);
                     JSONObject jsonResponseObject = new JSONObject(jsonString);
-                    if(jsonResponseObject.get("status").equals("success")) {
+                    if (jsonResponseObject.get("status").equals("success")) {
                         jsonUser = jsonResponseObject
                                 .getJSONObject("payload")
                                 .getJSONObject("user");
                         registeredUser = new User(jsonUser);
                         userHandler.post(handleRegisteredUser);
                     }
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
@@ -408,9 +430,9 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Move the newly converted Facebook UI Button to logout container
 
-        ViewGroup parent = (ViewGroup)loginButton.getParent();
+        ViewGroup parent = (ViewGroup) loginButton.getParent();
         parent.removeView(loginButton);
-        ViewGroup newParent = (ViewGroup)rootView.findViewById(R.id.facebookLogoutContainer);
+        ViewGroup newParent = (ViewGroup) rootView.findViewById(R.id.facebookLogoutContainer);
         newParent.addView(loginButton);
 
         // Toggle to home container view
@@ -420,11 +442,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // For changing the title from "Login" to "Home"
 
-        ((MainPagerContainerFragment)getParentFragment()).mMainPagerAdapter.TITLES[0] = "Home";
+        ((MainPagerContainerFragment) getParentFragment()).mMainPagerAdapter.TITLES[0] = "Home";
 
         // Scroll to top of view
 
-        ((ScrollView)rootView.findViewById(R.id.homeScroll)).smoothScrollTo(0, 0);
+        ((ScrollView) rootView.findViewById(R.id.homeScroll)).smoothScrollTo(0, 0);
 
         assignClickListeners();
     }
@@ -434,9 +456,9 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Move the newly converted Facebook UI Button to login container
 
-        ViewGroup parent = (ViewGroup)loginButton.getParent();
+        ViewGroup parent = (ViewGroup) loginButton.getParent();
         parent.removeView(loginButton);
-        ViewGroup newParent = (ViewGroup)rootView.findViewById(R.id.facebookLoginContainer);
+        ViewGroup newParent = (ViewGroup) rootView.findViewById(R.id.facebookLoginContainer);
         newParent.addView(loginButton);
 
         // Toggle to login container view
@@ -444,7 +466,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         rootView.findViewById(R.id.homeContainer).setVisibility(View.GONE);
         rootView.findViewById(R.id.loginContainer).setVisibility(View.VISIBLE);
 
-        ((MainPagerContainerFragment)getParentFragment()).mMainPagerAdapter.TITLES[0] = "Login";
+        ((MainPagerContainerFragment) getParentFragment()).mMainPagerAdapter.TITLES[0] = "Login";
 
     }
 
@@ -452,7 +474,7 @@ public class UserFragment extends Fragment implements ApiCaller {
         mySetsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-            //when play is clicked show stop button and hide play button
+                //when play is clicked show stop button and hide play button
                 featureButtonsContainer.setVisibility(View.GONE);
                 mySetsDetailContainer.setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
@@ -468,6 +490,7 @@ public class UserFragment extends Fragment implements ApiCaller {
                 newSetsDetailContainer.setVisibility(View.VISIBLE);
                 rootView.findViewById(R.id.progressBar).setVisibility(View.VISIBLE);
                 kickOffNewSetsQuery();
+                kickOffNewOffersQuery();
 
             }
         });
@@ -500,11 +523,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     public void populateActivities() {
 
-        if(modelsCP.getActivities() != null) {
-
-            // Get all activities
-
-            final List<Activity> userActivities = modelsCP.getActivities();
+        if (userActivities != null) {
 
 
             // Get the inflater for inflating XML files into Views
@@ -513,7 +532,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             // Remove all views inside the layout container
 
-            ((ViewGroup)activitiesTileContainer).removeAllViews();
+            ((ViewGroup) activitiesTileContainer).removeAllViews();
 
             // Remove the loader
 
@@ -521,10 +540,10 @@ public class UserFragment extends Fragment implements ApiCaller {
 
             // Inflate a activity tile for every activity
 
-            for(int i = 0 ; i < userActivities.size() ; i++) {
+            for (int i = 0; i < userActivities.size(); i++) {
                 final List<Set> activitySets = userActivities.get(i).getSets();
                 final View activityTile = inflater.inflate(R.layout.activity_tile, null);
-                ((TextView)activityTile.findViewById(R.id.activityName))
+                ((TextView) activityTile.findViewById(R.id.activityName))
                         .setText(userActivities.get(i).getActivityName());
 
                 // Set the click listener for playing a random set
@@ -554,7 +573,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
                 // Load the activity image
 
-                final ImageView activityImage = ((ImageView)activityTile.findViewById(R.id.activityImage));
+                final ImageView activityImage = ((ImageView) activityTile.findViewById(R.id.activityImage));
                 ImageLoader.getInstance()
                         .loadImage(userActivities.get(i).getImageURL(),
                                 options, new SimpleImageLoadingListener() {
@@ -566,7 +585,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
                 // Add each activity tile to the parent container
 
-                ((ViewGroup)activitiesTileContainer).addView(activityTile);
+                ((ViewGroup) activitiesTileContainer).addView(activityTile);
             }
         }
 
@@ -574,21 +593,32 @@ public class UserFragment extends Fragment implements ApiCaller {
 
     private void kickOffNextEventQuery() {
         String myNextEventQuery = "user/myNextEvent";
-        if(userLocation != null) {
-            myNextEventQuery += "?userID="+registeredUser.getId();
-            myNextEventQuery += "&latitude="+userLocation.getLatitude();
-            myNextEventQuery += "&longitude="+userLocation.getLongitude();
-        }
+        myNextEventQuery += "?userID=" + registeredUser.getId();
+
+//        if (userLocation != null) {
+//            myNextEventQuery += "&latitude=" + userLocation.getLatitude();
+//            myNextEventQuery += "&longitude=" + userLocation.getLongitude();
+//        }
         new SetMineApiGetRequestAsyncTask(activity, runnableUserFragmentTarget)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         myNextEventQuery, "myNextEvent");
     }
 
     private void kickOffNewSetsQuery() {
-        String myNewSetsQuery = "user/newSets?userID="+registeredUser.getId();
+        String myNewSetsQuery = "user/newSets?userID=" + registeredUser.getId();
         new SetMineApiGetRequestAsyncTask(activity, runnableUserFragmentTarget)
                 .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
                         myNewSetsQuery, "newSets");
+    }
+
+    private void kickOffNewOffersQuery() {
+        String myNewOffersQuery = "offers/user/1";
+
+//        String myNewOffersQuery = "offers/id/1"+registeredUser.getId();
+
+        new SetMineApiGetRequestAsyncTask(activity, runnableUserFragmentTarget)
+                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
+                        myNewOffersQuery, "newOffers");
     }
 
     // Create the My Next Event Tile after upcomingEvents have been stored in Models CP
@@ -602,7 +632,7 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Remove all views inside the layout container
 
-        ((ViewGroup)myNextEventTilesContainer).removeAllViews();
+        ((ViewGroup) myNextEventTilesContainer).removeAllViews();
 
         // Remove the loader
 
@@ -614,11 +644,11 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Set the text on all the relevant information of the event
 
-        ((TextView)myNextEventTile.findViewById(R.id.city))
+        ((TextView) myNextEventTile.findViewById(R.id.city))
                 .setText(dateUtils.getCityStateFromAddress(myNextEvent.getAddress()));
-        ((TextView)myNextEventTile.findViewById(R.id.event))
+        ((TextView) myNextEventTile.findViewById(R.id.event))
                 .setText(myNextEvent.getEvent());
-        ((TextView)myNextEventTile.findViewById(R.id.date))
+        ((TextView) myNextEventTile.findViewById(R.id.date))
                 .setText(dateUtils.formatDateText(myNextEvent.getStartDate(), myNextEvent.getEndDate()));
         myNextEventTile.findViewById(R.id.node).setVisibility(View.GONE);
 
@@ -627,24 +657,24 @@ public class UserFragment extends Fragment implements ApiCaller {
         myNextEventTile.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                activity.openEventDetailPage(myNextEvent, "upcoming");
+                activity.openEventDetailPage(myNextEvent.getId(), "upcoming");
             }
         });
 
         // Load the event image
 
-        final ImageView myNextEventImage = ((ImageView)myNextEventTile.findViewById(R.id.image));
+        final ImageView myNextEventImage = ((ImageView) myNextEventTile.findViewById(R.id.image));
         ImageLoader.getInstance()
                 .loadImage(myNextEvent.getMainImageUrl(), options, new SimpleImageLoadingListener() {
-            @Override
-            public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
-                myNextEventImage.setImageDrawable(new BitmapDrawable(activity.getResources(), loadedImage));
-            }
-        });
+                    @Override
+                    public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                        myNextEventImage.setImageDrawable(new BitmapDrawable(activity.getResources(), loadedImage));
+                    }
+                });
 
         // Add the event tile to the container
 
-        ((ViewGroup)myNextEventTilesContainer).addView(myNextEventTile);
+        ((ViewGroup) myNextEventTilesContainer).addView(myNextEventTile);
 
     }
 
@@ -742,25 +772,22 @@ public class UserFragment extends Fragment implements ApiCaller {
 
         // Get the inflater for inflating XML files into Views
 
-        LayoutInflater inflater = LayoutInflater.from(activity);
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
 
         // Remove all views inside the layout container
 
-        ((ViewGroup)newSetsTileContainer).removeAllViews();
+ //       ((ViewGroup) newSetsTileContainer).removeAllViews();
 
-        // Remove the loader
-
-        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
 
         // If the user has not favorited any sets
 
-        if(newSets.size() == 0) {
+        if (newSets.size() == 0) {
             Log.d(TAG, "No New Sets");
             TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
-            noNewSets.setText("You have no new sets yet! Hang on, we'll find some for you.");
+            noNewSets.setText("You have no new sets yet... Favorite some sets so we know what you like!");
             ((ViewGroup) newSetsTileContainer).addView(noNewSets);
         }
-        for(int i = 0 ; i < newSets.size() ; i++) {
+        for (int i = 0; i < newSets.size(); i++) {
             Set set = newSets.get(i);
             View mySetTile = inflater.inflate(R.layout.set_tile, null);
 
@@ -799,7 +826,82 @@ public class UserFragment extends Fragment implements ApiCaller {
                                 }
                             });
 
-            ((ViewGroup)newSetsTileContainer).addView(mySetTile);
+
+            ((ViewGroup) newSetsTileContainer).addView(mySetTile);
+
+
+            // Remove the loader
+            rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
         }
+
+
     }
+
+
+    public void populateNewOffers() {
+        final List<Offer> newOffers = registeredUser.getNewOffers();
+
+        Log.d(TAG, Integer.toString(newOffers.size()));
+
+        // Get the inflater for inflating XML files into Views
+
+        LayoutInflater inflater = LayoutInflater.from(getActivity());
+
+        // Remove all views inside the layout container
+
+      //  ((ViewGroup) newSetsTileContainer).removeAllViews();
+
+        if (newOffers.size() == 0) {
+            Log.d(TAG, "No New Offers");
+//            TextView noNewSets = (TextView) inflater.inflate(R.layout.no_results_tile, null);
+//            noNewSets.setText("You have no new sets yet... Favorite some sets so we know what you like!");
+//            ((ViewGroup) newSetsTileContainer).addView(noNewSets);
+        }
+        for (int j = 0; j < newOffers.size(); j++) {
+            final Offer offer = newOffers.get(j);
+            View myOfferTile = inflater.inflate(R.layout.offer_tile, null);
+
+            Artist offerArtist = offer.getArtist();
+
+            TextView offerTileArtist = ((TextView) myOfferTile.findViewById(R.id.offerTileArtist));
+            final ImageView artistImage = ((ImageView) myOfferTile.findViewById(R.id.offerArtistImage));
+
+            offerTileArtist.setText(offerArtist.getArtist());
+            offerTileArtist.setTag(offerArtist.getArtist());
+            View.OnClickListener goToArtistDetail = new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((SetMineMainActivity)getActivity()).openArtistDetailPage((String)v.getTag());
+                }
+            };
+            offerTileArtist.setOnClickListener(goToArtistDetail);
+            ((TextView) myOfferTile.findViewById(R.id.offerVenueText))
+                    .setText(offer.getVenue().getVenueName());
+
+            artistImage.setTag(offerArtist);
+            artistImage.setOnClickListener(goToArtistDetail);
+            ImageLoader.getInstance()
+                    .loadImage(offerArtist.getImageUrl(), options, new SimpleImageLoadingListener() {
+                        @Override
+                        public void onLoadingComplete(String imageUri, View view, Bitmap loadedImage) {
+                            artistImage.setImageDrawable(new BitmapDrawable(getActivity().getResources(), loadedImage));
+                        }
+                    });
+
+            myOfferTile.setTag(offer);
+
+            myOfferTile.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    ((SetMineMainActivity)getActivity()).openOfferDetailFragment(offer.getOfferId());
+
+                }
+            });
+
+            ((ViewGroup) newSetsTileContainer).addView(myOfferTile);
+        }
+        // Remove the loader
+        rootView.findViewById(R.id.progressBar).setVisibility(View.GONE);
+    }
+
 }

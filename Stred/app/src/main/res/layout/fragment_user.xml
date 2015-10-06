@@ -16,7 +16,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="@color/setmine_white"
-            android:id="@+id/homeScroll">
+            android:id="@+id/homeScroll"
+            android:fillViewport="false">
 
             <RelativeLayout
                 android:layout_width="match_parent"
@@ -76,8 +77,9 @@
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:id="@+id/newSetsButton"
-
                             android:layout_weight="1">
+
+
 
                             <ImageView
                                 android:layout_weight="1"
@@ -101,6 +103,7 @@
                                 android:layout_alignBottom="@+id/newSetImage"
                                 android:layout_centerHorizontal="true"
                                 android:layout_marginBottom="10dp"/>
+
 
                         </RelativeLayout>
                     </LinearLayout>
@@ -651,17 +654,6 @@
                         android:gravity="center"
                         android:id="@+id/recentSetsDescription"
                         android:textColor="@color/setmine_black"/>
-
-                    <TextView
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:text="Coming Soon!"
-                        android:gravity="center"
-                        android:textColor="@color/setmine_white"
-                        android:background="@color/setmine_purple"
-                        android:layout_alignParentBottom="true"
-                        android:layout_marginLeft="10dp"
-                        android:layout_marginRight="10dp"/>
 
                 </RelativeLayout>
 

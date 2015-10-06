@@ -12,7 +12,7 @@
         android:layout_height="60dp"
         android:src="@drawable/logo"
         android:scaleType="centerCrop"
-        android:id="@+id/artistImage"
+        android:id="@+id/offerArtistImage"
         android:layout_gravity="center" />
 
 
@@ -23,18 +23,17 @@
         android:paddingStart="10dp"
         android:paddingRight="10dp"
         android:paddingEnd="10dp"
-        android:layout_toEndOf="@id/artistImage"
-        android:layout_toRightOf="@id/artistImage"
+        android:layout_toEndOf="@id/offerArtistImage"
+        android:layout_toRightOf="@id/offerArtistImage"
         android:id="@+id/relativeLayout3">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="NEW SONG/ALBUM"
+            android:text="NEW SET"
             android:singleLine="false"
             android:ellipsize="marquee"
             android:layout_alignParentTop="true"
-            android:scrollHorizontally="false"
             android:id="@+id/newSongAlbumText"
             android:textColor="#78000000"
             android:textSize="15sp"
@@ -44,16 +43,18 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Event"
+            android:text="Artist"
             android:singleLine="true"
             android:marqueeRepeatLimit ="marquee_forever"
             android:scrollHorizontally="true"
-            android:id="@+id/artistId"
+            android:id="@+id/offerTileArtist"
             android:textColor="@color/setmine_white"
             android:textSize="15sp"
             android:background="#ff2f2f2f"
-            android:paddingLeft="4dp"
-            android:paddingRight="4dp"
+            android:paddingLeft="8dp"
+            android:paddingRight="8dp"
+            android:paddingTop="1dp"
+            android:paddingBottom="1dp"
             android:layout_centerVertical="true"
             android:layout_alignParentLeft="true"
             android:layout_alignParentStart="true"/>
@@ -61,7 +62,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Now to unlock at "
+            android:text="Unlock at "
             android:id="@+id/unlockText"
             android:textColor="#ff2f2f2f"
             android:gravity="center"
@@ -71,15 +72,13 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="CHIPOTLE"
-            android:id="@+id/locationOfferText"
-
-
+            android:text="VENUE"
+            android:id="@+id/offerVenueText"
             android:layout_alignBaseline="@+id/unlockText"
             android:layout_alignBottom="@+id/unlockText"
             android:layout_toRightOf="@+id/unlockText"
             android:layout_toEndOf="@+id/unlockText"
-            android:textColor="#ffd6b93c"
+            android:textColor="@color/setmine_gold"
             android:textStyle="bold"
             android:singleLine="false"
             android:textSize="14dp"/>
@@ -92,8 +91,8 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:src="@mipmap/setmine_circle_blue"
-            android:layout_alignTop="@id/artistId"
-            android:layout_alignBottom="@id/artistId"
+            android:layout_alignTop="@id/offerTileArtist"
+            android:layout_alignBottom="@id/offerTileArtist"
             android:adjustViewBounds="true"
             android:scaleType="fitEnd"/>
 
@@ -105,8 +104,8 @@
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
             android:src="@mipmap/setmine_circle_purple"
-            android:layout_alignTop="@id/artistId"
-            android:layout_alignBottom="@id/artistId"
+            android:layout_alignTop="@id/offerTileArtist"
+            android:layout_alignBottom="@id/offerTileArtist"
             android:adjustViewBounds="true"
             android:scaleType="fitEnd"
             android:visibility="invisible"/>

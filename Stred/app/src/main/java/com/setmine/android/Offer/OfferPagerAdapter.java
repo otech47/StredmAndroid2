@@ -1,4 +1,4 @@
-package com.setmine.android;
+package com.setmine.android.Offer;
 
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
@@ -6,25 +6,26 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.view.ViewGroup;
 
-import com.setmine.android.event.EventPageFragment;
-import com.setmine.android.user.UserFragment;
+import com.setmine.android.SetMineMainActivity;
 
-
-public class MainPagerAdapter extends FragmentStatePagerAdapter {
+/**
+ * Created by oscarlafarga on 7/3/15.
+ */
+public class OfferPagerAdapter extends FragmentStatePagerAdapter {
 
     public Fragment currentFragment;
     public int currentFragmentPosition;
     public FragmentManager fm;
     public SetMineMainActivity activity;
     public String[] TITLES = new String[] {
-            "Login",
-            "Events",
-            "Sets"
+            "Navigate",
+            "Enter",
+            "Enjoy"
     };
 
     public int NUM_TITLES = TITLES.length;
 
-    public MainPagerAdapter(FragmentManager fm) {
+    public OfferPagerAdapter(FragmentManager fm) {
         super(fm);
         this.fm = fm;
     }
@@ -34,23 +35,13 @@ public class MainPagerAdapter extends FragmentStatePagerAdapter {
     @Override
     public Fragment getItem(int i) {
 
-        // First page is the UserFragment
-        // Next three pages are EventPageFragments
-        // See respective classes for documentation
+        // All pages are OfferInstructionsFragments
 
-        if(i == 0) {
-            UserFragment userFragment = new UserFragment();
-            Bundle args = new Bundle();
-            args.putInt(UserFragment.ARG_OBJECT, 0);
-            userFragment.setArguments(args);
-            return userFragment;
-        } else {
-            EventPageFragment eventPageFragment = new EventPageFragment();
-            Bundle args = new Bundle();
-            args.putInt(EventPageFragment.ARG_OBJECT, i + 1);
-            eventPageFragment.setArguments(args);
-            return eventPageFragment;
-        }
+        OfferInstructionsFragment offerInstructionsFragment = new OfferInstructionsFragment();
+        Bundle args = new Bundle();
+        args.putInt(OfferInstructionsFragment.ARG_OBJECT, i);
+        offerInstructionsFragment.setArguments(args);
+        return offerInstructionsFragment;
 
     }
 

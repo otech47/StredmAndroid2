@@ -51,6 +51,8 @@ public class PlayerService extends Service implements AudioManager.OnAudioFocusC
     public Bitmap lockscreenImage;
     public Bitmap artistImage;
 
+    // PlayerManager handles updating the playlist and keeping track of set results
+
     public PlayerManager playerManager;
 
     public boolean newSong = false;

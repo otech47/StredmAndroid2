@@ -3,6 +3,8 @@ package com.setmine.android;
 import android.app.ActionBar;
 import android.app.Activity;
 import android.app.Dialog;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -17,6 +19,7 @@ import android.support.v4.app.DialogFragment;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentTransaction;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.view.ViewPager;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -26,7 +29,17 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.TextView;
 
+import com.gimbal.android.BeaconEventListener;
+import com.gimbal.android.BeaconManager;
+import com.gimbal.android.BeaconSighting;
+import com.gimbal.android.Communication;
+import com.gimbal.android.CommunicationListener;
+import com.gimbal.android.CommunicationManager;
 import com.gimbal.android.Gimbal;
+import com.gimbal.android.PlaceEventListener;
+import com.gimbal.android.PlaceManager;
+import com.gimbal.android.Push;
+import com.gimbal.android.Visit;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -34,10 +47,11 @@ import com.google.android.gms.location.LocationClient;
 import com.mixpanel.android.mpmetrics.MixpanelAPI;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.nostra13.universalimageloader.core.ImageLoaderConfiguration;
+import com.setmine.android.Offer.Offer;
+import com.setmine.android.Offer.OfferDetailFragment;
 import com.setmine.android.api.SetMineApiGetRequestAsyncTask;
 import com.setmine.android.artist.Artist;
 import com.setmine.android.artist.ArtistDetailFragment;
-import com.setmine.android.event.Event;
 import com.setmine.android.event.EventDetailFragment;
 import com.setmine.android.image.ImageUtils;
 import com.setmine.android.interfaces.ApiCaller;
@@ -56,6 +70,7 @@ import com.setmine.android.util.HttpUtils;
 
 import net.danlew.android.joda.JodaTimeAndroid;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -64,6 +79,7 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -102,6 +118,7 @@ public class SetMineMainActivity extends FragmentActivity implements
     public UserFragment userFragment;
     public EventDetailFragment eventDetailFragment;
     public ArtistDetailFragment artistDetailFragment;
+    public OfferDetailFragment offerDetailFragment;
 
 
     public ModelsContentProvider modelsCP;
@@ -161,10 +178,29 @@ public class SetMineMainActivity extends FragmentActivity implements
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                } else {
-                    modelsCP.setModel(finalJsonObject, finalIdentifier);
-                    if(modelsCP.initialModelsReady) {
-                        handler.post(updateUI);
+                } else if(finalIdentifier.equals("offers/venue")) {
+                    Log.d(TAG, finalJsonObject.toString());
+                    try {
+                        JSONArray availableOffersJson = finalJsonObject.getJSONObject("payload")
+                                .getJSONArray("offer");
+                        if(availableOffersJson.length() > 0) {
+                            unlockOffers(availableOffersJson);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else if (finalIdentifier.equals("offers/unlock")) {
+                    Log.d(TAG, finalJsonObject.toString());
+                    Log.d(TAG, "offers/unlock");
+
+                    try {
+                        JSONObject payload = finalJsonObject.getJSONObject("payload");
+                        if (payload.getString("unlock_status").equals("success")) {
+                            Offer unlockedOffer = new Offer(payload.getJSONObject("offer"));
+                            showUnlockedOfferNotification(unlockedOffer);
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
                     }
                 }
             }
@@ -275,11 +311,193 @@ public class SetMineMainActivity extends FragmentActivity implements
         }
     }
 
+    // Gimbal Functionality
+
+    private PlaceEventListener placeEventListener;
+    private CommunicationListener communicationListener;
+    private BeaconEventListener beaconSightingListener;
+    private BeaconManager beaconManager;
+
+    private boolean verifiedPlaceID;
+
     public void initializeGimbal() {
         Gimbal.setApiKey(this.getApplication(), "c06f63bf-ef5f-45e9-9edf-4f600c86c67a");
         Gimbal.registerForPush("699004373125");
 
+        verifiedPlaceID = false;
+
+        createPlaceListener();
+        createCommunicationListener();
+        createBeaconListener();
+
+        Log.i(TAG, "initializeGimbal");
+
+
+        PlaceManager.getInstance().startMonitoring();
+        beaconManager.startListening();
+        CommunicationManager.getInstance().startReceivingCommunications();
     }
+
+    public void createPlaceListener() {
+        final SetMineMainActivity activity = this;
+        placeEventListener = new PlaceEventListener() {
+            @Override
+            public void onVisitStart(Visit visit) {
+                // This will be invoked when a place is entered. Example below shows a simple log upon enter
+                Log.d(TAG, "Enter: " + visit.getPlace().getName() + ", at: " + new Date(visit.getArrivalTimeInMillis()));
+            }
+
+            @Override
+            public void onVisitEnd(Visit visit) {
+                // This will be invoked when a place is exited. Example below shows a simple log upon exit
+                Log.d(TAG, "Exit: " + visit.getPlace().getName() + ", at: " + new Date(visit.getDepartureTimeInMillis()));
+            }
+
+            @Override
+            public void onBeaconSighting(BeaconSighting beaconSighting, List<Visit> list) {
+                Log.d(TAG, beaconSighting.toString());
+                Log.d(TAG, Float.toString(beaconSighting.getRSSI()));
+
+                Log.d(TAG, Boolean.toString(verifiedPlaceID));
+                Log.d(TAG, Integer.toString(list.size()));
+
+                if(beaconSighting.getRSSI() > -45 && !verifiedPlaceID) {
+                    verifiedPlaceID = true;
+                    Log.i(TAG, beaconSighting.toString());
+                    if(list.size() > 0) {
+                        for(int i = 0; i < list.size(); i++) {
+
+                            // Gimbal SHIT broken
+//                            String placeName = list.get(i).getPlace().getName();
+//                            String placeID = list.get(i).getPlace().getIdentifier();
+//                            Log.d(TAG, placeName);
+//
+//                            // Send place identifier to server to verify Place with offers to unlock
+//
+//                            new SetMineApiGetRequestAsyncTask(activity, activity)
+//                                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+//                                            , "offers/venue/" + placeID, "offers/venue");
+//
+//                            if(placeName.equals("Sethau5")) {
+//                                Log.d(TAG, "Sethau5 detected");
+//                                Log.d(TAG, placeID);
+//                            }
+
+
+                            String beaconID = beaconSighting.getBeacon().getIdentifier();
+                            Log.d(TAG, beaconID);
+
+                            new SetMineApiGetRequestAsyncTask(activity, activity)
+                                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                            , "offers/venue/" + beaconID, "offers/venue");
+                        }
+                    } else {
+                        String beaconID = beaconSighting.getBeacon().getIdentifier();
+                        Log.d(TAG, beaconID);
+
+                        new SetMineApiGetRequestAsyncTask(activity, activity)
+                                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                        , "offers/venue/" + beaconID, "offers/venue");
+                    }
+
+                }
+            }
+        };
+        PlaceManager.getInstance().addListener(placeEventListener);
+    }
+
+    public void createCommunicationListener() {
+        communicationListener = new CommunicationListener() {
+            @Override
+            public Collection<Communication> presentNotificationForCommunications(Collection<Communication> communications, Visit visit) {
+                for (Communication comm : communications) {
+                    Log.i("INFO", "Place Communication: " + visit.getPlace().getName() + ", message: " + comm.getTitle());
+                }
+                //allow Gimbal to show the notification for all communications
+                return communications;
+            }
+
+            @Override
+            public Collection<Communication> presentNotificationForCommunications(Collection<Communication> communications, Push push) {
+                for (Communication comm : communications) {
+                    Log.i("INFO", "Received a Push Communication with message: " + comm.getTitle());
+                }
+                //allow Gimbal to show the notification for all communications
+                return communications;
+            }
+
+            @Override
+            public void onNotificationClicked(List<Communication> communications) {
+                Log.i("INFO", "Notification was clicked on");
+            }
+        };
+        CommunicationManager.getInstance().addListener(communicationListener);
+    }
+
+    public void createBeaconListener() {
+        beaconSightingListener = new BeaconEventListener() {
+            @Override
+            public void onBeaconSighting(BeaconSighting sighting) {
+                Log.i("INFO", sighting.toString());
+            }
+        };
+        beaconManager = new BeaconManager();
+        beaconManager.addListener(beaconSightingListener);
+    }
+
+    public void showUnlockedOfferNotification(Offer unlockedOffer) {
+        Log.d(TAG, "showUnlockedOfferNotification");
+
+        Artist offerArtist = unlockedOffer.getArtist();
+
+        // reusable variables
+        PendingIntent pendingIntent;
+        Intent intent;
+
+        NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.logo_small)
+                        .setContentTitle("Offer Unlocked!")
+                        .setContentText("You've unlocked a new set by " + offerArtist.getArtist())
+                        .setAutoCancel(true);
+
+        intent = new Intent(getApplicationContext(), SetMineMainActivity.class)
+                .setAction("OFFER_UNLOCKED");
+        intent.putExtra("offer_id", unlockedOffer.getOfferId());
+        pendingIntent = PendingIntent.getActivity(getApplicationContext(),
+                0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        mBuilder.setContentIntent(pendingIntent);
+
+        // Show the notification in the notification bar.
+
+        try {
+            NotificationManager mNotifyManager =
+                    (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            mNotifyManager.notify(001, mBuilder.build());
+        } catch(Exception e) {
+            e.printStackTrace();
+        }
+    }
+    public void unlockOffers(JSONArray availableOffersJson) {
+        Log.d(TAG, "unlockOffers");
+        Log.d(TAG, availableOffersJson.toString());
+
+        try {
+            for(int i = 0; i < availableOffersJson.length(); i++) {
+                JSONObject availableOffer = availableOffersJson.getJSONObject(0);
+                Offer unlockedOffer = new Offer(availableOffer);
+                Log.d(TAG, "offers/unlock/" + unlockedOffer.getOfferId() + "/user/" + user.getId());
+                new SetMineApiGetRequestAsyncTask(this, this)
+                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
+                                , "offers/unlock/" + unlockedOffer.getOfferId() + "/user/" + user.getId(), "offers/unlock");
+            }
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
 
     // Activity Handling
 
@@ -300,7 +518,7 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         user = new User();
 
-//        initializeGimbal();
+        initializeGimbal();
 
         // Create the ServiceConnection to the PlayerService every time the activity is created, regardless of savedInstanceState
 
@@ -324,17 +542,8 @@ public class SetMineMainActivity extends FragmentActivity implements
 
         // Fragment Manager handles all fragments and the navigation between them
 
-        fragmentManager = getSupportFragmentManager();
+//        fragmentManager = getSupportFragmentManager();
 
-        if(modelsCP == null) {
-            modelsCP = new ModelsContentProvider();
-        }
-
-        // PlayerManager handles updating the playlist and keeping track of set results
-
-//        if(playerManager == null) {
-//            playerManager = new PlayerManager();
-//        }
 
         if(savedInstanceState == null) {
             userIsRegistered = false;
@@ -349,88 +558,15 @@ public class SetMineMainActivity extends FragmentActivity implements
             }
             else {
                 Log.d(TAG, "services NOT Connected");
-                currentLocation = new Location("default");
-                currentLocation.setLatitude(29.652175);
-                currentLocation.setLongitude(-82.325856);
-                String eventSearchUrl = "upcoming?latitude="+currentLocation.getLatitude()+"&longitude="
-                        +currentLocation.getLongitude();
-                new SetMineApiGetRequestAsyncTask(this, this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                eventSearchUrl,
-                                "searchEvents");
-                new SetMineApiGetRequestAsyncTask(this, this)
-                        .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                                "upcoming",
-                                "upcomingEvents");
+                currentLocation= null;
             }
 
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                            "featured", "recentEvents");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "artist", "artists");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "festival", "festivals");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "mix", "mixes");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "genre", "genres");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "popular", "popularSets");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "recent", "recentSets");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "artist?all=true", "allArtists");
-            new SetMineApiGetRequestAsyncTask(this, this)
-                    .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR
-                            , "activity?all=true", "activities");
 
         } else {
             Log.d(TAG, "getting instance state");
             userIsRegistered = savedInstanceState.getBoolean("userIsRegistered");
             currentLocation = savedInstanceState.getParcelable("currentLocation");
-            String upcomingEventsModel = savedInstanceState.getString("upcomingEvents");
-            String searchEventsModel = savedInstanceState.getString("searchEvents");
-            String recentEventsModel = savedInstanceState.getString("recentEvents");
-            String artistsModel = savedInstanceState.getString("artists");
-            String festivalsModel = savedInstanceState.getString("festivals");
-            String mixesModel = savedInstanceState.getString("mixes");
-            String genresModel = savedInstanceState.getString("genres");
-            String popularSetsModel = savedInstanceState.getString("popularSets");
-            String recentSetsModel = savedInstanceState.getString("recentSets");
-            String allArtistsModel = savedInstanceState.getString("allArtists");
-            String activitiesModel = savedInstanceState.getString("activities");
             try {
-                JSONObject jsonUpcomingEventsModel = new JSONObject(upcomingEventsModel);
-                JSONObject jsonSearchEventsModel = new JSONObject(searchEventsModel);
-                JSONObject jsonRecentEventsModel = new JSONObject(recentEventsModel);
-                JSONObject jsonArtistsModel = new JSONObject(artistsModel);
-                JSONObject jsonFestivalsModel = new JSONObject(festivalsModel);
-                JSONObject jsonMixesModel = new JSONObject(mixesModel);
-                JSONObject jsonGenresModel = new JSONObject(genresModel);
-                JSONObject jsonPopularSetsModel = new JSONObject(popularSetsModel);
-                JSONObject jsonRecentSetsModel = new JSONObject(recentSetsModel);
-                JSONObject jsonAllArtistsModel = new JSONObject(allArtistsModel);
-                JSONObject jsonActivitiesModel = new JSONObject(activitiesModel);
-                modelsCP.setModel(jsonUpcomingEventsModel, "upcomingEvents");
-                modelsCP.setModel(jsonSearchEventsModel, "searchEvents");
-                modelsCP.setModel(jsonRecentEventsModel, "recentEvents");
-                modelsCP.setModel(jsonArtistsModel, "artists");
-                modelsCP.setModel(jsonFestivalsModel, "festivals");
-                modelsCP.setModel(jsonMixesModel, "mixes");
-                modelsCP.setModel(jsonGenresModel, "genres");
-                modelsCP.setModel(jsonPopularSetsModel, "popularSets");
-                modelsCP.setModel(jsonRecentSetsModel, "recentSets");
-                modelsCP.setModel(jsonAllArtistsModel, "allArtists");
-                modelsCP.setModel(jsonActivitiesModel, "activities");
-                finishOnCreate();
             } catch (Exception e) {
                 e.printStackTrace();
             }
@@ -454,32 +590,13 @@ public class SetMineMainActivity extends FragmentActivity implements
                 .build();
         ImageLoader.getInstance().init(config);
 
-        // See utils/DateUtils.java for documentation
-
-        dateUtils = new DateUtils();
-
-        // On every navigation change (backStackChanged), the Acton Bar hides or shows the back
-        // button depending on if the user is at the top level
-
-
-        // Handles showing or hiding the back button in the action bar
-
-//        fragmentManager.addOnBackStackChangedListener(new FragmentManager.OnBackStackChangedListener() {
-//            @Override
-//            public void onBackStackChanged() {
-//                if (fragmentManager.getBackStackEntryCount() > 0) {
-//                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.VISIBLE);
-//                } else {
-//                    actionBar.getCustomView().findViewById(R.id.backButton).setVisibility(View.INVISIBLE);
-//                }
-//            }
-//        });
 
         // Sets the Activity view for container fragments
 
         setContentView(R.layout.fragment_main);
 
-//        createSecondLevelFragments();
+        finishOnCreate();
+
 
         // See finishOnCreate method which is called after these tasks are finished executing
     }
@@ -529,17 +646,6 @@ public class SetMineMainActivity extends FragmentActivity implements
         super.onSaveInstanceState(outState);
         userIsRegistered = outState.getBoolean("userIsRegistered");
         currentLocation = outState.getParcelable("currentLocation");
-        outState.putString("upcomingEvents", modelsCP.jsonMappings.get("upcomingEvents"));
-        outState.putString("searchEvents", modelsCP.jsonMappings.get("searchEvents"));
-        outState.putString("recentEvents", modelsCP.jsonMappings.get("recentEvents"));
-        outState.putString("artists", modelsCP.jsonMappings.get("artists"));
-        outState.putString("festivals", modelsCP.jsonMappings.get("festivals"));
-        outState.putString("mixes", modelsCP.jsonMappings.get("mixes"));
-        outState.putString("genres", modelsCP.jsonMappings.get("genres"));
-        outState.putString("popularSets", modelsCP.jsonMappings.get("popularSets"));
-        outState.putString("recentSets", modelsCP.jsonMappings.get("recentSets"));
-        outState.putString("allArtists", modelsCP.jsonMappings.get("allArtists"));
-        outState.putString("activities", modelsCP.jsonMappings.get("activities"));
     }
 
     @Override
@@ -574,7 +680,6 @@ public class SetMineMainActivity extends FragmentActivity implements
             handleIntent(getIntent());
 
             getWindow().findViewById(R.id.splash_loading).setVisibility(View.INVISIBLE);
-
 
         } catch (RejectedExecutionException r) {
             r.printStackTrace();
@@ -675,7 +780,7 @@ public class SetMineMainActivity extends FragmentActivity implements
             @Override
             public void run() {
                 try {
-                    String apiRequest = "set/id?setID=" + finalSetId;
+                    String apiRequest = "sets/id/" + finalSetId;
                     String jsonString = httpUtil.getJSONStringFromURL(apiRequest);
                     JSONObject jsonResponse = new JSONObject(jsonString);
                     if (jsonResponse.get("status").equals("success")) {
@@ -707,11 +812,11 @@ public class SetMineMainActivity extends FragmentActivity implements
         Bundle args = new Bundle();
         args.putInt("page", pageToScrollTo);
         mainPagerContainerFragment.setArguments(args);
+        fragmentManager = getSupportFragmentManager();
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, mainPagerContainerFragment);
         transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
         transaction.addToBackStack("mainPagerContainer");
-
         transaction.commitAllowingStateLoss();
     }
 
@@ -755,10 +860,10 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     // Open Artist Detail Fragment from anywhere in the app given a valid Artist object
 
-    public void openArtistDetailPage(Artist artist) {
+    public void openArtistDetailPage(String artistName) {
         artistDetailFragment = new ArtistDetailFragment();
         Bundle args = new Bundle();
-        args.putString("currentArtist", artist.jsonModelString);
+        args.putString("currentArtist", artistName);
         artistDetailFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
         transaction.replace(R.id.currentFragmentContainer, artistDetailFragment);
@@ -767,12 +872,27 @@ public class SetMineMainActivity extends FragmentActivity implements
         transaction.commitAllowingStateLoss();
     }
 
+    // Open Event Detail Fragment from anywhere in the app given a valid Offer ID
+
+    public void openOfferDetailFragment(String offerId){
+        Log.d(TAG, "openOfferDetailFragment");
+        offerDetailFragment = new OfferDetailFragment();
+        Bundle args = new Bundle();
+        args.putString("currentOffer", offerId);
+        offerDetailFragment.setArguments(args);
+        FragmentTransaction transaction = fragmentManager.beginTransaction();
+        transaction.replace(R.id.currentFragmentContainer, offerDetailFragment);
+        transaction.setTransition(FragmentTransaction.TRANSIT_FRAGMENT_FADE);
+        transaction.addToBackStack("offerDetail");
+        transaction.commitAllowingStateLoss();
+    }
+
     // Open Event Detail Fragment from anywhere in the app given a valid Event object
 
-    public void openEventDetailPage(Event event, String eventType) {
+    public void openEventDetailPage(String eventID, String eventType) {
         eventDetailFragment = new EventDetailFragment();
         Bundle args = new Bundle();
-        args.putString("currentEvent", event.jsonModelString);
+        args.putString("event", eventID);
         args.putString("eventType", (eventType.equals("search") ? "upcoming" : eventType));
         eventDetailFragment.setArguments(args);
         FragmentTransaction transaction = fragmentManager.beginTransaction();
@@ -804,11 +924,16 @@ public class SetMineMainActivity extends FragmentActivity implements
             segments = null;
         }
 
-
         // Intents for Playing Sets, Artist Details, Event Details, Remote Controls and the Notification player
 
         if (intent.getAction().equals("com.setmine.android.OPEN_PLAYER")) {
             startPlayerFragment();
+        } else if(intent.getAction().equals("OFFER_UNLOCKED")) {
+            Log.d(TAG, "OFFER_UNLOCKED");
+            Log.d(TAG, intent.getStringExtra("offer_id"));
+
+            openMainViewPager(-1);
+            openOfferDetailFragment(intent.getStringExtra("offer_id"));
         } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?play")) {
 
             Log.d("track id: ", segments[segments.length - 1]);
@@ -826,16 +951,8 @@ public class SetMineMainActivity extends FragmentActivity implements
                     artistName = artistName + artistNameArray[j] + " ";
                 }
                 artistName = artistName + artistNameArray[artistNameArray.length - 1];
+                openArtistDetailPage(artistName);
 
-                List<Artist> allArtists = modelsCP.getAllArtists();
-                Artist artist;
-                for (int i = 0; allArtists.size() > i; i++) {
-                    if (artistName.equals(allArtists.get(i).getArtist())) {
-                        artist = allArtists.get(i);
-                        openArtistDetailPage(artist);
-                        break;
-                    }
-                }
             } else if (segments[segments.length - 1].equals("festival")) {
                 String eventName = segments[segments.length - 2];
                 String[] eventNameArray = eventName.split("\\+", 0);
@@ -844,32 +961,19 @@ public class SetMineMainActivity extends FragmentActivity implements
                     eventName = eventName + eventNameArray[j] + " ";
                 }
                 eventName = eventName + eventNameArray[eventNameArray.length - 1];
+                openEventDetailPage(eventName, "recent");
 
-                List<Event> allEvents = modelsCP.getEvents();
-                Event event;
-                for (int i = 0; allEvents.size() > i; i++) {
-                    if (eventName.equals(allEvents.get(i).getEvent())) {
-                        event = allEvents.get(i);
-                        openEventDetailPage(event, "recent");
-                        break;
-                    }
-                }
             }
         } else if (intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("?event")) {
             String eventId = segments[segments.length - 1];
+            openEventDetailPage(eventId, "upcoming");
 
 
-            List<Event> upcomingEvents = modelsCP.getSoonestEvents();
-            Event event;
-            for (int i = 0; upcomingEvents.size() > i; i++) {
-                if (eventId.equals(upcomingEvents.get(i).getId())) {
-                    event = upcomingEvents.get(i);
-                    openEventDetailPage(event, "upcoming");
-                    break;
-                }
-            }
-
-        } else {
+        } else if(intent.getAction().equals("android.intent.action.VIEW") && segments[segments.length - 2].equals("offer")){
+            String offerId = segments[segments.length-1];
+            openOfferDetailFragment(offerId);
+        }
+        else {
             openMainViewPager(-1);
         }
 
@@ -938,7 +1042,7 @@ public class SetMineMainActivity extends FragmentActivity implements
      * by Google Play services
      */
 
-    private boolean servicesConnected() {
+    public boolean servicesConnected() {
         // Check that Google Play services is available
         int resultCode = GooglePlayServicesUtil.
                         isGooglePlayServicesAvailable(this);
@@ -967,59 +1071,29 @@ public class SetMineMainActivity extends FragmentActivity implements
 
     @Override
     public void onConnected(Bundle bundle) {
-
-        // Default to Gainesville coordinates if location not available and disconnect
-
         if(locationClient.getLastLocation() != null) {
             currentLocation = locationClient.getLastLocation();
         }
         else {
-            currentLocation = new Location("default");
-            currentLocation.setLatitude(29.652175);
-            currentLocation.setLongitude(-82.325856);
+            currentLocation = null;
         }
         locationClient.disconnect();
-
-        String eventSearchUrl = "upcoming/?latitude=" + currentLocation.getLatitude();
-        eventSearchUrl += "&longitude=" + currentLocation.getLongitude();
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl, "upcomingEvents");
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl, "searchEvents");
 
     }
 
     @Override
     public void onDisconnected() {
         Log.d(TAG, "onDisconnected");
+        currentLocation = null;
     }
 
     // Google Play Services connection failed
 
     @Override
     public void onConnectionFailed(ConnectionResult connectionResult) {
-
-        // Use Gainesville as location
-
         Log.d(TAG, "onConnectionFailed");
-
-
+        currentLocation = null;
         locationClient.disconnect();
-        currentLocation = new Location("default");
-        currentLocation.setLatitude(29.652175);
-        currentLocation.setLongitude(-82.325856);
-        String eventSearchUrl = "upcoming?latitude=" + currentLocation.getLatitude() + "&longitude="
-                + currentLocation.getLongitude();
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        eventSearchUrl,
-                        "searchEvents");
-        new SetMineApiGetRequestAsyncTask(this, this)
-                .executeOnExecutor(SetMineApiGetRequestAsyncTask.THREAD_POOL_EXECUTOR,
-                        "upcoming",
-                        "upcomingEvents");
     }
 
 

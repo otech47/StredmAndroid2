@@ -83,7 +83,7 @@ public class DetailUpcomingEventsFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     v.setPressed(true);
-                    ((SetMineMainActivity) getActivity()).openEventDetailPage(uEvent, "upcoming");
+                    ((SetMineMainActivity) getActivity()).openEventDetailPage(uEvent.getId(), "upcoming");
                 }
             });
             ((ViewGroup)detailListContainer).addView(eventTile);

@@ -13,9 +13,8 @@ import com.nostra13.universalimageloader.core.DisplayImageOptions;
 import com.nostra13.universalimageloader.core.ImageLoader;
 import com.setmine.android.R;
 import com.setmine.android.SetMineMainActivity;
-import com.setmine.android.artist.ArtistDetailFragment;
 import com.setmine.android.artist.Artist;
-import com.setmine.android.Constants;
+import com.setmine.android.artist.ArtistDetailFragment;
 import com.setmine.android.event.Event;
 import com.setmine.android.util.DateUtils;
 
@@ -88,12 +87,12 @@ public class DetailSetsFragment extends Fragment {
                     public void onClick(View v) {
                         v.setPressed(true);
                         Event currentEvent = null;
-                        for (Event event : ((ArtistDetailFragment)getParentFragment()).modelsCP.getEvents()) {
+                        for (Event event : ((ArtistDetailFragment)getParentFragment()).detailEvents) {
                             if (event.getEvent().equals(set.getEvent())) {
                                 currentEvent = event;
                             }
                         }
-                        activity.openEventDetailPage(currentEvent, "recent");
+                        activity.openEventDetailPage(currentEvent.getEvent(), "recent");
 
                     }
                 });
